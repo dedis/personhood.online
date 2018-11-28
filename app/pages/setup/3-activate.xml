@@ -1,0 +1,12 @@
+<!--
+Here the user can enter his alias
+-->
+<Page xmlns="http://schemas.nativescript.org/tns.xsd" class="page">
+    <StackLayout class="p-20">
+        <Label text="Chose one of the following activation methods:" class="h1 text-center"/>
+        <Button text="Receive personhood-coins" tap="activatePersonhood" class="btn btn-primary btn-active"/>
+        <Button text="Visit a personhood-party" tap="activateParty" class="btn btn-primary btn-active"/>
+        <Button text="Login through EPFL" tap="activateEPFL" class="btn btn-primary btn-active"/>
+        <Button text="Use email" tap="activateEmail" class="btn btn-primary btn-active"/>
+    </StackLayout>
+</Page>
