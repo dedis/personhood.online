@@ -54,12 +54,17 @@ export class LogC {
                     method[0] = "?";
                 }
             }
-            const file = method[1].replace(/^.*\/|\)$/g, "");
+            let module = "unknown";
+            let file = method[0].replace(/^.*\//g, "");
+            if (method.length > 1) {
+                module = method[0];
+                file = method[1].replace(/^.*\/|\)$/g, "");
+            }
 
             // @ts-ignore
-            return (method[0] + " - " + file).padEnd(40);
+            return (module + " - " + file).padEnd(40);
         } catch (e) {
-            return this.printCaller(new Error("Couldn't get stack - " + err), i + 2);
+            return this.printCaller(new Error("Couldn't get stack - " + e), i + 2);
         }
     }
 
