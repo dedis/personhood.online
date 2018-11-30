@@ -5,10 +5,18 @@ purpose of the file is to pass control to the app’s first module.
 */
 
 import * as application from "tns-core-modules/application";
-import {loaded} from "~/lib/Data";
+import {Data, gData} from "~/lib/Data";
 import Log from "~/lib/Log";
+import {Defaults} from "~/lib/Defaults";
 
-application.run({moduleName: "app-root"});
+
+gData.load().then(() => {
+    Log.print("Data loaded");
+    if (Defaults.Alias) {
+        gData.alias = Defaults.Alias;
+    }
+    application.run({moduleName: "app-root"});
+});
 
 /*
 Do not place any code after the application has been started as it will not

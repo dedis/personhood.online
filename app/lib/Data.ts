@@ -6,6 +6,8 @@ import {FileIO} from "~/lib/FileIO";
 import Log from "~/lib/Log";
 import {KeyPair} from "~/lib/KeyPair";
 
+export const dataFileName = "data.json";
+
 /**
  * Data holds the data of the app.
  */
@@ -22,29 +24,44 @@ export class Data {
      * @param obj (optional) object with all fields for the class.
      */
     constructor(obj: any = {}) {
-        if (Object.keys(obj).length > 0) {
-            this._alias = obj.alias;
-            this._email = obj.email;
-            this._continuousScan = obj.continuousScan;
-            this._keyPersonhood = new KeyPair(obj.keyPersonhood);
-            this._keyIdentity = new KeyPair(obj.keyIdentity);
-        }
+        this.setValues(obj);
+    }
+
+    setValues(obj: any) {
+        this._alias = obj.alias ? obj.alias : "";
+        this._email = obj.email ? obj.email : "";
+        this._continuousScan = obj.continuousScan ? obj.continuousScan : false;
+        this._keyPersonhood = obj.keyPersonhood ? new KeyPair(obj.keyPersonhood) : new KeyPair();
+        this._keyIdentity = obj.keyIdentity ? new KeyPair(obj.keyIdentity) : new KeyPair();
+    }
+
+    getValues(): any {
+        return {
+            alias: this._alias,
+            email: this._email,
+            continuousScan: this._continuousScan,
+            keyPersonhood: this._keyPersonhood.privateToHex(),
+            keyIdentity: this._keyIdentity.privateToHex(),
+        };
     }
 
     /**
      * Returns a promise with the loaded Data in it, when available. If the file
      * is not found, it returns an empty data.
      */
-    static load(): Promise<Data> {
-        return FileIO.readFile("data.json")
-            .then((str) => {
-                let d = JSON.parse(str);
-                return new Data(JSON.parse(str));
-            })
-            .catch((err) => {
-                Log.catch(err);
-                return new Data();
-            })
+    async load(): Promise<Data> {
+        try {
+            let str = await FileIO.readFile(dataFileName);
+            this.setValues(JSON.parse(str));
+        } catch (e) {
+            Log.catch(e);
+        }
+        return this;
+    }
+
+    async save(): Promise<Data> {
+        await FileIO.writeFile(dataFileName, JSON.stringify(this.getValues()));
+        return this;
     }
 
     /**
@@ -97,11 +114,4 @@ export class Data {
  * of the UI, it is important to always pass the data, so that it is simpler to
  * test the libraries.
  */
-export var gData: Data;
-export var loaded = false;
-
-Data.load().then(d => {
-    Log.print("Data loaded");
-    gData = d;
-    loaded = true;
-});
+export var gData = new Data();

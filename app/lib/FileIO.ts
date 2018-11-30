@@ -4,7 +4,7 @@
 
 const FileSystem = require("tns-core-modules/file-system");
 const Documents = FileSystem.knownFolders.documents();
-const Log = require("./Log");
+import Log from "~/lib/Log";
 
 export class FileIO {
 
@@ -13,17 +13,16 @@ export class FileIO {
      * @param {string} filePath - the path to the file
      * @returns {Promise} - a promise that gets resolved once the content of the file has been read
      */
-    static readFile(filePath: string) : Promise<string>{
-        return Documents.getFile(filePath)
-            .readText()
-            .then(string => {
-                Log.lvl3("read file", filePath, string);
-                return string;
-            })
-            .catch((error) => {
-                Log.catch(error, "Reading error");
-                return this.lslr("");
-            });
+    static async readFile(filePath: string): Promise<string> {
+        let str = "";
+        try {
+            str = await Documents.getFile(filePath).readText();
+            Log.lvl2("read file", filePath, str);
+        } catch (error) {
+            await this.lslr("");
+            Log.rcatch(error, "Reading error");
+        }
+        return str;
     }
 
     /**
@@ -32,14 +31,14 @@ export class FileIO {
      * @param {string} string - the string to write
      * @returns {Promise} - a promise that gets resolved once the content has been written to the file
      */
-    static writeFile(filePath: string, content: string) : Promise<void>{
+    static async writeFile(filePath: string, content: string): Promise<void> {
         Log.lvl2("writing to: " + filePath);
-        return Documents.getFile(filePath)
-            .writeText(content)
-            .catch((error) => {
-                Log.catch("WRITING ERROR:", error);
-                this.lslr(filePath);
-            });
+        try {
+            await Documents.getFile(filePath).writeText(content);
+        } catch (error) {
+            await this.lslr(filePath);
+            Log.rcatch("WRITING ERROR:", error);
+        }
     }
 
     /**
@@ -61,10 +60,12 @@ export class FileIO {
      * @param {string} folder
      * @retuns {Promise} - a promise that gets resolved once the folder has been deleted
      */
-    static removeFolder(folder: string) : Promise<void>{
-        return Documents.getFolder(folder).remove().catch((error) => {
-            Log.catch(error, "REMOVING ERROR :");
-        });
+    static async removeFolder(folder: string): Promise<void> {
+        try {
+            await Documents.getFolder(folder).remove();
+        } catch (error) {
+            Log.rcatch(error, "REMOVING ERROR :");
+        }
     }
 
     /**
@@ -73,8 +74,8 @@ export class FileIO {
      * @param dir
      * @returns {Promise<void>}
      */
-    static rmrf(dir: string) : Promise<void>{
-        return Documents.getFolder(dir).clear();
+    static async rmrf(dir: string): Promise<void> {
+        await Documents.getFolder(dir).clear();
     }
 
     /**
@@ -82,52 +83,46 @@ export class FileIO {
      * @param dir the directory to list
      * @param rec internal parameter for recursive search
      */
-    static lslr(dir: string, rec = false) : Promise<void>{
+    static async lslr(dir: string, rec = false): Promise<void> {
         if (!rec) {
             dir = FileSystem.path.join(Documents.path, dir);
         }
         let folders = [];
         let files = [];
-        return FileSystem.Folder.fromPath(dir).getEntities()
-            .then((entities) => {
-                // entities is array with the document's files and folders.
-                entities.forEach((entity) => {
-                    const fullPath = entity.path;
-                    // const fullPath = FileSystem.path.join(entity.path, entity.name);
-                    const isFolder = FileSystem.Folder.exists(fullPath);
-                    const e = {
-                        name: entity.name,
-                        path: entity.path,
-                    };
-                    if (isFolder) {
-                        folders.push(e);
-                    } else {
-                        files.push(e);
-                    }
-                });
-                Log.lvl2("");
-                Log.lvl2("Directory:", dir);
-                folders.forEach(folder => {
-                    Log.lvl2("d ", folder.name);
-                });
-                files.forEach(file => {
-                    Log.lvl2("f ", file.name);
-                });
-                folders.forEach(folder => {
-                    this.lslr(folder.path, true);
-                });
-            })
-            .catch((err) => {
-                // Failed to obtain folder's contents.
-                Log.catch(err);
-            });
+        let entities = await FileSystem.Folder.fromPath(dir).getEntities();
+        // entities is array with the document's files and folders.
+        entities.forEach((entity) => {
+            const fullPath = entity.path;
+            // const fullPath = FileSystem.path.join(entity.path, entity.name);
+            const isFolder = FileSystem.Folder.exists(fullPath);
+            const e = {
+                name: entity.name,
+                path: entity.path,
+            };
+            if (isFolder) {
+                folders.push(e);
+            } else {
+                files.push(e);
+            }
+        });
+        Log.lvl2("");
+        Log.lvl2("Directory:", dir);
+        folders.forEach(folder => {
+            Log.lvl2("d ", folder.name);
+        });
+        files.forEach(file => {
+            Log.lvl2("f ", file.name);
+        });
+        folders.forEach(folder => {
+            this.lslr(folder.path, true);
+        });
     }
 
     /**
      * Returns true if the folder exists.
      * @param path
      */
-    static folderExists(path) :boolean{
+    static folderExists(path): boolean {
         return FileSystem.Folder.exists(FileSystem.path.join(Documents.path, path));
     }
 
@@ -135,7 +130,7 @@ export class FileIO {
      * Returns true if the file exists
      * @param path
      */
-    static fileExists(path) : boolean {
+    static fileExists(path): boolean {
         return FileSystem.Folder.exists(FileSystem.path.join(Documents.path, path));
     }
 }

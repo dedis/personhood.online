@@ -5,7 +5,7 @@ logic, and to set up your page’s data binding.
 */
 
 import { EventData } from "tns-core-modules/data/observable";
-import { Frame, topmost } from "tns-core-modules/ui/frame";
+import { getFrameById} from "tns-core-modules/ui/frame";
 import Log from "~/lib/Log";
 
 Log.print("started 1-present");
@@ -16,6 +16,5 @@ export function navigatingTo(args: EventData){
 
 export function goAlias(args: EventData) {
     Log.print("going to alias");
-    const topmostFrame: Frame = topmost();
-    topmostFrame.navigate("pages/setup/2-alias");
+    return getFrameById("app-root").navigate("pages/setup/2-alias");
 }

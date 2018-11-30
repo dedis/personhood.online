@@ -1,41 +1,46 @@
 require("nativescript-nodeify");
-import {Buffer} from "buffer";
 const Kyber = require("@dedis/kyber-js");
 const Curve25519 = new Kyber.curve.edwards25519.Curve;
+import {Buffer} from "buffer";
+import Log from "~/lib/Log";
 
 /**
  * KeyPair holds the private and public key that go together. It has
  * convenience methods to initialize and print the private and public
  * key.
  */
-export class KeyPair{
+export class KeyPair {
     _private: any;
     _public: any;
 
-    constructor(privHex: string = ""){
-        if (privHex.length == 64){
-            this.setPrivate(privHex);
+    constructor(privHex: string = "") {
+        if (privHex && privHex.length == 64) {
+            this.setPrivateHex(privHex);
         } else {
             this.randomize();
         }
     }
 
-    setPrivate(privHex: string){
+    setPrivateHex(privHex: string) {
         let priv = Curve25519.scalar();
-        priv.unmarshalBinary(Buffer.from(privHex, "hex"));
+        priv.unmarshalBinary(new Uint8Array(Buffer.from(privHex, "hex")));
+        this.setPrivate(priv);
+    }
+
+    setPrivate(priv: any) {
         this._private = priv;
         this._public = Curve25519.point().mul(this._private, null);
     }
 
-    randomize(){
+    randomize() {
         this.setPrivate(Curve25519.newKey());
     }
 
-    privateToHex(): string{
+    privateToHex(): string {
         return new Buffer(this._private.marshalBinary()).toString("hex");
     }
 
-    publicToHex(): string{
+    publicToHex(): string {
         return new Buffer(this._public.marshalBinary()).toString("hex");
     }
 }

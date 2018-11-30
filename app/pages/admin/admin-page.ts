@@ -5,46 +5,50 @@ logic, and to set up your page’s data binding.
 */
 
 import {EventData} from "tns-core-modules/data/observable";
-import {Frame, getFrameById, Page, topmost} from "tns-core-modules/ui/frame";
-import {Data} from "~/lib/Data";
+import {getFrameById, Page} from "tns-core-modules/ui/frame";
+import {gData} from "~/lib/Data";
 import {AdminViewModel} from "./admin-view";
 import Log from "~/lib/Log"
 import * as dialogs from "tns-core-modules/ui/dialogs";
+import {Defaults} from "~/lib/Defaults";
 
-let d = new Data();
+let page: Page;
 
 // Event handler for Page "navigatingTo" event attached in identity.xml
 export function navigatingTo(args: EventData) {
-    const page = <Page>args.object;
-    page.bindingContext = new AdminViewModel(d);
+    page = <Page>args.object;
+    page.bindingContext = new AdminViewModel(gData);
 }
 
-export function tapClear(args: EventData){
+export async function tapClear(args: EventData) {
     const page = <Page>args.object;
-    return dialogs.confirm("Do you really want to delete everything? There is no way back!")
-        .then((res) =>{
-            if (res){
-                return dialogs.confirm("You will lose all your data! No way back!")
-                    .then((res)=>{
-                        if (res){
-                            return dialogs.alert("ALL YOUR DATA HAS BEEN DELETED!")
-                                .then(()=>{
-                                    return getFrameById("app-root").navigate({
-                                        moduleName: "main-page",
-                                        // Page navigation, without saving navigation history.
-                                        backstackVisible: false
-                                    });
-                                })
-                        }
-                    })
-            }
-        })
+    if (!Defaults.Confirm) {
+        gData.setValues({});
+        return getFrameById("app-root").navigate({
+            moduleName: "main-page",
+            // Page navigation, without saving navigation history.
+            backstackVisible: false
+        });
+    } else {
+        if (await dialogs.confirm("Do you really want to delete everything? There is no way back!") &&
+            await dialogs.confirm("You will lose all your data! No way back!")) {
+            gData.setValues({});
+            await dialogs.alert("ALL YOUR DATA HAS BEEN DELETED!");
+            return getFrameById("app-root").navigate({
+                moduleName: "main-page",
+                // Page navigation, without saving navigation history.
+                backstackVisible: false
+            });
+
+        }
+    }
 }
 
-export function tapCreateParty(args: EventData){
+export function tapCreateParty(args: EventData) {
     return dialogs.alert("You need at least 1e7 coins to do that.")
 }
 
-export function tapSave(args: EventData){
-    Log.print("saving");
+export function tapSave(args: EventData) {
+    Log.print("saving admin:", page.bindingContext.admin);
+    gData.setValues(page.bindingContext.admin);
 }
