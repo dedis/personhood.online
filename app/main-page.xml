@@ -7,19 +7,23 @@ http://docs.nativescript.org/cookbook/ui/tab-view
 <Page actionBarHidden="true"
       navigatingTo="navigatingTo">
     <TabView androidTabsPosition="bottom" androidOffscreenTabLimit="0" selectedIndex="0">
-        <TabViewItem title="Identity" ios:iconSource="res://tabIcons/search" android:iconSource="res://search">
-            <Frame defaultPage="pages/identity/identity-page"/>
+        <TabViewItem title="Home" ios:iconSource="res://tabIcons/search" android:iconSource="res://home">
+            <Frame defaultPage="pages/home/home-page"/>
         </TabViewItem>
 
-        <TabViewItem title="Apps" ios:iconSource="res://tabIcons/home" android:iconSource="res://home">
-            <Frame defaultPage="pages/apps/apps-page"/>
+        <TabViewItem title="Personhood" ios:iconSource="res://tabIcons/home" android:iconSource="res://search">
+            <Frame defaultPage="pages/personhood/personhood-page"/>
             <!--<Frame defaultPage="pages/apps/posts/posts-page"></Frame>-->
             <!--<Frame defaultPage="pages/apps/coins/coins-page"></Frame>-->
             <!--<Frame defaultPage="pages/apps/coupons/coupons-page"></Frame>-->
         </TabViewItem>
 
+        <TabViewItem title="Identity" ios:iconSource="res://tabIcons/search" android:iconSource="res://card">
+            <Frame defaultPage="pages/identity/identity-page"/>
+        </TabViewItem>
+
         <TabViewItem title="Admin" ios:iconSource="res://tabIcons/admin" android:iconSource="res://admin">
-            <Frame defaultPage="pages/admin/admin-page"/>
+            <Frame defaultPage="pages/settings/settings-page"/>
         </TabViewItem>
     </TabView>
 </Page>

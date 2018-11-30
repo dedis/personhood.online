@@ -12,7 +12,7 @@
 // let FileIO = lib.FileIO;
 // let FilePaths = lib.FilePaths;
 // let Coupon = lib.Coupon;
-// import Log from "~/lib/Log";
+// import {Log} from "~/lib/Log";
 // import {ItemEventData} from "tns-core-modules/ui/list-view";
 //
 // let view: View = undefined;

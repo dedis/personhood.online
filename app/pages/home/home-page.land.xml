@@ -1,0 +1,22 @@
+<Page xmlns="http://schemas.nativescript.org/tns.xsd"
+      navigatingTo="navigatingTo"
+      class="page">
+
+    <StackLayout class="p-20" orientation="horizontal">
+        <StackLayout width="50%">
+            <Label text="Your identity" class="h1 text-center"/>
+            <Label text="{{ 'Alias: ' + data.alias }}"/>
+            <Image src="{{ qrcode }}"
+                   visibility="visible"
+                   width="100%"/>
+            <Label text="Public key + alias of your identity"
+                   textWrap="true"/>
+        </StackLayout>
+
+        <StackLayout>
+            <Button text="Login to service" tap="login" class="btn btn-primary btn-stub"/>
+            <Button text="Visit personhood party" tap="visitParty" class="btn btn-primary btn-stub"/>
+            <Button text="Link with external ID" tap="linkID" class="btn btn-primary btn-stub"/>
+        </StackLayout>
+    </StackLayout>
+</Page>

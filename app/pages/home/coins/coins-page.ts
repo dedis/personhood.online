@@ -12,7 +12,7 @@
 //
 // let lib = require("../../../lib");
 // let Scan = lib.Scan;
-// import Log from "~/lib/Log";
+// import {Log} from "~/lib/Log";
 // import * as Badge from "~/lib/pop/Badge";
 // import {Label} from "tns-core-modules/ui/label";
 // import {gData} from "~/app";

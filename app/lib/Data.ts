@@ -2,9 +2,16 @@
  * This is the main library for storing and getting things from the phone's file
  * system.
  */
+
+const ZXing = require("nativescript-zxing");
+const QRGenerator = new ZXing();
+
 import {FileIO} from "~/lib/FileIO";
-import Log from "~/lib/Log";
+import {Log} from "~/lib/Log";
 import {KeyPair} from "~/lib/KeyPair";
+import {fromNativeSource, ImageSource} from "tns-core-modules/image-source";
+import {Buffer} from "buffer";
+import {isAndroid, isIOS, device, screen} from "tns-core-modules/platform";
 
 export const dataFileName = "data.json";
 
@@ -62,6 +69,22 @@ export class Data {
     async save(): Promise<Data> {
         await FileIO.writeFile(dataFileName, JSON.stringify(this.getValues()));
         return this;
+    }
+
+    qrcodeIdentity(): ImageSource {
+        const text = JSON.stringify({
+            pub_ed25519: this.keyIdentity.publicToHex(),
+            usage: "identity",
+            alias: this.alias,
+        });
+        const sideLength = screen.mainScreen.widthPixels / 4;
+        const qrcode = QRGenerator.createBarcode({
+            encode: text,
+            format: ZXing.QR_CODE,
+            height: sideLength,
+            width: sideLength
+        });
+        return fromNativeSource(qrcode);
     }
 
     /**

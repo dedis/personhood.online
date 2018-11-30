@@ -7,8 +7,8 @@ logic, and to set up your page’s data binding.
 import {EventData} from "tns-core-modules/data/observable";
 import {getFrameById, Page} from "tns-core-modules/ui/frame";
 import {gData} from "~/lib/Data";
-import {AdminViewModel} from "./admin-view";
-import Log from "~/lib/Log"
+import {AdminViewModel} from "./settings-view";
+import {Log} from "~/lib/Log"
 import * as dialogs from "tns-core-modules/ui/dialogs";
 import {Defaults} from "~/lib/Defaults";
 
@@ -24,6 +24,7 @@ export async function tapClear(args: EventData) {
     const page = <Page>args.object;
     if (!Defaults.Confirm) {
         gData.setValues({});
+        await gData.save();
         return getFrameById("app-root").navigate({
             moduleName: "main-page",
             // Page navigation, without saving navigation history.
@@ -33,6 +34,7 @@ export async function tapClear(args: EventData) {
         if (await dialogs.confirm("Do you really want to delete everything? There is no way back!") &&
             await dialogs.confirm("You will lose all your data! No way back!")) {
             gData.setValues({});
+            await gData.save();
             await dialogs.alert("ALL YOUR DATA HAS BEEN DELETED!");
             return getFrameById("app-root").navigate({
                 moduleName: "main-page",
@@ -48,7 +50,7 @@ export function tapCreateParty(args: EventData) {
     return dialogs.alert("You need at least 1e7 coins to do that.")
 }
 
-export function tapSave(args: EventData) {
-    Log.print("saving admin:", page.bindingContext.admin);
+export async function tapSave(args: EventData) {
     gData.setValues(page.bindingContext.admin);
+    await gData.save();
 }

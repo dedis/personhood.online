@@ -2,7 +2,7 @@ require("nativescript-nodeify");
 const Kyber = require("@dedis/kyber-js");
 const Curve25519 = new Kyber.curve.edwards25519.Curve;
 import {Buffer} from "buffer";
-import Log from "~/lib/Log";
+import {Log} from "~/lib/Log";
 
 /**
  * KeyPair holds the private and public key that go together. It has

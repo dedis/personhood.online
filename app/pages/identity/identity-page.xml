@@ -1,5 +1,23 @@
-<Page xmlns="http://schemas.nativescript.org/tns.xsd" navigatingTo="navigatingTo" class="page">
+<Page xmlns="http://schemas.nativescript.org/tns.xsd"
+      navigatingTo="navigatingTo"
+      class="page">
+
     <StackLayout class="p-20">
-        <Label text="Your identity" class="h1 text-center"/>
+        <Button text="Devices" tap="devices" class="btn btn-primary btn-stub"/>
+        <StackLayout visibility="{{ showStack == 0 ? 'visible' : 'collapsed' }}">
+            <Label text="Device 1" class="h2"/>
+            <Label text="Device 2" class="h2"/>
+        </StackLayout>
+        <Button text="Friends" tap="friends" class="btn btn-primary btn-stub"/>
+        <StackLayout visibility="{{ showStack == 1 ? 'visible' : 'collapsed' }}">
+            <Label text="Friend 1" class="h2"/>
+            <Label text="Friend 2" class="h2"/>
+        </StackLayout>
+        <Button text="Link with external ID" tap="linkID" class="btn btn-primary btn-stub"/>
+        <StackLayout visibility="{{ showStack == 2 ? 'visible' : 'collapsed' }}">
+            <Label text="Link with Gaspar" class="h2"/>
+            <Label text="Link with Google" class="h2"/>
+        </StackLayout>
+        <Button text="Backup / Restore" tap="backupRestore" class="btn btn-primary btn-stub"/>
     </StackLayout>
 </Page>

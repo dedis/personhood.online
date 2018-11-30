@@ -1,13 +1,9 @@
 import {NavigatedData, Page} from "ui/page";
-import {AppsViewModel} from "./apps-view-model";
 import {GestureEventData} from "tns-core-modules/ui/gestures";
-
-import {topmost} from "tns-core-modules/ui/frame";
-import Log from "../../lib/Log";
 
 export function onNavigatingTo(args: NavigatedData) {
     const page = <Page>args.object;
-    page.bindingContext = new AppsViewModel();
+    page.bindingContext = {};
 }
 
 export function onNavigatedFrom(args: NavigatedData){

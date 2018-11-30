@@ -6,7 +6,7 @@ Here the user can enter his alias
       xmlns:df="nativescript-ui-dataform"
       class="page">
     <StackLayout class="p-20">
-        <Label text="Setting your alias" class="h1 text-center"/>
+        <Label text="Setting your alias" class="h1 text-center" textWrap="true"/>
         <df:RadDataForm id="myDataForm" source="{{ input }}" />
 
         <Button text="Continue" tap="goActivate" class="btn btn-primary btn-active"/>

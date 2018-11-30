@@ -11,7 +11,8 @@ import {Log} from "~/lib/Log";
 import * as dialogs from "tns-core-modules/ui/dialogs";
 
 let identity = fromObject({
-    showStack: 0,
+    alias: gData.alias,
+    qrcode: gData.qrcodeIdentity(),
 });
 
 // Event handler for Page "navigatingTo" event attached in identity.xml
@@ -24,18 +25,10 @@ export function navigatingTo(args: EventData) {
     }
 }
 
-export function devices() {
-    identity.set("showStack", 0);
+export function login() {
+    return dialogs.alert("Scanning QRCode of login page");
 }
 
-export function friends() {
-    identity.set("showStack", 1);
-}
-
-export function linkID() {
-    identity.set("showStack", 2);
-}
-
-export function backupRestore() {
-    identity.set("showStack", 3);
+export function coins() {
+    return dialogs.alert("Send and receive coins");
 }

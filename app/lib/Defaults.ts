@@ -4,4 +4,6 @@ export var Defaults = {
     Confirm: false,
     // A standard alias for testing
     Alias: "ineiti",
+    // Show stubs
+    Stubs: true,
 }

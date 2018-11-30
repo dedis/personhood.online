@@ -1,0 +1,19 @@
+<Page xmlns="http://schemas.nativescript.org/tns.xsd"
+      navigatingTo="navigatingTo"
+      class="page">
+
+    <StackLayout class="p-20">
+        <Label text="{{ 'Welcome ' + alias }}" class="h1 text-center capitalize"/>
+        <StackLayout class="p-20" width="50%">
+            <Image src="{{ qrcode }}"
+                   visibility="visible"
+                   width="100%"/>
+            <Label text="Public key + alias of your identity"
+                   class="h3"
+                   textWrap="true"/>
+        </StackLayout>
+
+        <Button text="Login to service" tap="login" class="btn btn-primary btn-stub"/>
+        <Button text="Send/receive coins" tap="coins" class="btn btn-primary btn-stub"/>
+    </StackLayout>
+</Page>

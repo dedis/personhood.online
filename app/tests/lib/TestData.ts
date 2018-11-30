@@ -1,6 +1,6 @@
 import {Data} from "~/lib/Data";
 import {KeyPair} from "~/lib/KeyPair";
-import Log from "~/lib/Log";
+import {Log} from "~/lib/Log";
 
 describe("Initializing Data", ()=>{
     it("Must start with empty values", ()=>{

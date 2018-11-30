@@ -1,0 +1,47 @@
+<!--
+This is the page that is presented in the 'Search' tab.
+Feel free to customize layouts and components to change how the tab view looks.
+-->
+<Page
+        class="page"
+        loaded="onNavigatingTo"
+        unloaded="onNavigatedFrom"
+        xmlns="http://schemas.nativescript.org/tns.xsd">
+
+    <ActionBar class="action-bar">
+        <Label class="action-bar-title" text="Applications"></Label>
+    </ActionBar>
+    <GridLayout rows="*, auto, *, auto, *" columns="auto, *" margin="2%" backgroundColor="#eeeeee">
+
+        <Label text="&#xff158;" fontSize="100%" class="h1 fa btn-stub"
+               row="0" col="0" style="vertical-align: center;" tap="goBadges"/>
+        <StackLayout padding="10%" row="0" col="1" style="vertical-align: center;" tap="goBadges"
+                     class="btn-stub">
+            <Label text="Badges" class="h1" textWrap="true"
+                   textTransform="uppercase"/>
+            <Label text="Number" textWrap="true" fontSize="15%"/>
+        </StackLayout>
+
+        <Label backgroundColor="#ffffff" row="1" colSpan="2" height="3%"/>
+
+        <Label text="&#xff0e0;" fontSize="100%" class="fa btn-stub"
+               row="2" col="0" style="vertical-align: center;" tap="goPosts"/>
+        <StackLayout padding="10%" row="2" col="2" style="vertical-align: center;" tap="goPosts"
+                     class="btn-stub">
+            <Label text="Posts" class="h1" textWrap="true"
+                   textTransform="uppercase"/>
+            <Label text="Unread Posts" textWrap="true" fontSize="15%"/>
+        </StackLayout>
+
+        <Label backgroundColor="#ffffff" row="3" colSpan="2" height="3%"/>
+
+        <Label text="&#xf3ff;" fontSize="100%" class="fas btn-stub"
+               row="4" col="0" style="vertical-align: center;" tap="goCoupons"/>
+        <StackLayout padding="10%" row="4" col="1" style="vertical-align: center;" tap="goCoupons"
+                     class="btn-stub">
+            <Label text="Coupons" class="h1" textWrap="true"
+                   textTransform="uppercase"/>
+            <Label text="Total Coupons" textWrap="true" fontSize="15%"/>
+        </StackLayout>
+    </GridLayout>
+</Page>

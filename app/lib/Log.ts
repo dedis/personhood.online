@@ -152,4 +152,3 @@ export class LogC {
 }
 
 export let Log = new LogC(2);
-export default Log;
