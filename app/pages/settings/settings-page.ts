@@ -5,7 +5,7 @@ logic, and to set up your page’s data binding.
 */
 
 import {EventData} from "tns-core-modules/data/observable";
-import {getFrameById, Page} from "tns-core-modules/ui/frame";
+import {getFrameById, Page, topmost} from "tns-core-modules/ui/frame";
 import {gData} from "~/lib/Data";
 import {AdminViewModel} from "./settings-view";
 import {Log} from "~/lib/Log"
@@ -25,11 +25,13 @@ export async function tapClear(args: EventData) {
     if (!Defaults.Confirm) {
         gData.setValues({});
         await gData.save();
-        return getFrameById("app-root").navigate({
-            moduleName: "main-page",
-            // Page navigation, without saving navigation history.
-            backstackVisible: false
-        });
+        Log.print("going to app-root/main-page");
+        return topmost().navigate("main-page");
+        // return getFrameById("app-root").navigate({
+        //     moduleName: "main-page",
+        //     // Page navigation, without saving navigation history.
+        //     backstackVisible: false
+        // });
     } else {
         if (await dialogs.confirm("Do you really want to delete everything? There is no way back!") &&
             await dialogs.confirm("You will lose all your data! No way back!")) {

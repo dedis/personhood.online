@@ -44,3 +44,23 @@ export class KeyPair {
         return new Buffer(this._public.marshalBinary()).toString("hex");
     }
 }
+
+export class Private{}
+
+export class Public{
+    static fromBuffer(buf: Buffer): any{
+        let p = Curve25519.point();
+        p.unmarshalBinary(new Uint8Array(buf));
+        return p;
+    }
+
+    static fromHex(hex: string): any{
+        return Public.fromBuffer(Buffer.from(hex, 'hex'));
+    }
+
+    static zero(): any{
+        let p = Curve25519.point();
+        p.null();
+        return p;
+    }
+}

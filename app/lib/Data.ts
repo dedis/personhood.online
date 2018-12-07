@@ -2,16 +2,22 @@
  * This is the main library for storing and getting things from the phone's file
  * system.
  */
+import {ByzCoinRPC} from "~/lib/cothority/byzcoin/ByzCoinRPC";
+
+require("nativescript-nodeify");
 
 const ZXing = require("nativescript-zxing");
 const QRGenerator = new ZXing();
 
+import {Defaults} from "~/lib/Defaults";
 import {FileIO} from "~/lib/FileIO";
 import {Log} from "~/lib/Log";
 import {KeyPair} from "~/lib/KeyPair";
 import {fromNativeSource, ImageSource} from "tns-core-modules/image-source";
 import {Buffer} from "buffer";
-import {isAndroid, isIOS, device, screen} from "tns-core-modules/platform";
+import {screen} from "tns-core-modules/platform";
+import {RosterSocket, WebSocket, Socket} from "~/lib/network/NSNet";
+import {RequestPath} from "~/lib/network/RequestPath";
 
 export const dataFileName = "data.json";
 
@@ -24,6 +30,7 @@ export class Data {
     _continuousScan: boolean;
     _keyPersonhood: KeyPair;
     _keyIdentity: KeyPair;
+    _byzcoin: any;
 
     /**
      * Constructs a new Data, optionally initialized with an object containing
@@ -42,6 +49,19 @@ export class Data {
         this._keyIdentity = obj.keyIdentity ? new KeyPair(obj.keyIdentity) : new KeyPair();
     }
 
+    async connectByzcoin(obj: any): Promise<any> {
+        let byzcoinIDHex = Defaults.ByzCoinID;
+        let socket: Socket;
+        socket = new RosterSocket(Defaults.Roster, RequestPath.BYZCOIN);
+        if (obj.byzcoinNode) {
+            byzcoinIDHex = obj.byzcoinID;
+            socket = new WebSocket(obj.byzcoinNode, RequestPath.BYZCOIN);
+        }
+        this._byzcoin = await new ByzCoinRPC(socket, Buffer.from(byzcoinIDHex, 'hex'));
+        await this._byzcoin.updateConfig();
+        return this._byzcoin;
+    }
+
     getValues(): any {
         return {
             alias: this._alias,
@@ -52,6 +72,10 @@ export class Data {
         };
     }
 
+    get coinInstID(): Buffer {
+        return new Buffer(32);
+    }
+
     /**
      * Returns a promise with the loaded Data in it, when available. If the file
      * is not found, it returns an empty data.
@@ -59,7 +83,9 @@ export class Data {
     async load(): Promise<Data> {
         try {
             let str = await FileIO.readFile(dataFileName);
-            this.setValues(JSON.parse(str));
+            let obj = JSON.parse(str);
+            this.setValues(obj);
+            await this.connectByzcoin(obj)
         } catch (e) {
             Log.catch(e);
         }

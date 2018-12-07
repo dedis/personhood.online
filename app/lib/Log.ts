@@ -139,7 +139,7 @@ export class LogC {
         }
         console.log("C : " + this.printCaller(e, 1) + " -> (" + errMsg + ") " +
             this.joinArgs(args));
-        throw new Error(errMsg.replace(/Error: /, ""));
+        throw new Error(errMsg.toString().replace(/Error: /, ""));
     }
 
     set lvl(l) {
