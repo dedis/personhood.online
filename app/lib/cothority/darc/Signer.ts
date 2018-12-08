@@ -1,4 +1,5 @@
 import {Identity} from "~/lib/cothority/darc/Identity";
+import {Signature} from "~/lib/cothority/darc/Signature";
 
 export class Signer {
     constructor() {
@@ -11,7 +12,7 @@ export class Signer {
 
      * @param {Uint8Array} msg
      */
-    sign(msg) {
+    sign(msg): Signature {
         throw new Error("Not implemented");
     }
 

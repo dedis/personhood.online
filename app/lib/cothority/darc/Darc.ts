@@ -4,6 +4,7 @@ const crypto = require("crypto-browserify");
 
 import {Log} from "~/lib/Log";
 import {objToProto, Root} from "~/lib/cothority/protobuf/Root";
+import {Identity} from "~/lib/cothority/darc/Identity";
 
 export class Rule {
     action: string;
@@ -18,7 +19,7 @@ export class Rule {
         return this.action + " - " + this.expr.toString();
     }
 
-    static fromIdentities(r: string, ids: any[], operator: string): Rule {
+    static fromIdentities(r: string, ids: Identity[], operator: string): Rule {
         let e = ids.map(id => {
             return id.toString();
         }).join(" " + operator + " ");
@@ -39,7 +40,7 @@ export class Rules {
         }).join("\n");
     }
 
-    static fromOwnersSigners(os: any[], ss: any[]): Rules {
+    static fromOwnersSigners(os: Identity[], ss: Identity[]): Rules {
         let r = new Rules();
         r.list.push(Rule.fromIdentities("invoke:evolve", os, "&"));
         r.list.push(Rule.fromIdentities("_sign", ss, "|"));
@@ -105,7 +106,7 @@ export class Darc {
     }
 
     static fromProof(p: Proof): Darc {
-        return this.fromProto(p.stateChangeBody.value);
+        return this.fromProto(p.value);
     }
 
     static fromProto(buf: Buffer): Darc {

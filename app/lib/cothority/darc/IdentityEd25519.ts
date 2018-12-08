@@ -82,7 +82,7 @@ export class IdentityEd25519 extends Identity {
    *
    * @return {Object}
    */
-  toProtobufValidMessage() {
+  toObject(): object {
     return {
       ed25519: {
         point: this._pub.marshalBinary()

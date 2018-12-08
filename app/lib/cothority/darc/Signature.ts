@@ -1,31 +1,12 @@
 import {Identity} from "~/lib/cothority/darc/Identity";
 
 export class Signature {
-  _signature: Buffer;
-  _signer: Identity;
-
   /**
    *
    * @param {Uint8Array} [signature]
    * @param {Identity} signer
    */
-  constructor(signature, signer) {
-    this._signature = signature;
-    this._signer = signer;
-  }
-
-  /**
-   * @return {Identity}
-   */
-  get signer() {
-    return this._signer;
-  }
-
-  /**
-   * @return {Uint8Array}
-   */
-  get signature() {
-    return this._signature;
+  constructor(public signature: Buffer, public signer: Identity) {
   }
 
   /**
@@ -35,10 +16,10 @@ export class Signature {
    *
    * @return {Object}
    */
-  toProtobufValidMessage() {
+  toObject(): object {
     return {
-      signature: this._signature,
-      signer: this._signer.toProtobufValidMessage()
+      signature: this.signature,
+      signer: this.signer.toObject()
     };
   }
 }

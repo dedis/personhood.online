@@ -46,7 +46,7 @@ export class Identity {
    *
    * @return {Object}
    */
-  toProtobufValidMessage() {
+  toObject(): object {
     throw new Error("Not implemented");
   }
 }

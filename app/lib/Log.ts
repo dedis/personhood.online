@@ -62,16 +62,18 @@ export class LogC {
             }
 
             // @ts-ignore
-            return (module + " - " + file).padEnd(40);
+            return (module + " - " + file).padEnd(60);
         } catch (e) {
             return this.printCaller(new Error("Couldn't get stack - " + e), i + 2);
         }
     }
 
     printLvl(l, args) {
+        let indent = Math.abs(l);
+        indent = indent >= 5 ? 0 : indent;
         if (l <= this._lvl) {
             console.log(lvlStr[l + 7] + ": " + this.printCaller(new Error(), 3) +
-                " -> " + this.joinArgs(args));
+                " -> " + " ".repeat(indent * 2) + this.joinArgs(args));
         }
     }
 

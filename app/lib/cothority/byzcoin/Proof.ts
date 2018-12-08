@@ -2,6 +2,7 @@ import {ForwardLink} from "~/lib/cothority/skipchain/Structures";
 import {SkipBlock} from "~/lib/cothority/skipchain/SkipBlock";
 import {objToProto, Root} from "~/lib/cothority/protobuf/Root";
 import {Log} from "~/lib/Log";
+import {InstanceID} from "~/lib/cothority/byzcoin/ClientTransaction";
 
 export class Proof {
     inclusionproof: InclusionProof;
@@ -16,6 +17,41 @@ export class Proof {
         if (this.inclusionproof.matches()) {
             this.stateChangeBody = StateChangeBody.fromProto(this.inclusionproof.value);
         }
+    }
+
+    get iid(): InstanceID{
+        this.matchOrFail();
+        return new InstanceID(this.inclusionproof.key);
+    }
+
+    get contractID(): string{
+        this.matchOrFail();
+        return this.stateChangeBody.contractID;
+    }
+
+    get darcID(): InstanceID{
+        this.matchOrFail();
+        return new InstanceID(this.stateChangeBody.darcID);
+    }
+
+    get value(): Buffer{
+        this.matchOrFail();
+        return this.stateChangeBody.value;
+    }
+
+    get version(): number{
+        this.matchOrFail();
+        return this.stateChangeBody.version;
+    }
+
+    matchOrFail(){
+        if (!this.matches()){
+            throw new Error("cannot get instanceID of non-matching proof");
+        }
+    }
+
+    matches(): boolean{
+        return this.inclusionproof.matches();
     }
 
     toProto(): Buffer {

@@ -9,6 +9,10 @@ import {Proof} from "~/lib/cothority/byzcoin/Proof";
 import {Signer} from "~/lib/cothority/darc/Signer";
 import {SignerEd25519} from "~/lib/cothority/darc/SignerEd25519";
 import * as Long from "long";
+import {Roster} from "~/lib/network/Roster";
+import {ClientTransaction, InstanceID} from "~/lib/cothority/byzcoin/ClientTransaction";
+import {DarcInstance} from "~/lib/cothority/byzcoin/contracts/DarcInstance";
+import {Identity} from "~/lib/cothority/darc/Identity";
 
 const UUID = require("pure-uuid");
 const crypto = require("crypto-browserify");
@@ -17,14 +21,11 @@ export const currentVersion = 1;
 
 export class ByzCoinRPC {
     admin: Signer;
-    socket: Socket;
-    bcID: Buffer;
-    config: ChainConfig;
-    genesisDarc: Darc;
 
-    constructor(s: Socket, bcID: Buffer) {
-        this.socket = s;
-        this.bcID = bcID;
+    constructor(public socket: Socket,
+                public bcID: Buffer,
+                public genesisDarc: Darc,
+                public config: ChainConfig) {
     }
 
     /**
@@ -38,11 +39,11 @@ export class ByzCoinRPC {
      * transaction to be included
      * @return {Promise} - a promise that gets resolved if the block has been included
      */
-    async sendTransactionAndWait(transaction, wait): Promise<any> {
+    async sendTransactionAndWait(transaction: ClientTransaction, wait: number = 5): Promise<any> {
         let addTxRequest = {
             version: currentVersion,
             skipchainid: this.bcID,
-            transaction: transaction.toProtobufValidMessage(),
+            transaction: transaction.toObject(),
             inclusionwait: wait
         };
         await this.socket.send("AddTxRequest", "AddTxResponse", addTxRequest);
@@ -50,17 +51,13 @@ export class ByzCoinRPC {
     }
 
     async updateConfig(): Promise<any> {
-        let pr = await this.getProof(new Buffer(32));
+        let pr = await this.getProof(new InstanceID(new Buffer(32)));
         ByzCoinRPC.checkProof(pr, "config");
         this.config = ChainConfig.fromProof(pr);
 
-        let genesisDarcProof = await this.getProof(pr.stateChangeBody.darcID);
+        let genesisDarcProof = await this.getProof(new InstanceID(pr.stateChangeBody.darcID));
         ByzCoinRPC.checkProof(genesisDarcProof, "darc");
         this.genesisDarc = Darc.fromProof(genesisDarcProof);
-    }
-
-    async mintCoins(account: Buffer, amount: number): Promise<any> {
-        return Promise.resolve();
     }
 
     /**
@@ -70,8 +67,19 @@ export class ByzCoinRPC {
      * @param {Buffer} id - the instance key
      * @return {Promise<Proof>}
      */
-    async getProof(id: Buffer): Promise<Proof> {
+    async getProof(id: InstanceID): Promise<Proof> {
         return ByzCoinRPC.getProof(this.socket, this.bcID, id);
+    }
+
+    async getSignerCounters(ids: Identity[], add: number = 0): Promise<Long[]> {
+        let req = {
+            skipchainid: this.bcID,
+            signerids: ids.map(id => id.toString()),
+        };
+        let reply = await this.socket.send("byzcoin.GetSignerCounters",
+            "byzcoin.GetSignerCountersResponse",
+            req);
+        return reply.counters.map((c: Long) => c.add(1));
     }
 
     /**
@@ -83,11 +91,12 @@ export class ByzCoinRPC {
      * @param {Buffer} key - the instance key
      * @return {Promise<Proof>}
      */
-    static async getProof(socket, skipchainId, key): Promise<Proof> {
+    static async getProof(socket: Socket, skipchainId: Buffer,
+                          key: InstanceID): Promise<Proof> {
         const getProofMessage = {
             version: currentVersion,
             id: skipchainId,
-            key: key
+            key: key.iid
         };
         let reply = await socket.send("GetProof", "GetProofResponse", getProofMessage)
         return new Proof(reply.proof);
@@ -110,7 +119,7 @@ export class ByzCoinRPC {
         }
     }
 
-    static defaultGenesisMessage(roster: any, rules: string[], ids: any[]): any {
+    static defaultGenesisMessage(roster: any, rules: string[], ids: any[]): GenesisMessage {
         if (ids.length == 0) {
             throw new Error("no identities");
         }
@@ -125,24 +134,27 @@ export class ByzCoinRPC {
         });
         d.rules.list.push(Rule.fromIdentities("invoke:view_change", rosterPubs, "|"));
 
-        return {
-            version: 1,
-            roster: roster.toObject(),
-            genesisdarc: d,
-            // 1*10^9 ns = 1s block interval
-            blockinterval: 1e9,
-        }
+        return new GenesisMessage(1, roster.toObject(), d, 1e9);
     }
 
-    static async newLedger(roster: any): Promise<ByzCoinRPC> {
+    static async newLedger(roster: any, rules: string[] = []): Promise<ByzCoinRPC> {
         let admin = new KeyPair();
         let ids = [new IdentityEd25519(admin._public)];
-        let msg = this.defaultGenesisMessage(roster, [], ids);
+        let msg = this.defaultGenesisMessage(roster, rules, ids);
         let socket = new RosterSocket(roster, RequestPath.BYZCOIN);
         let reply = await socket.send(RequestPath.BYZCOIN_CREATE_GENESIS, RequestPath.BYZCOIN_CREATE_GENESIS_RESPONSE, msg);
-        let bc = new ByzCoinRPC(socket, reply.skipblock.hash);
-        bc.admin = new SignerEd25519(admin._public, admin._private);
+        let adminSigner = new SignerEd25519(admin._public, admin._private);
+        let bc = new ByzCoinRPC(socket, reply.skipblock.hash, msg.genesisdarc, null);
+        bc.admin = adminSigner;
         return bc;
+    }
+
+    static async fromByzcoin(s: Socket, bcID: Buffer): Promise<ByzCoinRPC> {
+        let ccProof = await ByzCoinRPC.getProof(s, bcID, new InstanceID(new Buffer(32)));
+        let cc = ChainConfig.fromProof(ccProof);
+        let gdProof = await ByzCoinRPC.getProof(s, bcID, new InstanceID(ccProof.stateChangeBody.darcID));
+        let gd = Darc.fromProof(gdProof);
+        return new ByzCoinRPC(s, bcID, gd, cc);
     }
 }
 
@@ -170,5 +182,14 @@ export class ChainConfig {
     static fromProof(pr: Proof): ChainConfig {
 
         return this.fromProto(pr.stateChangeBody.value);
+    }
+}
+
+export class GenesisMessage {
+    constructor(public version: number,
+                public roster: Roster,
+                public genesisdarc: Darc,
+                public blockinterval: number,
+    ) {
     }
 }

@@ -1,17 +1,8 @@
-import {ServerIdentity} from "~/lib/network/Roster";
-
 const Timer = require("tns-core-modules/timer");
-const protobuf = require("protobufjs");
 const co = require("co");
 const shuffle = require("shuffle-array");
 const WS = require("nativescript-websockets");
 const Buffer = require("buffer/").Buffer;
-
-const Kyber = require("@dedis/kyber-js");
-const CurveEd25519 = new Kyber.curve.edwards25519.Curve;
-
-const RequestPath = require("./RequestPath");
-const DecodeType = require("./DecodeType");
 
 import {Log} from "~/lib/Log";
 import {Root} from "~/lib/cothority/protobuf/Root";
@@ -47,7 +38,7 @@ export class WebSocket {
     async send(request: string, response: string, data: any): Promise<any> {
         return new Promise((resolve, reject) => {
             const path = this.url + "/" + request.replace(/.*\./, '');
-            Log.lvl1("Socket: new WebSocketA(" + path + ")");
+            Log.lvl2("Socket: new WebSocketA(" + path + ")");
             const ws = new WS(path, {timeout: 6000});
             let protoMessage = undefined;
             let retry = false;
@@ -82,13 +73,13 @@ export class WebSocket {
 
             ws.on('message', (socket, message) => {
                 let buffer = new Uint8Array(message);
-                Log.lvl2("Getting message with length:", buffer.length);
+                Log.lvl3("Getting message with length:", buffer.length);
                 try {
                     protoMessage = responseModel.decode(buffer);
                     ws.close();
                 } catch (err) {
-                    Log.lvl2("got message with length", buffer.length);
-                    Log.lvl2("unmarshalling into", responseModel);
+                    Log.error("got message with length", buffer.length);
+                    Log.error("unmarshalling into", responseModel);
                     Log.catch(err, "error while decoding, buffer is:", Buffer.from(buffer).toString("hex"));
                     ws.close();
                     reject(err);
@@ -96,15 +87,15 @@ export class WebSocket {
             });
 
             ws.on('close', (socket, code, reason) => {
-                Log.lvl1("Got close:", code, reason)
                 Timer.clearInterval(timerId);
                 if (!retry) {
                     if (code === 4000) {
+                        Log.lvl1("Got close:", code, reason)
                         reject(new Error(reason));
                     }
                     resolve(protoMessage);
                 } else {
-                    Log.lvl1("Retrying");
+                    Log.warn("Retrying");
                     retry = false;
                     ws.open();
                 }
@@ -169,7 +160,7 @@ export class RosterSocket {
             }
             try {
                 const socket = new WebSocket(addr, service);
-                Log.lvl2("RosterSocket: trying out index " + i + " at address " + addr + "/" + service);
+                Log.lvl3("RosterSocket: trying out index " + i + " at address " + addr + "/" + service);
                 const socketResponse = await socket.send(request, response, data);
                 that.lastGoodServer = addr;
                 return socketResponse;

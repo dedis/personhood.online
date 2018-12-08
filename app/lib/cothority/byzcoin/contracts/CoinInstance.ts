@@ -1,74 +1,115 @@
 import {ByzCoinRPC} from "~/lib/cothority/byzcoin/ByzCoinRPC";
 import {Instance} from "~/lib/cothority/byzcoin/Instance";
-import {Argument, ClientTransaction, Instruction} from "~/lib/cothority/byzcoin/ClientTransaction";
+import {Argument, ClientTransaction, InstanceID, Instruction} from "~/lib/cothority/byzcoin/ClientTransaction";
+import * as Long from "long";
+import {objToProto, Root} from "~/lib/cothority/protobuf/Root";
+import {Signer} from "~/lib/cothority/darc/Signer";
+import {SpawnerCoin} from "~/lib/cothority/byzcoin/contracts/SpawnerInstance";
+import {Log} from "~/lib/Log";
+import {Proof} from "~/lib/cothority/byzcoin/Proof";
 
 export class CoinInstance {
-    _bc: ByzCoinRPC;
-    _instanceID: Buffer;
-    _instance: Instance;
-    type: Buffer;
-    balance: number;
+    static readonly contractID = "coin";
 
-    /**
-     * Creates a new CoinInstance
-     * @param {ByzCoinRPC} bc - the ByzCoinRPC instance
-     * @param {Uint8Array} instanceId - id of the instance
-     * @param {Instance} [instance] - the complete instance
-     * @param {string} [type] - the type of coin
-     * @param {number} [balance] - the current balance of the account
-     */
-    constructor(bc, instanceId, instance, type, balance) {
-        this._bc = bc;
-        this._instanceID = instanceId;
-        this._instance = instance;
-        this.type = type;
-        this.balance = balance;
+    constructor(public bc: ByzCoinRPC, public iid: InstanceID, public coin: Coin) {
     }
 
     /**
      * Transfer a certain amount of coin to another account.
      *
-     * @param {number} coins - the amount
-     * @param {Uint8Array} to - the destination account (must be a coin contract instace id)
-     * @param {Signer} signer - the signer (of the giver account)
-     * @return {Promise} - a promisse that completes once the transaction has been
-     * included in the ledger.
+     * @param  coins the amount
+     * @param to the destination account (must be a coin contract instance id)
+     * @param signers the signers (of the giver account)
      */
-    transfer(coins, to, signer) {
+    async transfer(coins:Long, to: InstanceID, signers: Signer[]) {
         let args = [];
-        let buffer = new Buffer(8);
-        buffer.writeUInt32LE(coins, 0);
 
-        args.push(new Argument("coins", buffer));
-        args.push(new Argument("destination", to));
+        args.push(new Argument("coins", new Buffer(coins.toBytesLE())));
+        args.push(new Argument("destination", to.iid));
 
-        let inst = Instruction.createInvoke(this._instanceID, "transfer", args);
+        let inst = Instruction.createInvoke(this.iid, "transfer", args);
         let ctx = new ClientTransaction([inst]);
-        ctx.signBy([signer], [0]);
+        await ctx.signBy([signers], this.bc);
+        await this.bc.sendTransactionAndWait(ctx, 10);
+    }
 
-        return this._bc.sendTransactionAndWait(ctx, 10);
+    async mint(signers: Signer[], amount: Long, wait: number = 5) {
+        let inst = Instruction.createInvoke(this.iid,
+            "mint",
+            [new Argument("coins", Buffer.from(amount.toBytesLE()))]);
+        let ctx = new ClientTransaction([inst]);
+        await ctx.signBy([signers], this.bc);
+        await this.bc.sendTransactionAndWait(ctx, wait);
     }
 
     /**
      * Update the data of this instance
-     *
-     * @return {Promise<CoinInstance>} - a promise that resolves once the data
-     * are up-to-date
      */
-    update() {
-        return this._bc.getProof(this._instanceID).then(proof => {
-            this._instance = Instance.fromProof(proof);
-            const model = root.lookup("CoinInstance");
-            const protoObject = model.decode(this._instance.data);
-
-            this.type = protoObject.type;
-            this.balance = protoObject.balance;
-
-            return Promise.resolve(this);
-        });
+    async update(): Promise<CoinInstance> {
+        let p = await this.bc.getProof(this.iid);
+        this.coin = Coin.fromProto(p.value);
+        return this;
     }
 
-    static async fromByzcoin(bc: ByzCoinRPC, instID: Buffer): Promise<CoinInstance> {
-        return null;
+    static async create(bc: ByzCoinRPC, iid: InstanceID, signers: Signer[], type: InstanceID = SpawnerCoin): Promise<CoinInstance> {
+        let inst = Instruction.createSpawn(iid,
+            this.contractID,
+            [new Argument("type", type.iid)]);
+        let ctx = new ClientTransaction([inst]);
+        await ctx.signBy([signers], bc);
+        await bc.sendTransactionAndWait(ctx, 5);
+        let coinIID = new InstanceID(inst.deriveId());
+        let p = await bc.getProof(coinIID);
+        if (!p.matches()){
+            throw new Error("didn't find correct instanceID");
+        }
+        return new CoinInstance(bc,
+            p.iid,
+            Coin.fromProto(p.value));
+    }
+
+    static fromProof(bc: ByzCoinRPC, p: Proof): CoinInstance{
+        return new CoinInstance(bc, p.iid,
+            Coin.fromProto(p.value))
+    }
+
+    /**
+     * Initializes using an existing coinInstance from ByzCoin
+     * @param bc
+     * @param iid
+     */
+    static async fromByzcoin(bc: ByzCoinRPC, iid: InstanceID): Promise<CoinInstance> {
+        return CoinInstance.fromProof(bc, await bc.getProof(iid));
+    }
+}
+
+export class Coin {
+    static readonly protoName = "byzcoin.Coin";
+
+    name: InstanceID;
+    value: Long;
+
+    constructor(o: any) {
+        this.name = new InstanceID(o.name);
+        this.value = o.value;
+    }
+
+    toObject(): object {
+        return {
+            name: this.name.iid,
+            value: this.value,
+        };
+    }
+
+    toProto(): Buffer {
+        return objToProto(this.toObject(), Coin.protoName);
+    }
+
+    static fromProto(p: Buffer): Coin {
+        return new Coin(Root.lookup(Coin.protoName).decode(p));
+    }
+
+    static create(name: InstanceID, value: Long): Coin{
+        return new Coin({name: name.iid, value: value});
     }
 }

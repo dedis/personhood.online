@@ -18,6 +18,7 @@ import {Buffer} from "buffer";
 import {screen} from "tns-core-modules/platform";
 import {RosterSocket, WebSocket, Socket} from "~/lib/network/NSNet";
 import {RequestPath} from "~/lib/network/RequestPath";
+import {InstanceID} from "~/lib/cothority/byzcoin/ClientTransaction";
 
 export const dataFileName = "data.json";
 
@@ -57,8 +58,8 @@ export class Data {
             byzcoinIDHex = obj.byzcoinID;
             socket = new WebSocket(obj.byzcoinNode, RequestPath.BYZCOIN);
         }
-        this._byzcoin = await new ByzCoinRPC(socket, Buffer.from(byzcoinIDHex, 'hex'));
-        await this._byzcoin.updateConfig();
+        this._byzcoin = await ByzCoinRPC.fromByzcoin(socket, Buffer.from(byzcoinIDHex, 'hex'));
+         await this._byzcoin.updateConfig();
         return this._byzcoin;
     }
 
