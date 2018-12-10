@@ -145,6 +145,13 @@ export class Argument {
     name: string;
     value: Buffer;
 
+    toObject(): object{
+        return {
+            name: this.name,
+            value: this.value,
+        };
+    }
+
     constructor(n: string, v: Buffer) {
         this.name = n;
         this.value = v;
@@ -158,7 +165,7 @@ export class Spawn {
     toObject(): object {
         return {
             contractid: this.contractID,
-            args: this.args,
+            args: this.args.map(arg => arg.toObject()),
         };
     }
 }

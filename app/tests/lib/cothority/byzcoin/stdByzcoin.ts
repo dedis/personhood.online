@@ -22,7 +22,7 @@ export class CreateByzCoin {
 
         Log.lvl1("Spawning coin");
         let userCoin = await this.spawner.createCoin(this.genesisCoin,
-            [this.bc.admin], user._public, Long.fromNumber(1e6));
+            [this.bc.admin], userDarc.darc.getBaseId(), Long.fromNumber(1e6));
         return new cbcUser(userDarc, userCoin);
     }
 

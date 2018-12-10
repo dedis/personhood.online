@@ -144,7 +144,7 @@ export class ByzCoinRPC {
         let socket = new RosterSocket(roster, RequestPath.BYZCOIN);
         let reply = await socket.send(RequestPath.BYZCOIN_CREATE_GENESIS, RequestPath.BYZCOIN_CREATE_GENESIS_RESPONSE, msg);
         let adminSigner = new SignerEd25519(admin._public, admin._private);
-        let bc = new ByzCoinRPC(socket, reply.skipblock.hash, msg.genesisdarc, null);
+        let bc = new ByzCoinRPC(socket, Buffer.from(reply.skipblock.hash), msg.genesisdarc, null);
         bc.admin = adminSigner;
         await bc.updateConfig();
         return bc;

@@ -19,7 +19,7 @@ export class FileIO {
             str = await Documents.getFile(filePath).readText();
             Log.lvl2("read file", filePath, str);
         } catch (error) {
-            await this.lslr("");
+            // await this.lslr("");
             Log.rcatch(error, "Reading error");
         }
         return str;
@@ -36,7 +36,7 @@ export class FileIO {
         try {
             await Documents.getFile(filePath).writeText(content);
         } catch (error) {
-            await this.lslr(filePath);
+            // await this.lslr(filePath);
             Log.rcatch("WRITING ERROR:", error);
         }
     }

@@ -83,18 +83,18 @@ export class InclusionProof {
     }
 
     get key(): Buffer{
-        return new Buffer(this.leaf.key);
+        return Buffer.from(this.leaf.key);
     }
 
     get value(): Buffer{
-        return new Buffer(this.leaf.value);
+        return Buffer.from(this.leaf.value);
     }
 
     get keyValue(): Buffer[] {
         if (!this.matches()){
             throw new Error("cannot get keyValue from a non-matching proof");
         }
-        return [new Buffer(this.leaf.key), new Buffer(this.leaf.value)];
+        return [Buffer.from(this.leaf.key), Buffer.from(this.leaf.value)];
     }
 }
 
@@ -107,10 +107,10 @@ export class StateChangeBody {
 
     constructor(obj: any) {
         this.stateAction = obj.stateAction;
-        this.contractID = new Buffer(obj.contractid).toString();
-        this.value = new Buffer(obj.value);
+        this.contractID = Buffer.from(obj.contractid).toString();
+        this.value = Buffer.from(obj.value);
         this.version = obj.version;
-        this.darcID = new Buffer(obj.darcid);
+        this.darcID = Buffer.from(obj.darcid);
     }
 
     static fromProto(buf: Buffer):StateChangeBody{

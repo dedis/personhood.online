@@ -3,6 +3,7 @@ import {Roster} from "~/lib/network/Roster";
 import {InstanceID} from "~/lib/cothority/byzcoin/ClientTransaction";
 
 export var Defaults = {
+    DataDir: "storage",
     // If Confirm is false, there are no security confirmations asked. This is for
     // easier UI testing.
     Confirm: false,

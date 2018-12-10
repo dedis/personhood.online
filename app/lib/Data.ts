@@ -57,33 +57,39 @@ export class Data {
             this.alias = obj.alias ? obj.alias : "";
             this.email = obj.email ? obj.email : "";
             this.continuousScan = obj.continuousScan ? obj.continuousScan : false;
-            this.keyPersonhood = obj.keyPersonhood ? new KeyPair(obj.keyPersonhood) : new KeyPair();
-            this.keyIdentity = obj.keyIdentity ? new KeyPair(obj.keyIdentity) : new KeyPair();
-        } catch (e){
+            this.keyPersonhood = obj.keyPersonhood ? new KeyPair(Buffer.from(obj.keyPersonhood).toString('hex')) : new KeyPair();
+            this.keyIdentity = obj.keyIdentity ? new KeyPair(Buffer.from(obj.keyIdentity).toString('hex')) : new KeyPair();
+        } catch (e) {
             Log.catch(e);
         }
     }
 
     async connectByzcoin(): Promise<ByzCoinRPC> {
         try {
+            if (this.bc != null) {
+                Log.lvl2("Not connecting if bc is already initialized");
+            }
             let obj = this.constructorObj;
-            let bcID = Buffer.from(obj.bcID ? obj.bcID : Defaults.ByzCoinID, 'hex');
+            if (Defaults.Testing && obj.bcID == null) {
+                Log.lvl2("Not initializing bc with Defaults when testing");
+                return;
+            }
+            let bcID = obj.bcID ? Buffer.from(obj.bcID) : Defaults.ByzCoinID;
             let roster = obj.roster ? Roster.fromObject(obj.roster) : Defaults.Roster;
             this.bc = await ByzCoinRPC.fromByzcoin(new RosterSocket(roster, RequestPath.BYZCOIN), bcID);
             if (obj.darcInstance) {
-                Log.lvl2("Loading darcinstance", obj.darcInstance);
-                let di = new InstanceID(Buffer.from(obj.darcInstance, 'hex'));
+                let di = new InstanceID(Buffer.from(obj.darcInstance));
                 this.darcInstance = DarcInstance.fromProof(this.bc, await this.bc.getProof(di));
             }
             if (obj.credentialInstance) {
-                let ci = new InstanceID(Buffer.from(obj.credentialInstance, 'hex'));
+                let ci = new InstanceID(Buffer.from(obj.credentialInstance));
                 this.credentialInstance = CredentialInstance.fromProof(this.bc, await this.bc.getProof(ci));
             }
             if (obj.coinInstance) {
-                let ci = new InstanceID(Buffer.from(obj.coinInstance, 'hex'));
+                let ci = new InstanceID(Buffer.from(obj.coinInstance));
                 this.coinInstance = CoinInstance.fromProof(this.bc, await this.bc.getProof(ci));
             }
-        } catch(e){
+        } catch (e) {
             Log.catch(e);
         }
         return this.bc;
@@ -94,8 +100,8 @@ export class Data {
             alias: this.alias,
             email: this.email,
             continuousScan: this.continuousScan,
-            keyPersonhood: this.keyPersonhood.privateToHex(),
-            keyIdentity: this.keyIdentity.privateToHex(),
+            keyPersonhood: Buffer.from(this.keyPersonhood._private.marshalBinary()),
+            keyIdentity: Buffer.from(this.keyIdentity._private.marshalBinary()),
             bcRoster: null,
             bcID: null,
             darcInstance: null,
@@ -104,16 +110,16 @@ export class Data {
         };
         if (this.bc) {
             v.bcRoster = this.bc.config.roster.toObject();
-            v.bcID = this.bc.bcID.toString('hex');
-            v.darcInstance = this.darcInstance ? this.darcInstance.iid.iid.toString('hex') : null;
-            v.credentialInstance = this.credentialInstance ? this.credentialInstance.iid.iid.toString('hex') : null;
-            v.coinInstance = this.coinInstance ? this.coinInstance.iid.iid.toString('hex') : null;
+            v.bcID = this.bc.bcID;
+            v.darcInstance = this.darcInstance ? this.darcInstance.iid.iid : null;
+            v.credentialInstance = this.credentialInstance ? this.credentialInstance.iid.iid : null;
+            v.coinInstance = this.coinInstance ? this.coinInstance.iid.iid : null;
         }
         return v;
     }
 
     get coinInstID(): Buffer {
-        return new Buffer(32);
+        return Buffer.alloc(32);
     }
 
     /**
@@ -122,9 +128,13 @@ export class Data {
      */
     async load(): Promise<Data> {
         try {
-            let str = await FileIO.readFile(dataFileName);
-            let obj = JSON.parse(str);
-            await this.setValues(obj);
+            let str = await FileIO.readFile(Defaults.DataDir + "/" + dataFileName);
+            if (str.length > 0) {
+                let obj = JSON.parse(str);
+                Log.print("setting values");
+                await this.setValues(obj);
+            }
+            Log.print("connecting to ByzCoin");
             await this.connectByzcoin()
         } catch (e) {
             Log.catch(e);
@@ -133,7 +143,7 @@ export class Data {
     }
 
     async save(): Promise<Data> {
-        await FileIO.writeFile(dataFileName, JSON.stringify(this.getValues()));
+        await FileIO.writeFile(Defaults.DataDir + "/" + dataFileName, JSON.stringify(this.getValues()));
         return this;
     }
 

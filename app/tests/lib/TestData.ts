@@ -1,10 +1,11 @@
-import {Data} from "~/lib/Data";
+import {Data, dataFileName} from "~/lib/Data";
 import {KeyPair} from "~/lib/KeyPair";
 import {Log} from "~/lib/Log";
 import {Defaults} from "~/lib/Defaults";
 import {ByzCoinRPC} from "~/lib/cothority/byzcoin/ByzCoinRPC";
 import {CreateByzCoin} from "~/tests/lib/cothority/byzcoin/stdByzcoin";
 import * as Long from "long";
+import {FileIO} from "~/lib/FileIO";
 
 describe("Initializing Data", () => {
     it("Must start with empty values", () => {
@@ -17,10 +18,35 @@ describe("Initializing Data", () => {
     });
 });
 
+describe("load/save", ()=>{
+    it("must save", async()=>{
+        let fn = "test.json";
+        let obj = {
+            buf: Buffer.from([1,2,3]),
+        };
+        await FileIO.writeFile(fn, JSON.stringify(obj));
+        Log.print(JSON.parse(await FileIO.readFile(fn)));
+        Log.print();
+    })
+});
+
 fdescribe("saves and loads", () => {
+    let originalTimeout;
+
+    beforeEach(async function () {
+        originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
+        jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
+    });
+
+    afterEach(function () {
+        jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout;
+    });
+
     it("Must keep data", async () => {
+        await FileIO.rmrf(Defaults.DataDir);
+        // jasmine.getEnv().throwOnExpectationFailure(true);
+        Defaults.Testing = true;
         let bc = await CreateByzCoin.start();
-        Log.print("storing and loading Data");
 
         let keyI = new KeyPair();
         let keyP = new KeyPair();
@@ -28,27 +54,32 @@ fdescribe("saves and loads", () => {
             alias: "alias",
             email: "email@email.com",
             continuousScan: true,
-            keyIdentity: keyI,
-            keyPersonhood: keyP,
+            keyIdentity: keyI._private.marshalBinary(),
+            keyPersonhood: keyP._private.marshalBinary(),
             bcID: bc.bc.bcID,
             roster: bc.bc.config.roster.toObject(),
         };
-        let d = new Data(dataObj);
+        let d = new Data(JSON.stringify(dataObj));
         let d2 = new Data();
-        expect(d2.getValues()).not.toEqual(d.getValues());
+        await expect(d2.getValues()).not.toEqual(d.getValues());
         await d2.load();
-        expect(d2.getValues()).not.toEqual(d.getValues());
+        await expect(d2.getValues()).not.toEqual(d.getValues());
         await d.save();
         await d2.load();
         expect(d2.getValues()).toEqual(d.getValues());
 
         let cbc = await CreateByzCoin.start();
         let org1 = await cbc.addUser("org1");
+        d.bc = cbc.bc;
         d.darcInstance = org1.darcInst;
         d.coinInstance = org1.coinInst;
         await d.save();
+        d2 = new Data();
         await d2.load();
-        expect(d2.getValues()).toEqual(d.getValues());
+        await d2.connectByzcoin();
+        expect(JSON.stringify(d2.getValues())).toEqual(JSON.stringify(d.getValues()));
+        expect(d2.darcInstance.iid).toEqual(d.darcInstance.iid);
+        expect(d2.coinInstance.iid).toEqual(d.coinInstance.iid);
     })
 });
 
@@ -56,7 +87,6 @@ xdescribe("connects to local byzcoin", () => {
     it("Must ping byzcoin", async () => {
         let d = new Data({});
         let bc = await d.connectByzcoin();
-        Log.print(bc.config.roster);
     })
 });
 
