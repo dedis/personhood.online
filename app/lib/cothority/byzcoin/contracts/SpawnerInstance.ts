@@ -62,7 +62,7 @@ export class SpawnerInstance {
         return DarcInstance.fromByzcoin(this.bc, new InstanceID(d.getBaseId()));
     }
 
-    async createCoin(coin: CoinInstance, signers: Signer[], pubKey: any,
+    async createCoin(coin: CoinInstance, signers: Signer[], darcID: Buffer,
                      balance: Long = Long.fromNumber(0)):
         Promise<CoinInstance> {
         let valueBuf = this.spawner.costCoin.value.add(balance).toBytesLE();
@@ -75,13 +75,13 @@ export class SpawnerInstance {
                 DarcInstance.contractID, [
                     new Argument("contractID", Buffer.from("coin")),
                     new Argument("coinName", SpawnerCoin.iid),
-                    new Argument("pubKey", pubKey.marshalBinary()),
+                    new Argument("darcID", darcID),
                 ])]);
         await ctx.signBy([signers, []], this.bc);
         await this.bc.sendTransactionAndWait(ctx);
         let h = crypto.createHash("sha256");
         h.update(Buffer.from("coin"));
-        h.update(pubKey.marshalBinary());
+        h.update(darcID);
         return CoinInstance.fromByzcoin(this.bc, new InstanceID(h.digest()));
     }
 

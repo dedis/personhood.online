@@ -29,7 +29,11 @@ export async function goActivate(args: EventData) {
         return dialogs.alert("Please enter an alias")
     }
     gData.alias = a;
-    await gData.save();
-
+    try {
+        await gData.save();
+    } catch(e){
+        Log.catch(e);
+    }
+    Log.print("going to 3-activate");
     getFrameById("app-root").navigate("pages/setup/3-activate");
 }

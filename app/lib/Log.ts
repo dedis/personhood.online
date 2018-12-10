@@ -1,6 +1,6 @@
 const util = require("util");
 const application = require("application");
-import { Buffer } from "buffer/";
+import {Buffer} from "buffer/";
 
 const defaultLvl = 2;
 
@@ -130,8 +130,13 @@ export class LogC {
         if (e.message) {
             errMsg = e.message;
         }
-        console.log("C : " + this.printCaller(e, 1) + " -> (" + errMsg + ") " +
-            this.joinArgs(args));
+        for (let i = 1; i < e.stack.split("\n").length; i++) {
+            if ( i > 1){
+                errMsg = "";
+            }
+            console.log("C : " + this.printCaller(e, i) + " -> (" + errMsg + ") " +
+                this.joinArgs(args));
+        }
     }
 
     rcatch(e, ...args) {

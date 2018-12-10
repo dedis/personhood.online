@@ -35,7 +35,7 @@ export async function tapClear(args: EventData) {
     } else {
         if (await dialogs.confirm("Do you really want to delete everything? There is no way back!") &&
             await dialogs.confirm("You will lose all your data! No way back!")) {
-            gData.setValues({});
+            await gData.setValues({});
             await gData.save();
             await dialogs.alert("ALL YOUR DATA HAS BEEN DELETED!");
             return getFrameById("app-root").navigate({

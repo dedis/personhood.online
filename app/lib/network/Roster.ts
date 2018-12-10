@@ -34,6 +34,11 @@ export class Roster {
         }
     }
 
+    static fromObject(obj: any): Roster{
+        let pub = Public.fromBuffer(obj.pub);
+        return new Roster(obj.list.map(l => new ServerIdentity(pub, obj.address, obj.description)));
+    }
+
     /**
      * Parse cothority roster toml string into a Roster object.
      * @example

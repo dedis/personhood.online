@@ -13,12 +13,7 @@ application.on("orientationChanged", (evt) => {
     Log.print("Orientation-change:", evt);
 });
 
-gData.load().then(() => {
-    if (Defaults.Alias) {
-        gData.alias = Defaults.Alias;
-    }
-    application.run({moduleName: "app-root"});
-});
+application.run({moduleName: "app-root"});
 
 /*
 Do not place any code after the application has been started as it will not

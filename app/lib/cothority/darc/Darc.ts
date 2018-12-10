@@ -5,6 +5,7 @@ const crypto = require("crypto-browserify");
 import {Log} from "~/lib/Log";
 import {objToProto, Root} from "~/lib/cothority/protobuf/Root";
 import {Identity} from "~/lib/cothority/darc/Identity";
+import {DarcInstance} from "~/lib/cothority/byzcoin/contracts/DarcInstance";
 
 export class Rule {
     action: string;
@@ -103,10 +104,6 @@ export class Darc {
 
     toProto(): Buffer {
         return objToProto(this, "Darc");
-    }
-
-    static fromProof(p: Proof): Darc {
-        return this.fromProto(p.value);
     }
 
     static fromProto(buf: Buffer): Darc {

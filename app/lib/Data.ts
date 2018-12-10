@@ -19,6 +19,10 @@ import {screen} from "tns-core-modules/platform";
 import {RosterSocket, WebSocket, Socket} from "~/lib/network/NSNet";
 import {RequestPath} from "~/lib/network/RequestPath";
 import {InstanceID} from "~/lib/cothority/byzcoin/ClientTransaction";
+import {DarcInstance} from "~/lib/cothority/byzcoin/contracts/DarcInstance";
+import {CredentialInstance} from "~/lib/cothority/byzcoin/contracts/CredentialInstance";
+import {CoinInstance} from "~/lib/cothority/byzcoin/contracts/CoinInstance";
+import {Roster} from "~/lib/network/Roster";
 
 export const dataFileName = "data.json";
 
@@ -26,12 +30,16 @@ export const dataFileName = "data.json";
  * Data holds the data of the app.
  */
 export class Data {
-    _alias: string;
-    _email: string;
-    _continuousScan: boolean;
-    _keyPersonhood: KeyPair;
-    _keyIdentity: KeyPair;
-    _byzcoin: any;
+    alias: string;
+    email: string;
+    continuousScan: boolean;
+    keyPersonhood: KeyPair;
+    keyIdentity: KeyPair;
+    bc: ByzCoinRPC;
+    darcInstance: DarcInstance;
+    credentialInstance: CredentialInstance;
+    coinInstance: CoinInstance;
+    constructorObj: any;
 
     /**
      * Constructs a new Data, optionally initialized with an object containing
@@ -39,38 +47,69 @@ export class Data {
      * @param obj (optional) object with all fields for the class.
      */
     constructor(obj: any = {}) {
+        this.constructorObj = obj;
         this.setValues(obj);
     }
 
     setValues(obj: any) {
-        this._alias = obj.alias ? obj.alias : "";
-        this._email = obj.email ? obj.email : "";
-        this._continuousScan = obj.continuousScan ? obj.continuousScan : false;
-        this._keyPersonhood = obj.keyPersonhood ? new KeyPair(obj.keyPersonhood) : new KeyPair();
-        this._keyIdentity = obj.keyIdentity ? new KeyPair(obj.keyIdentity) : new KeyPair();
+        this.constructorObj = obj;
+        try {
+            this.alias = obj.alias ? obj.alias : "";
+            this.email = obj.email ? obj.email : "";
+            this.continuousScan = obj.continuousScan ? obj.continuousScan : false;
+            this.keyPersonhood = obj.keyPersonhood ? new KeyPair(obj.keyPersonhood) : new KeyPair();
+            this.keyIdentity = obj.keyIdentity ? new KeyPair(obj.keyIdentity) : new KeyPair();
+        } catch (e){
+            Log.catch(e);
+        }
     }
 
-    async connectByzcoin(obj: any): Promise<any> {
-        let byzcoinIDHex = Defaults.ByzCoinID;
-        let socket: Socket;
-        socket = new RosterSocket(Defaults.Roster, RequestPath.BYZCOIN);
-        if (obj.byzcoinNode) {
-            byzcoinIDHex = obj.byzcoinID;
-            socket = new WebSocket(obj.byzcoinNode, RequestPath.BYZCOIN);
+    async connectByzcoin(): Promise<ByzCoinRPC> {
+        try {
+            let obj = this.constructorObj;
+            let bcID = Buffer.from(obj.bcID ? obj.bcID : Defaults.ByzCoinID, 'hex');
+            let roster = obj.roster ? Roster.fromObject(obj.roster) : Defaults.Roster;
+            this.bc = await ByzCoinRPC.fromByzcoin(new RosterSocket(roster, RequestPath.BYZCOIN), bcID);
+            if (obj.darcInstance) {
+                Log.lvl2("Loading darcinstance", obj.darcInstance);
+                let di = new InstanceID(Buffer.from(obj.darcInstance, 'hex'));
+                this.darcInstance = DarcInstance.fromProof(this.bc, await this.bc.getProof(di));
+            }
+            if (obj.credentialInstance) {
+                let ci = new InstanceID(Buffer.from(obj.credentialInstance, 'hex'));
+                this.credentialInstance = CredentialInstance.fromProof(this.bc, await this.bc.getProof(ci));
+            }
+            if (obj.coinInstance) {
+                let ci = new InstanceID(Buffer.from(obj.coinInstance, 'hex'));
+                this.coinInstance = CoinInstance.fromProof(this.bc, await this.bc.getProof(ci));
+            }
+        } catch(e){
+            Log.catch(e);
         }
-        this._byzcoin = await ByzCoinRPC.fromByzcoin(socket, Buffer.from(byzcoinIDHex, 'hex'));
-         await this._byzcoin.updateConfig();
-        return this._byzcoin;
+        return this.bc;
     }
 
     getValues(): any {
-        return {
-            alias: this._alias,
-            email: this._email,
-            continuousScan: this._continuousScan,
-            keyPersonhood: this._keyPersonhood.privateToHex(),
-            keyIdentity: this._keyIdentity.privateToHex(),
+        let v = {
+            alias: this.alias,
+            email: this.email,
+            continuousScan: this.continuousScan,
+            keyPersonhood: this.keyPersonhood.privateToHex(),
+            keyIdentity: this.keyIdentity.privateToHex(),
+            bcRoster: null,
+            bcID: null,
+            darcInstance: null,
+            credentialInstance: null,
+            coinInstance: null,
         };
+        if (this.bc) {
+            v.bcRoster = this.bc.config.roster.toObject();
+            v.bcID = this.bc.bcID.toString('hex');
+            v.darcInstance = this.darcInstance ? this.darcInstance.iid.iid.toString('hex') : null;
+            v.credentialInstance = this.credentialInstance ? this.credentialInstance.iid.iid.toString('hex') : null;
+            v.coinInstance = this.coinInstance ? this.coinInstance.iid.iid.toString('hex') : null;
+        }
+        return v;
     }
 
     get coinInstID(): Buffer {
@@ -85,8 +124,8 @@ export class Data {
         try {
             let str = await FileIO.readFile(dataFileName);
             let obj = JSON.parse(str);
-            this.setValues(obj);
-            await this.connectByzcoin(obj)
+            await this.setValues(obj);
+            await this.connectByzcoin()
         } catch (e) {
             Log.catch(e);
         }
@@ -112,50 +151,6 @@ export class Data {
             width: sideLength
         });
         return fromNativeSource(qrcode);
-    }
-
-    /**
-     * Getters and setters.
-     */
-
-    get alias(): string {
-        return this._alias;
-    }
-
-    set alias(a: string) {
-        this._alias = a;
-    }
-
-    get email(): string {
-        return this._email;
-    }
-
-    set email(e: string) {
-        this._email = e;
-    }
-
-    get continuousScan(): boolean {
-        return this._continuousScan;
-    }
-
-    set coninuousScan(c: boolean) {
-        this._continuousScan = c;
-    }
-
-    get keyPersonhood(): KeyPair {
-        return this._keyPersonhood;
-    }
-
-    set keyPersonhood(kp: KeyPair) {
-        this._keyPersonhood = kp;
-    }
-
-    get keyIdentity(): KeyPair {
-        return this._keyIdentity;
-    }
-
-    set keyIdentity(kp: KeyPair) {
-        this._keyIdentity = kp;
     }
 }
 

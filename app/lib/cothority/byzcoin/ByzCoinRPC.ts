@@ -57,7 +57,7 @@ export class ByzCoinRPC {
 
         let genesisDarcProof = await this.getProof(new InstanceID(pr.stateChangeBody.darcID));
         ByzCoinRPC.checkProof(genesisDarcProof, "darc");
-        this.genesisDarc = Darc.fromProof(genesisDarcProof);
+        this.genesisDarc = DarcInstance.darcFromProof(genesisDarcProof);
     }
 
     /**
@@ -98,7 +98,7 @@ export class ByzCoinRPC {
             id: skipchainId,
             key: key.iid
         };
-        let reply = await socket.send("GetProof", "GetProofResponse", getProofMessage)
+        let reply = await socket.send("GetProof", "GetProofResponse", getProofMessage);
         return new Proof(reply.proof);
     }
 
@@ -146,6 +146,7 @@ export class ByzCoinRPC {
         let adminSigner = new SignerEd25519(admin._public, admin._private);
         let bc = new ByzCoinRPC(socket, reply.skipblock.hash, msg.genesisdarc, null);
         bc.admin = adminSigner;
+        await bc.updateConfig();
         return bc;
     }
 
@@ -153,18 +154,18 @@ export class ByzCoinRPC {
         let ccProof = await ByzCoinRPC.getProof(s, bcID, new InstanceID(new Buffer(32)));
         let cc = ChainConfig.fromProof(ccProof);
         let gdProof = await ByzCoinRPC.getProof(s, bcID, new InstanceID(ccProof.stateChangeBody.darcID));
-        let gd = Darc.fromProof(gdProof);
+        let gd = DarcInstance.darcFromProof(gdProof);
         return new ByzCoinRPC(s, bcID, gd, cc);
     }
 }
 
 export class ChainConfig {
-    roster: any;
+    roster: Roster;
     blockinterval: Long;
     maxblocksize: Long;
 
     constructor(cc: any) {
-        this.roster = cc.roster;
+        this.roster = Roster.fromObject(cc.roster);
         this.blockinterval = cc.blockinterval;
         this.maxblocksize = cc.maxblocksize;
     }
@@ -174,13 +175,11 @@ export class ChainConfig {
     }
 
     static fromProto(buf: Buffer): ChainConfig {
-        Log.print("buffer", new Buffer(buf).toString('hex'));
         const requestModel = Root.lookup("ChainConfig");
         return new ChainConfig(requestModel.decode(buf));
     }
 
     static fromProof(pr: Proof): ChainConfig {
-
         return this.fromProto(pr.stateChangeBody.value);
     }
 }

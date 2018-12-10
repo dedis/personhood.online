@@ -21,7 +21,7 @@ describe("setup byzcoin", () => {
     })
 });
 
-fdescribe("create spawner", () => {
+describe("create spawner", () => {
     let originalTimeout;
 
     beforeEach(function () {

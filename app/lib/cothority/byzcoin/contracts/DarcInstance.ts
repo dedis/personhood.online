@@ -20,7 +20,7 @@ export class DarcInstance {
      */
     async update(): Promise<DarcInstance> {
         let proof = await this.bc.getProof(new InstanceID(this.darc.getBaseId()));
-        this.darc = Darc.fromProof(proof);
+        this.darc = DarcInstance.darcFromProof(proof);
         return this;
     }
 
@@ -35,7 +35,7 @@ export class DarcInstance {
     }
 
     static fromProof(bc: ByzCoinRPC, p: Proof): DarcInstance {
-        return new DarcInstance(bc, p.iid, Darc.fromProof(p));
+        return new DarcInstance(bc, p.iid, DarcInstance.darcFromProof(p));
     }
 
     /**
@@ -45,5 +45,12 @@ export class DarcInstance {
      */
     static async fromByzcoin(bc: ByzCoinRPC, iid: InstanceID): Promise<DarcInstance> {
         return DarcInstance.fromProof(bc, await bc.getProof(iid));
+    }
+
+    static darcFromProof(p: Proof): Darc{
+        if (p.contractID != DarcInstance.contractID) {
+            throw new Error("Got non-darc proof: " + p.contractID);
+        }
+        return Darc.fromProto(p.value);
     }
 }

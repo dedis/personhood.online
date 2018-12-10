@@ -1,12 +1,11 @@
 import {Identity} from "~/lib/cothority/darc/Identity";
 import {Roster} from "~/lib/network/Roster";
+import {InstanceID} from "~/lib/cothority/byzcoin/ClientTransaction";
 
 export var Defaults = {
     // If Confirm is false, there are no security confirmations asked. This is for
     // easier UI testing.
     Confirm: false,
-    // A standard alias for testing
-    Alias: "ineiti",
     // Standard Roster for the app
     RosterTOML: `
 [[servers]]
@@ -32,7 +31,10 @@ export var Defaults = {
 `,
     Roster: null,
     // ByzCoinID
-    ByzCoinID: "db9d47b31d6aefdd5ad6b7da95267de9b670d44115e8e1a17b7151b6259a3521",
+    ByzCoinID: Buffer.from("db9d47b31d6aefdd5ad6b7da95267de9b670d44115e8e1a17b7151b6259a3521", 'hex'),
+    SpawnerIID: new InstanceID(Buffer.alloc(32)),
+    // Testing
+    Testing: true,
 };
 
 Defaults.Roster = Roster.fromTOML(Defaults.RosterTOML);

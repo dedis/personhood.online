@@ -78,4 +78,5 @@ export var RequestPath = {
     PERSONHOOD_SENDMESSAGE:"SendMessage",
     PERSONHOOD_LISTMESSAGES:"ListMessages",
     PERSONHOOD_READMESSAGE:"ReadMessage",
+    PERSONHOOD_TESTSTORE:"TestStore",
 };
