@@ -10,18 +10,18 @@ import {objToProto, Root} from "~/lib/cothority/protobuf/Root";
 export class CredentialInstance {
     static readonly contractID = "credential";
 
-    constructor(public bc: ByzCoinRPC, public iid: InstanceID, public credential: Credential) {
+    constructor(public bc: ByzCoinRPC, public iid: InstanceID, public credential: CredentialStruct) {
     }
 
     async update(): Promise<CredentialInstance> {
         let proof = await this.bc.getProof(this.iid);
-        this.credential = Credential.fromProto(proof.inclusionproof.value);
+        this.credential = CredentialStruct.fromProto(proof.inclusionproof.value);
         return this;
     }
 
     static fromProof(bc: ByzCoinRPC, p: Proof): CredentialInstance {
         return new CredentialInstance(bc, p.iid,
-            Credential.fromProto(p.value))
+            CredentialStruct.fromProto(p.value))
     }
 
     static async fromByzcoin(bc: ByzCoinRPC, iid: InstanceID): Promise<CredentialInstance> {
@@ -29,26 +29,44 @@ export class CredentialInstance {
     }
 }
 
-export class Credential {
-    static readonly protoName = "personhood.Credential";
+export class CredentialStruct {
+    static readonly protoName = "personhood.CredentialStruct";
 
-    constructor(o: any) {
+    constructor(public credentials: Credential[]) {
 
     }
 
     toObject(): object {
-        return {};
+        return this;
     }
 
     toProto(): Buffer {
-        return objToProto(this.toObject(), Credential.protoName)
+        return objToProto(this.toObject(), CredentialStruct.protoName)
     }
 
-    static fromProto(buf: Buffer): Credential {
-        return new Credential(Root.lookup(Credential.protoName).decode(buf));
+    static fromProto(buf: Buffer): CredentialStruct {
+        return new CredentialStruct(Root.lookup(CredentialStruct.protoName).decode(buf));
     }
 
-    static create(): Credential {
-        return new Credential({});
+    static create(): CredentialStruct {
+        return new CredentialStruct(null);
+    }
+}
+
+export class Credential {
+    constructor(public name: string, public attributes: Attribute[]) {
+    }
+
+    toObject(): object {
+        return this;
+    }
+}
+
+export class Attribute {
+    constructor(public name: string, public value: Buffer) {
+    }
+
+    toObject(): object {
+        return this;
     }
 }

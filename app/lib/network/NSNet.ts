@@ -18,7 +18,7 @@ export interface Socket {
  * @param {string} addr websocket address of the conode to contact.
  * @param {string} service name. A socket is tied to a service name.
  *
- * @throws {TypeError} when url is not a string or protobuf is not an object
+ * @throws {TypeError} when urlCred is not a string or protobuf is not an object
  */
 export class WebSocket {
     url: string;
@@ -28,7 +28,7 @@ export class WebSocket {
     }
 
     /**
-     * Send transmits data to a given url and parses the response.
+     * Send transmits data to a given urlCred and parses the response.
      * @param {string} request name of registered protobuf message
      * @param {string} response name of registered protobuf message
      * @param {object} data to be sent
@@ -192,7 +192,7 @@ export class LeaderSocket {
     }
 
     /**
-     * Send transmits data to a given url and parses the response.
+     * Send transmits data to a given urlCred and parses the response.
      * @param {string} request name of registered protobuf message
      * @param {string} response name of registered protobuf message
      * @param {object} data to be sent

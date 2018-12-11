@@ -6,7 +6,7 @@
     <StackLayout class="p-20">
         <Label text="Admin" class="h1 text-center"/>
         <df:RadDataForm id="myDataForm" source="{{ admin }}" />
-        <Button text="Clear all data" tap="tapClear" class="btn"/>
+        <Button text="Clear all data" tap="tapClear" class="btn btn-test"/>
         <Button text="Create Party" tap="tapCreateParty" class="btn btn-stub"/>
         <Button text="Save" tap="tapSave" class="btn btn-primary btn-active"/>
     </StackLayout>

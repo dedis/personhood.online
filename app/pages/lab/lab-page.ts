@@ -11,16 +11,16 @@ export function onNavigatedFrom(args: NavigatedData){
 
 export function goCoupons(args: GestureEventData) {
     return args.view.page.frame.navigate({
-        moduleName: "pages/apps/coupons/coupons-page",
+        moduleName: "pages/lab/coupons/coupons-page",
     })
 }
 export function goPosts(args: GestureEventData) {
     return args.view.page.frame.navigate({
-        moduleName: "pages/apps/posts/posts-page",
+        moduleName: "pages/lab/posts/posts-page",
     })
 }
 export function goCoins(args: GestureEventData) {
     return args.view.page.frame.navigate({
-        moduleName: "pages/apps/coins/coins-page",
+        moduleName: "pages/lab/coins/coins-page",
     })
 }

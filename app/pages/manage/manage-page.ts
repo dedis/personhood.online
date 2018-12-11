@@ -24,18 +24,22 @@ export function navigatingTo(args: EventData) {
     }
 }
 
-export function devices() {
+export function friends() {
     identity.set("showStack", 0);
 }
 
-export function friends() {
+export function badges() {
     identity.set("showStack", 1);
 }
 
-export function linkID() {
+export function devices() {
     identity.set("showStack", 2);
 }
 
-export function backupRestore() {
+export function linkID() {
     identity.set("showStack", 3);
+}
+
+export function backupRestore() {
+    identity.set("showStack", 4);
 }

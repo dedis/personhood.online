@@ -1,4 +1,4 @@
-import {Data, dataFileName} from "~/lib/Data";
+import {Data, TestData} from "~/lib/Data";
 import {KeyPair} from "~/lib/KeyPair";
 import {Log} from "~/lib/Log";
 import {Defaults} from "~/lib/Defaults";
@@ -18,11 +18,11 @@ describe("Initializing Data", () => {
     });
 });
 
-describe("load/save", ()=>{
-    it("must save", async()=>{
+describe("load/save", () => {
+    it("must save", async () => {
         let fn = "test.json";
         let obj = {
-            buf: Buffer.from([1,2,3]),
+            buf: Buffer.from([1, 2, 3]),
         };
         await FileIO.writeFile(fn, JSON.stringify(obj));
         Log.print(JSON.parse(await FileIO.readFile(fn)));
@@ -30,7 +30,7 @@ describe("load/save", ()=>{
     })
 });
 
-fdescribe("saves and loads", () => {
+describe("saves and loads", () => {
     let originalTimeout;
 
     beforeEach(async function () {
@@ -104,5 +104,33 @@ describe("setup byzcoin and create party", () => {
         let dataOrg1 = new Data({alias: "org1"});
         // Approving organizer1 by sending 10MCoins to the account
         // await bc.mintCoins(dataOrg1.coinInstID, 1e7);
+    });
+});
+
+fdescribe("send and receive coins", () => {
+    it("must send coins to store org2", async () => {
+        // create two organizers, the 1st one being the main organizer, and the 2nd one being
+        // one that needs to be signed on.
+
+        let td1 = await TestData.init(new Data());
+        await td1.createAll('org1');
+        let d2 = new Data();
+        await d2.verifyRegistration();
+        expect(d2.darcInstance).toBeNull();
+        expect(d2.coinInstance).toBeNull();
+        expect(d2.credentialInstance).toBeNull();
+
+        await expectAsync(td1.d.registerUser(td1.d.qrcodeIdentityStr())).toBeRejected();
+        await expectAsync(td1.d.registerUser(d2.qrcodeIdentityStr())).toBeResolved();
+        await d2.verifyRegistration();
+        expect(d2.darcInstance).not.toBeNull();
+        expect(d2.coinInstance).not.toBeNull();
+        expect(d2.credentialInstance).not.toBeNull();
+
+        Log.print("td1 coins before update:", td1.d.coinInstance.coin.value.toNumber())
+        await td1.d.coinInstance.update();
+        Log.print("td1 coins:", td1.d.coinInstance.coin.value.toNumber())
+        await d2.coinInstance.update();
+        Log.print("d2 coins:", d2.coinInstance.coin.value.toNumber())
     });
 });

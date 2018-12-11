@@ -7,6 +7,7 @@ Here the user can enter his alias
       class="page">
     <StackLayout class="p-20">
         <Label text="Setting your alias" class="h1 text-center" textWrap="true"/>
+        <Label text="Please enter an alias that will be used whenever you share your identity with somebody else. You can change it afterwards and it does not need to be globally unique." class="h2" textWrap="true"/>
         <df:RadDataForm id="myDataForm" source="{{ input }}" />
 
         <Button text="Continue" tap="goActivate" class="btn btn-primary btn-active"/>

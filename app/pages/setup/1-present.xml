@@ -2,9 +2,23 @@
 This is the presentation screen when the user is not signed up yet.
 -->
 <Page xmlns="http://schemas.nativescript.org/tns.xsd" navigatingTo="navigatingTo" class="page">
-    <StackLayout class="p-20">
-        <Label text="Presenting personhood" class="h1 text-center"/>
-        <Button text="Init Test" tap="goInitTest" class="btn btn-primary btn-active"/>
-        <Button text="Continue" tap="goAlias" class="btn btn-primary btn-active"/>
-    </StackLayout>
+    <GridLayout rows="*, auto" row="1" tap="cancelNetwork">
+        <StackLayout class="p-20" row="0">
+            <Label text="Presenting personhood" class="h1 text-center"/>
+            <Label text="Personhood is a new kind of identity management app that helps you aggregating all your identities in one place. Furthermore it allows you to use a password-less login on all enabled services, freely deciding which need 2-factor or more-factor authentication." class="h2" textWrap="true"/>
+            <Button text="Init Test" tap="goInitTest" class="btn btn-primary btn-active btn-test"/>
+            <Button text="Continue" tap="goAlias" class="btn btn-primary btn-active"/>
+        </StackLayout>
+        <StackLayout row="0" backgroundColor="gray"
+                     style="opacity:0.0;"/>
+        <!--style="{{ networkStatus ? 'opacity:0.5;' : 'opacity:0;' }}"/>-->
+        <GridLayout rows="auto"
+                    row="1"
+                    visibility="{{ networkStatus ? 'visible' : 'collapse'}}">
+            <Label row="0" text="{{ networkStatus }}" class="label-title"
+                   id="progress_text"/>
+            <Label row="0" width="100%" backgroundColor="blue" style="horizontal-align:left; opacity:0.5;"
+                   id="progress_bar"/>
+        </GridLayout>
+    </GridLayout>
 </Page>

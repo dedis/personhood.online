@@ -4,16 +4,26 @@ a code-behind file. The code-behind is a great place to place your view
 logic, and to set up your page’s data binding.
 */
 
-import {EventData} from "tns-core-modules/data/observable";
-import {getFrameById} from "tns-core-modules/ui/frame";
+import {EventData, fromObjectRecursive, Observable} from "tns-core-modules/data/observable";
+import {getFrameById, Page} from "tns-core-modules/ui/frame";
 import * as dialogs from "tns-core-modules/ui/dialogs";
 import {Log} from "~/lib/Log";
 import {CreateByzCoin} from "~/tests/lib/cothority/byzcoin/stdByzcoin";
 import {TestStore} from "~/lib/network/TestStorage";
 import {Defaults} from "~/lib/Defaults";
-import {gData} from "~/lib/Data";
+import {gData, TestData} from "~/lib/Data";
+import {Label} from "tns-core-modules/ui/label";
+import {Attribute, Credential, CredentialStruct} from "~/lib/cothority/byzcoin/contracts/CredentialInstance";
+
+let view: Observable = fromObjectRecursive({
+    networkStatus: undefined
+});
+let page: Page;
 
 export async function navigatingTo(args: EventData) {
+    page = <Page>args.object;
+    page.bindingContext = view;
+    setProgress();
 }
 
 export async function goInitTest(args: EventData) {
@@ -22,22 +32,23 @@ export async function goInitTest(args: EventData) {
         switch (await dialogs.action("Please chose initialisation to do",
             "Don't initialize", [createBC])) {
             case createBC:
-                Log.lvl1("Creating ByzCoin");
-                let bc = await CreateByzCoin.start();
-                await TestStore.save(Defaults.Roster, bc.bc.bcID, bc.spawner.iid);
-                await gData.setValues({});
-                gData.alias = "org1";
+                setProgress("creating ByzCoin", 20);
+                let td = await TestData.init(gData);
 
-                Log.lvl1("Creating user darc")
-                gData.darcInstance = await bc.spawner.createDarc(bc.genesisCoin,
-                    [bc.bc.admin], gData.keyIdentity._public, "new user");
-                gData.coinInstance = await bc.spawner.createCoin(bc.genesisCoin,
-                    [bc.bc.admin], gData.darcInstance.darc.getBaseId())
+                setProgress("creating darc", 40);
+                await td.createUserDarc('org1');
 
+                setProgress("creating credentials", 60);
+                await td.createUserCredentials();
+
+                setProgress("creating credentials", 80);
+                await td.createUserCoin();
+
+                setProgress("saving", 100);
                 await gData.save();
                 return getFrameById("app-root").navigate("main-page");
         }
-    } catch (e){
+    } catch (e) {
         Log.rcatch(e);
     }
     return goAlias(args);
@@ -45,4 +56,13 @@ export async function goInitTest(args: EventData) {
 
 export function goAlias(args: EventData) {
     return getFrameById("app-root").navigate("pages/setup/2-alias");
+}
+
+function setProgress(text: string = "", width: number = 0) {
+    if (width == 0) {
+        view.set("networkStatus", undefined);
+    } else {
+        page.getViewById("progress_bar").setInlineStyle("width:" + width + "%;");
+        (<Label>page.getViewById("progress_text")).text = text;
+    }
 }

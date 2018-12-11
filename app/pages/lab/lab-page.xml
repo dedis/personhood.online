@@ -13,13 +13,8 @@ Feel free to customize layouts and components to change how the tab view looks.
     </ActionBar>
     <GridLayout rows="*, auto, *, auto, *" columns="auto, *" margin="2%" backgroundColor="#eeeeee">
 
-        <Label text="&#xff158;" fontSize="100%" class="h1 fa btn-stub"
-               row="0" col="0" style="vertical-align: center;" tap="goBadges"/>
-        <StackLayout padding="10%" row="0" col="1" style="vertical-align: center;" tap="goBadges"
-                     class="btn-stub">
-            <Label text="Badges" class="h1" textWrap="true"
-                   textTransform="uppercase"/>
-            <Label text="Number" textWrap="true" fontSize="15%"/>
+        <StackLayout padding="10%" row="0" colSpan="3" style="vertical-align: top;">
+            <Label text="The lab part of this app is an experimental part with ideas that might or might not be used in the future. Any feedback is very welcome." textWrap="true" height="100%"/>
         </StackLayout>
 
         <Label backgroundColor="#ffffff" row="1" colSpan="2" height="3%"/>

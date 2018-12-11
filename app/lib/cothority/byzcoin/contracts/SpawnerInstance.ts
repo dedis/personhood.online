@@ -1,3 +1,5 @@
+import {CredentialStruct, CredentialInstance} from "~/lib/cothority/byzcoin/contracts/CredentialInstance";
+
 const crypto = require("crypto-browserify");
 
 import {ByzCoinRPC} from "~/lib/cothority/byzcoin/ByzCoinRPC";
@@ -13,6 +15,7 @@ import {Root} from "~/lib/cothority/protobuf/Root";
 import {DarcInstance} from "~/lib/cothority/byzcoin/contracts/DarcInstance";
 import {Identity} from "~/lib/cothority/darc/Identity";
 import {IdentityEd25519} from "~/lib/cothority/darc/IdentityEd25519";
+import {Buffer} from "buffer";
 
 let coinName = new Buffer(32);
 coinName.write("SpawnerCoin");
@@ -27,6 +30,7 @@ export class SpawnerInstance {
      * @param {Instance} [instance] - the complete instance
      */
     constructor(public bc: ByzCoinRPC, public iid: InstanceID, public spawner: Spawner) {
+        Log.print("Created", this.spawner.costCred);
     }
 
     /**
@@ -44,9 +48,7 @@ export class SpawnerInstance {
     async createDarc(coin: CoinInstance, signers: Signer[], pubKey: any,
                      desc: string):
         Promise<DarcInstance> {
-        let id = new IdentityEd25519(pubKey);
-        let r = Rules.fromOwnersSigners([id], [id]);
-        let d = Darc.fromRulesDesc(r, desc);
+        let d = SpawnerInstance.prepareDarc(pubKey, desc);
         let ctx = new ClientTransaction([
             Instruction.createInvoke(coin.iid,
                 "fetch", [
@@ -72,17 +74,33 @@ export class SpawnerInstance {
                     new Argument("coins", Buffer.from(valueBuf))
                 ]),
             Instruction.createSpawn(this.iid,
-                DarcInstance.contractID, [
-                    new Argument("contractID", Buffer.from("coin")),
+                CoinInstance.contractID, [
                     new Argument("coinName", SpawnerCoin.iid),
                     new Argument("darcID", darcID),
                 ])]);
         await ctx.signBy([signers, []], this.bc);
         await this.bc.sendTransactionAndWait(ctx);
-        let h = crypto.createHash("sha256");
-        h.update(Buffer.from("coin"));
-        h.update(darcID);
-        return CoinInstance.fromByzcoin(this.bc, new InstanceID(h.digest()));
+        return CoinInstance.fromByzcoin(this.bc, SpawnerInstance.coinIID(darcID));
+    }
+
+    async createCredential(coin: CoinInstance, signers: Signer[], darcID: Buffer,
+                           cred: CredentialStruct):
+        Promise<CredentialInstance> {
+        Log.print(this.spawner.costCred);
+        let valueBuf = this.spawner.costCred.value.toBytesLE();
+        let ctx = new ClientTransaction([
+            Instruction.createInvoke(coin.iid,
+                "fetch", [
+                    new Argument("coins", Buffer.from(valueBuf))
+                ]),
+            Instruction.createSpawn(this.iid,
+                CredentialInstance.contractID, [
+                    new Argument("darcID", darcID),
+                    new Argument("credential", cred.toProto()),
+                ])]);
+        await ctx.signBy([signers, []], this.bc);
+        await this.bc.sendTransactionAndWait(ctx);
+        return CredentialInstance.fromByzcoin(this.bc, SpawnerInstance.credentialIID(darcID));
     }
 
     static async create(bc: ByzCoinRPC, iid: InstanceID, signers: Signer[],
@@ -117,6 +135,30 @@ export class SpawnerInstance {
     static async fromByzcoin(bc: ByzCoinRPC, iid: InstanceID): Promise<SpawnerInstance> {
         return this.fromProof(bc, await bc.getProof(iid));
     }
+
+    static prepareDarc(pubKey: any, desc: string): Darc {
+        let id = new IdentityEd25519(pubKey);
+        let r = Rules.fromOwnersSigners([id], [id]);
+        return Darc.fromRulesDesc(r, desc);
+    }
+
+    static darcIID(pubKey: any, desc: string): InstanceID{
+        return new InstanceID(SpawnerInstance.prepareDarc(pubKey, desc).getBaseId());
+    }
+
+    static credentialIID(darcBaseID: Buffer): InstanceID{
+        let h = crypto.createHash("sha256");
+        h.update(Buffer.from("credential"));
+        h.update(darcBaseID);
+        return new InstanceID(h.digest());
+    }
+
+    static coinIID(darcBaseID: Buffer): InstanceID{
+        let h = crypto.createHash("sha256");
+        h.update(Buffer.from("coin"));
+        h.update(darcBaseID);
+        return new InstanceID(h.digest());
+    }
 }
 
 export class Spawner {
@@ -129,9 +171,10 @@ export class Spawner {
     beneficiary: InstanceID;
 
     constructor(obj: any) {
+        Log.print(obj);
         this.costDarc = obj.costdarc;
         this.costCoin = obj.costcoin;
-        this.costCred = obj.costcred;
+        this.costCred = obj.costcredential;
         this.costParty = obj.costparty;
         this.beneficiary = obj.beneficiary;
     }
@@ -147,6 +190,7 @@ export class Spawner {
     }
 
     static fromProto(buf: Buffer): Spawner {
+        Log.print(buf.toString('hex'));
         return new Spawner(Root.lookup("SpawnerStruct").decode(buf));
     }
 }

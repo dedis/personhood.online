@@ -14,6 +14,6 @@
         </StackLayout>
 
         <Button text="Login to service" tap="login" class="btn btn-primary btn-stub"/>
-        <Button text="Send/receive coins" tap="coins" class="btn btn-primary btn-stub"/>
+        <Button text="Send/receive coins" tap="coins" class="btn btn-primary"/>
     </StackLayout>
 </Page>
