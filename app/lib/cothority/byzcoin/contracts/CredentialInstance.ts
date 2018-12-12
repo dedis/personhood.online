@@ -20,7 +20,8 @@ export class CredentialInstance {
     }
 
     static fromProof(bc: ByzCoinRPC, p: Proof): CredentialInstance {
-        return new CredentialInstance(bc, p.iid,
+        p.matchOrFail(CredentialInstance.contractID);
+        return new CredentialInstance(bc, p.requestedIID,
             CredentialStruct.fromProto(p.value))
     }
 

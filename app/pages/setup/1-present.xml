@@ -7,6 +7,7 @@ This is the presentation screen when the user is not signed up yet.
             <Label text="Presenting personhood" class="h1 text-center"/>
             <Label text="Personhood is a new kind of identity management app that helps you aggregating all your identities in one place. Furthermore it allows you to use a password-less login on all enabled services, freely deciding which need 2-factor or more-factor authentication." class="h2" textWrap="true"/>
             <Button text="Init Test" tap="goInitTest" class="btn btn-primary btn-active btn-test"/>
+            <Button text="Reload BC Config" tap="goReloadBC" class="btn btn-primary btn-active btn-test"/>
             <Button text="Continue" tap="goAlias" class="btn btn-primary btn-active"/>
         </StackLayout>
         <StackLayout row="0" backgroundColor="gray"

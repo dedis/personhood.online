@@ -60,16 +60,17 @@ export class CoinInstance {
         await bc.sendTransactionAndWait(ctx, 5);
         let coinIID = new InstanceID(inst.deriveId());
         let p = await bc.getProof(coinIID);
-        if (!p.matches()){
+        if (!p.matchContract(CoinInstance.contractID)){
             throw new Error("didn't find correct instanceID");
         }
         return new CoinInstance(bc,
-            p.iid,
+            p.requestedIID,
             Coin.fromProto(p.value));
     }
 
     static fromProof(bc: ByzCoinRPC, p: Proof): CoinInstance{
-        return new CoinInstance(bc, p.iid,
+        p.matchOrFail(CoinInstance.contractID);
+        return new CoinInstance(bc, p.requestedIID,
             Coin.fromProto(p.value))
     }
 

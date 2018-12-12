@@ -3,8 +3,6 @@ import {Darc} from "~/lib/cothority/darc/Darc";
 import {Argument, ClientTransaction, InstanceID, Instruction} from "~/lib/cothority/byzcoin/ClientTransaction";
 import {Proof} from "~/lib/cothority/byzcoin/Proof";
 import {Signer} from "~/lib/cothority/darc/Signer";
-import {SpawnerCoin} from "~/lib/cothority/byzcoin/contracts/SpawnerInstance";
-import {Coin} from "~/lib/cothority/byzcoin/contracts/CoinInstance";
 
 export class DarcInstance {
     static readonly contractID = "darc";
@@ -35,7 +33,8 @@ export class DarcInstance {
     }
 
     static fromProof(bc: ByzCoinRPC, p: Proof): DarcInstance {
-        return new DarcInstance(bc, p.iid, DarcInstance.darcFromProof(p));
+        p.matchOrFail(DarcInstance.contractID);
+        return new DarcInstance(bc, p.requestedIID, DarcInstance.darcFromProof(p));
     }
 
     /**

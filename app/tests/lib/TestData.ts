@@ -6,6 +6,9 @@ import {ByzCoinRPC} from "~/lib/cothority/byzcoin/ByzCoinRPC";
 import {CreateByzCoin} from "~/tests/lib/cothority/byzcoin/stdByzcoin";
 import * as Long from "long";
 import {FileIO} from "~/lib/FileIO";
+import {InstanceID} from "~/lib/cothority/byzcoin/ClientTransaction";
+
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
 
 describe("Initializing Data", () => {
     it("Must start with empty values", () => {
@@ -31,17 +34,6 @@ describe("load/save", () => {
 });
 
 describe("saves and loads", () => {
-    let originalTimeout;
-
-    beforeEach(async function () {
-        originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
-        jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
-    });
-
-    afterEach(function () {
-        jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout;
-    });
-
     it("Must keep data", async () => {
         await FileIO.rmrf(Defaults.DataDir);
         // jasmine.getEnv().throwOnExpectationFailure(true);
@@ -98,7 +90,7 @@ describe("setup byzcoin and create party", () => {
         Log.print("Getting config");
         await bc.updateConfig();
         Log.print("verifying Interval");
-        expect(bc.config.blockinterval).toBe(Long.fromNumber(1e9));
+        expect(bc.config.blockinterval.equals(Long.fromNumber(1e9))).toBeTruthy();
 
         // Setting up organizer1
         let dataOrg1 = new Data({alias: "org1"});
@@ -107,30 +99,67 @@ describe("setup byzcoin and create party", () => {
     });
 });
 
-fdescribe("send and receive coins", () => {
+describe("verify qrcode en/decoding", ()=>{
+    it ("show correctly encode", ()=>{
+        let d = new Data();
+        d.alias = "org1";
+        let str = d.qrcodeIdentityStr();
+        expect(str.startsWith(Data.urlUnregistered)).toBeTruthy();
+        let user = Data.parseQRCode(str);
+        Log.print(user);
+        Log.print(user);
+        expect(user.public_ed25519).not.toBeUndefined();
+        expect(user.credentials).toBeUndefined();
+        expect(user.alias).not.toBeUndefined();
+
+        d.credentialInstance = <any>{iid: new InstanceID(Buffer.alloc(32))};
+        str = d.qrcodeIdentityStr();
+        expect(str.startsWith(Data.urlCred)).toBeTruthy();
+        user = Data.parseQRCode(str);
+        expect(user.public_ed25519).toBeUndefined();
+        expect(user.credentials).not.toBeUndefined();
+        expect(user.alias).not.toBeUndefined();
+    })
+});
+
+describe("send and receive coins", () => {
     it("must send coins to store org2", async () => {
+        jasmine.getEnv().throwOnExpectationFailure(true);
         // create two organizers, the 1st one being the main organizer, and the 2nd one being
         // one that needs to be signed on.
 
+        Log.lvl1("Creating new testdata for org1");
         let td1 = await TestData.init(new Data());
         await td1.createAll('org1');
+        Log.lvl1("public key for cbc:", Buffer.from(td1.cbc.bc.admin.public.marshalBinary()).toString('hex'));
+        Log.lvl1("public key for td1:", Buffer.from(td1.d.keyIdentity._public.marshalBinary()).toString('hex'));
+
+        Log.lvl1("Creating org2");
         let d2 = new Data();
+        d2.bc = td1.d.bc;
+        d2.alias = "org2";
+        Log.lvl1("public key for d2:", Buffer.from(d2.keyIdentity._public.marshalBinary()).toString('hex'));
+        Log.lvl1("Making sure org2 is not registered yet");
         await d2.verifyRegistration();
         expect(d2.darcInstance).toBeNull();
         expect(d2.coinInstance).toBeNull();
         expect(d2.credentialInstance).toBeNull();
 
+        Log.lvl1("First register wrongly org2, then correctly");
         await expectAsync(td1.d.registerUser(td1.d.qrcodeIdentityStr())).toBeRejected();
-        await expectAsync(td1.d.registerUser(d2.qrcodeIdentityStr())).toBeResolved();
+        await td1.d.registerUser(d2.qrcodeIdentityStr(), Long.fromNumber(1e6));
+
+        Log.lvl1("Making sure org2 is now registered");
         await d2.verifyRegistration();
         expect(d2.darcInstance).not.toBeNull();
         expect(d2.coinInstance).not.toBeNull();
         expect(d2.credentialInstance).not.toBeNull();
 
-        Log.print("td1 coins before update:", td1.d.coinInstance.coin.value.toNumber())
+        Log.print("td1 coins before update:", td1.d.coinInstance.coin.value.toNumber());
         await td1.d.coinInstance.update();
-        Log.print("td1 coins:", td1.d.coinInstance.coin.value.toNumber())
+        Log.print("td1 coins:", td1.d.coinInstance.coin.value.toNumber());
         await d2.coinInstance.update();
-        Log.print("d2 coins:", d2.coinInstance.coin.value.toNumber())
+        Log.print("d2 coins:", d2.coinInstance.coin.value.toNumber());
+        Log.print("d2 coins:", d2.coinInstance.coin.value.toNumber());
     });
 });

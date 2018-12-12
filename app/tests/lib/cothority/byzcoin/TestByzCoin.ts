@@ -8,6 +8,7 @@ import {SpawnerCoin, SpawnerInstance} from "~/lib/cothority/byzcoin/contracts/Sp
 import {Coin, CoinInstance} from "~/lib/cothority/byzcoin/contracts/CoinInstance";
 import {DarcInstance} from "~/lib/cothority/byzcoin/contracts/DarcInstance";
 import {KeyPair} from "~/lib/KeyPair";
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
 
 describe("setup byzcoin", () => {
     it("Must create byzcoin", async () => {
@@ -17,22 +18,11 @@ describe("setup byzcoin", () => {
         Log.print("Getting config");
         await bc.updateConfig();
         Log.print("verifying Interval", bc.config.blockinterval, 1e9);
-        expect(bc.config.blockinterval.toNumber()).toBe(1e9);
+        expect(bc.config.blockinterval.equals(1e9)).toBeTruthy();
     })
 });
 
 describe("create spawner", () => {
-    let originalTimeout;
-
-    beforeEach(function () {
-        originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
-        jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
-    });
-
-    afterEach(function () {
-        jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout;
-    });
-
     it("Must create spawner and add some credentials", async () => {
         Log.lvl1("Creating Byzcoin");
         let bc = await ByzCoinRPC.newLedger(Defaults.Roster,
@@ -40,14 +30,14 @@ describe("create spawner", () => {
                 "invoke:mint", "invoke:transfer", "invoke:fetch"]);
 
         Log.lvl1("Creating genesis-account");
-        let genesisIID = new InstanceID(bc.genesisDarc.getBaseId());
-        let genesisCoin = await CoinInstance.create(bc, genesisIID, [bc.admin], SpawnerCoin);
+        let genesisDarcIID = new InstanceID(bc.genesisDarc.getBaseId());
+        let genesisCoin = await CoinInstance.create(bc, genesisDarcIID, [bc.admin], SpawnerCoin);
         Log.lvl1("Minting some money");
         await genesisCoin.mint([bc.admin],
             Long.fromNumber(1e10));
 
         Log.lvl1("Creating spawner");
-        let spawner = await SpawnerInstance.create(bc, genesisIID,
+        let spawner = await SpawnerInstance.create(bc, genesisDarcIID,
             [bc.admin],
             Long.fromNumber(100), Long.fromNumber(100),
             Long.fromNumber(100), Long.fromNumber(1e7),
@@ -61,8 +51,10 @@ describe("create spawner", () => {
 
         Log.lvl1("Spawning coin");
         let userCoin = await spawner.createCoin(genesisCoin,
-            [bc.admin], user._public, Long.fromNumber(1e6));
-        expect(userCoin.coin.value.toNumber()).toBe(1e6);
+            [bc.admin], userDarc.iid.iid, Long.fromNumber(1e6));
+
+        Log.lvl1("Checking correct numbers");
+        expect(userCoin.coin.value.equals(Long.fromNumber(1e6))).toBeTruthy();
         await genesisCoin.update();
         expect(genesisCoin.coin.value.toNumber()).toBe(1e10 -
             spawner.spawner.costDarc.value.toNumber() -

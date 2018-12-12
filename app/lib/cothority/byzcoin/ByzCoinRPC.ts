@@ -51,12 +51,14 @@ export class ByzCoinRPC {
     }
 
     async updateConfig(): Promise<any> {
-        let pr = await this.getProof(new InstanceID(new Buffer(32)));
-        ByzCoinRPC.checkProof(pr, "config");
+        let configIID = new InstanceID(new Buffer(32));
+        let pr = await this.getProof(configIID);
+        ByzCoinRPC.checkProof(pr, configIID, "config");
         this.config = ChainConfig.fromProof(pr);
 
-        let genesisDarcProof = await this.getProof(new InstanceID(pr.stateChangeBody.darcID));
-        ByzCoinRPC.checkProof(genesisDarcProof, "darc");
+        let darcIID = new InstanceID(pr.stateChangeBody.darcID);
+        let genesisDarcProof = await this.getProof(darcIID);
+        ByzCoinRPC.checkProof(genesisDarcProof, darcIID, "darc");
         this.genesisDarc = DarcInstance.darcFromProof(genesisDarcProof);
     }
 
@@ -99,7 +101,7 @@ export class ByzCoinRPC {
             key: key.iid
         };
         let reply = await socket.send("GetProof", "GetProofResponse", getProofMessage);
-        return new Proof(reply.proof);
+        return new Proof(reply.proof, key);
     }
 
     /**
@@ -109,8 +111,8 @@ export class ByzCoinRPC {
      * @param {string} expectedContract
      * @throws {Error} if the proof is not valid
      */
-    static checkProof(proof: Proof, expectedContract: string) {
-        if (!proof.inclusionproof.matches()) {
+    static checkProof(proof: Proof, iid: InstanceID, expectedContract: string) {
+        if (!proof.inclusionproof.matches(iid)) {
             throw "it is a proof of absence";
         }
         let contract = proof.stateChangeBody.contractID;

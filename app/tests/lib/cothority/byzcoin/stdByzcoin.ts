@@ -10,7 +10,7 @@ import {DarcInstance} from "~/lib/cothority/byzcoin/contracts/DarcInstance";
 
 export class CreateByzCoin {
     constructor(public bc: ByzCoinRPC = null, public spawner: SpawnerInstance = null,
-                public genesisIID: InstanceID = null, public genesisCoin: CoinInstance = null) {
+                public genesisDarcIID: InstanceID = null, public genesisCoin: CoinInstance = null) {
     }
 
     async addUser(alias: string, balance: Long = Long.fromNumber(0)): Promise<cbcUser>{
@@ -33,19 +33,22 @@ export class CreateByzCoin {
                 "invoke:mint", "invoke:transfer", "invoke:fetch"]);
 
         Log.lvl1("Creating genesis-account");
-        let genesisIID = new InstanceID(bc.genesisDarc.getBaseId());
-        let genesisCoin = await CoinInstance.create(bc, genesisIID, [bc.admin], SpawnerCoin);
+        let genesisDarcIID = new InstanceID(bc.genesisDarc.getBaseId());
+        Log.lvl2("Created genesis-iid", bc.genesisDarc.getBaseId());
+        let genesisCoin = await CoinInstance.create(bc, genesisDarcIID, [bc.admin], SpawnerCoin);
+        Log.lvl2("Created coin", genesisCoin.iid.iid);
         Log.lvl1("Minting some money");
         await genesisCoin.mint([bc.admin],
             Long.fromNumber(1e10));
 
         Log.lvl1("Creating spawner");
-        let spawner = await SpawnerInstance.create(bc, genesisIID,
+        let spawner = await SpawnerInstance.create(bc, genesisDarcIID,
             [bc.admin],
             Long.fromNumber(100), Long.fromNumber(100),
             Long.fromNumber(100), Long.fromNumber(1e7),
             genesisCoin.iid);
-        return new CreateByzCoin(bc, spawner, genesisIID, genesisCoin);
+        Log.lvl2("Created spawner:", spawner.iid.iid);
+        return new CreateByzCoin(bc, spawner, genesisDarcIID, genesisCoin);
     }
 }
 

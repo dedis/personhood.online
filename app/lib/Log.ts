@@ -18,6 +18,9 @@ export class LogC {
             if (typeof a === "string") {
                 return a;
             }
+            if (a == null){
+                return "null";
+            }
             try {
                 // return JSON.stringify(a, undefined, 4);
                 let type: string = typeof a;
@@ -28,11 +31,15 @@ export class LogC {
                 } else if (type === "o") {
                     console.dir(a);
                 }
-                if (type === "Uint8Array") {
-                    return "{" + type + "}: " + Buffer.from(a).toString("hex");
-                }
 
-                return "{" + type + "}: " + util.inspect(a);
+                // Have some special cases for the content
+                let content = a.toString();
+                if (type === "Uint8Array" || type === "Buffer") {
+                    content = Buffer.from(a).toString("hex");
+                } else if (content == "[object Object]"){
+                    content = util.inspect(a);
+                }
+                return "{" + type + "}: " + content;
             } catch (e) {
                 console.log("error while inspecting:", e);
 
@@ -144,8 +151,13 @@ export class LogC {
         if (e.message) {
             errMsg = e.message;
         }
-        console.log("C : " + this.printCaller(e, 1) + " -> (" + errMsg + ") " +
-            this.joinArgs(args));
+        for (let i = 1; i < e.stack.split("\n").length; i++) {
+            if ( i > 1){
+                errMsg = "";
+            }
+            console.log("C : " + this.printCaller(e, i) + " -> (" + errMsg + ") " +
+                this.joinArgs(args));
+        }
         throw new Error(errMsg.toString().replace(/Error: /, ""));
     }
 

@@ -5,10 +5,11 @@ logic, and to set up your page’s data binding.
 */
 
 import {EventData, fromObject} from "tns-core-modules/data/observable";
-import {gData} from "~/lib/Data";
+import {Data, gData} from "~/lib/Data";
 import {Page} from "tns-core-modules/ui/page";
 import {Log} from "~/lib/Log";
 import * as dialogs from "tns-core-modules/ui/dialogs";
+import {scan} from "~/lib/Scan";
 
 let identity = fromObject({
     alias: gData.alias,
@@ -29,6 +30,27 @@ export function login() {
     return dialogs.alert("Scanning QRCode of login page");
 }
 
-export function coins() {
-    return dialogs.alert("Send and receive coins");
+export async function coins() {
+    try {
+        let str = await scan("Scan Identity Code");
+        Log.lvl2("Got string scanned:", str);
+        let qr = Data.parseQRCode(str);
+        if (qr.public_ed25519) {
+            if (!(gData.coinInstance && gData.spawnerInstance)){
+                throw new Error("Cannot sign up a user without coins and spawner");
+            }
+            await gData.coinInstance.update();
+            let scost = gData.spawnerInstance.signupCost;
+            if (gData.coinInstance.coin.value.gte(scost)) {
+                let pay = await dialogs.confirm("This is an unconfirmed code - do you want to pay " + scost.toString() + " for the registration of " + qr.alias + "?")
+                if (pay) {
+                    await gData.registerUser(str);
+                    await dialogs.alert(qr.alias + " is now registered");
+                }
+            }
+        }
+    } catch (e) {
+        Log.catch(e);
+        await dialogs.alert("Scanning failed:" + e);
+    }
 }

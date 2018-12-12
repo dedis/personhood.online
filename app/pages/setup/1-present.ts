@@ -39,15 +39,28 @@ export async function goInitTest(args: EventData) {
                 await td.createUserDarc('org1');
 
                 setProgress("creating credentials", 60);
-                await td.createUserCredentials();
+                await td.createUserCoin();
 
                 setProgress("creating credentials", 80);
-                await td.createUserCoin();
+                await td.createUserCredentials();
 
                 setProgress("saving", 100);
                 await gData.save();
                 return getFrameById("app-root").navigate("main-page");
         }
+    } catch (e) {
+        Log.rcatch(e);
+    }
+    return goAlias(args);
+}
+
+export async function goReloadBC(args: EventData) {
+    try {
+        Log.lvl1("Loading data from TestStore");
+        let ts = await TestStore.load(Defaults.Roster);
+        Defaults.ByzCoinID = ts.bcID;
+        Defaults.SpawnerIID = ts.spawnerIID;
+        Log.lvl1("Stored new bcID:", ts.bcID);
     } catch (e) {
         Log.rcatch(e);
     }
