@@ -5,6 +5,9 @@ Here the user can enter his alias
       navigatingTo="navigatingTo"
       xmlns:df="nativescript-ui-dataform"
       class="page">
+    <ActionBar class="action-bar">
+        <Label class="action-bar-title" text="Setting Alias"></Label>
+    </ActionBar>
     <StackLayout class="p-20">
         <Label text="Setting your alias" class="h1 text-center" textWrap="true"/>
         <Label text="Please enter an alias that will be used whenever you share your identity with somebody else. You can change it afterwards and it does not need to be globally unique." class="h2" textWrap="true"/>

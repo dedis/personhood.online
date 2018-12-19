@@ -43,6 +43,10 @@ export class KeyPair {
     publicToHex(): string {
         return new Buffer(this._public.marshalBinary()).toString("hex");
     }
+
+    static fromBuffer(priv: any): KeyPair{
+        return new KeyPair(Buffer.from(priv).toString('hex'));
+    }
 }
 
 export class Private{}
@@ -62,5 +66,10 @@ export class Public{
         let p = Curve25519.point();
         p.null();
         return p;
+    }
+
+    static fromRand(): any{
+        let kp = new KeyPair();
+        return kp._public;
     }
 }

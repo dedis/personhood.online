@@ -2,6 +2,9 @@
 This is the presentation screen when the user is not signed up yet.
 -->
 <Page xmlns="http://schemas.nativescript.org/tns.xsd" navigatingTo="navigatingTo" class="page">
+    <ActionBar class="action-bar">
+        <Label class="action-bar-title" text="Presentation"></Label>
+    </ActionBar>
     <GridLayout rows="*, auto" row="1" tap="cancelNetwork">
         <StackLayout class="p-20" row="0">
             <Label text="Presenting personhood" class="h1 text-center"/>

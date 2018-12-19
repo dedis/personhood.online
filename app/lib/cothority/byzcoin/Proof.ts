@@ -54,7 +54,8 @@ export class Proof {
      */
     get contractID(): string {
         if (!this.matches){
-            throw new Error("not a matching proof")
+            Log.error("not a matching proof");
+            return "";
         }
         return this.stateChangeBody.contractID;
     }
@@ -65,7 +66,8 @@ export class Proof {
      */
     get darcID(): InstanceID {
         if (!this.matches){
-            throw new Error("not a matching proof")
+            Log.error("not a matching proof");
+            return null;
         }
         return new InstanceID(this.stateChangeBody.darcID);
     }
@@ -78,7 +80,8 @@ export class Proof {
      */
     get value(): Buffer {
         if (!this.matches){
-            throw new Error("not a matching proof")
+            Log.error("not a matching proof");
+            return null;
         }
         return this.stateChangeBody.value;
     }
@@ -89,7 +92,8 @@ export class Proof {
      */
     get version(): number {
         if (!this.matches){
-            throw new Error("not a matching proof")
+            Log.error("not a matching proof");
+            return -1;
         }
         return this.stateChangeBody.version;
     }
@@ -99,14 +103,15 @@ export class Proof {
      * @param {string=""} cid optional parameter to check for this type of contract
      * @throws an error if it doesn't match.
      */
-    matchOrFail(cid: string = "") {
+    matchOrFail(cid: string = ""): Promise<boolean> {
         // Differentiate the two cases for easier debugging if something fails.
         if (!this.matches) {
-            throw new Error("cannot get instanceID of non-matching proof");
+            return Promise.reject("cannot get instanceID of non-matching proof");
         }
         if (!this.matchContract(cid)) {
-            throw new Error("proof for '" + this.contractID + "' instead of '" + cid + "'");
+            return Promise.reject("proof for '" + this.contractID + "' instead of '" + cid + "'");
         }
+        return Promise.resolve(true);
     }
 
     /**

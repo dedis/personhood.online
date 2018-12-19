@@ -2,7 +2,9 @@
 Here the user can enter his alias
 -->
 <Page xmlns="http://schemas.nativescript.org/tns.xsd" navigatingTo="navigatingTo" class="page">
-
+    <ActionBar class="action-bar">
+        <Label class="action-bar-title" text="Registration"></Label>
+    </ActionBar>
     <StackLayout class="p-20">
         <Label text="Activate your identity" class="h1 text-center"
                textWrap="true"/>
@@ -15,10 +17,11 @@ Here the user can enter his alias
         <Label text="Or chose another activation method:" class="h3 text-center"
                textWrap="true"/>
         <!--<Button text="Receive personhood-coins" tap="activatePersonhood" class="btn btn-primary btn-stub"/>-->
+        <Button text="Verify activation" tap="verifyActivation" class="btn btn-primary"/>
+        <Button text="Delete all" tap="deleteAll" class="btn btn-primary btn-test"/>
         <Button text="Visit a personhood-party" tap="activateParty" class="btn btn-primary btn-stub"/>
         <Button text="Login through EPFL" tap="activateEPFL" class="btn btn-primary btn-stub"/>
-        <Button text="Use email" tap="activateEmail" class="btn btn-primary btn-stub"/>
+        <!--<Button text="Use email" tap="activateEmail" class="btn btn-primary btn-stub"/>-->
         <Button text="Pay for account" tap="activateEmail" class="btn btn-primary btn-stub"/>
-        <Button text="Delete all" tap="deleteAll" class="btn btn-primary btn-stub"/>
     </StackLayout>
 </Page>

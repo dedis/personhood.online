@@ -11,6 +11,7 @@ import {AdminViewModel} from "./settings-view";
 import {Log} from "~/lib/Log"
 import * as dialogs from "tns-core-modules/ui/dialogs";
 import {Defaults} from "~/lib/Defaults";
+import {SelectedIndexChangedEventData} from "tns-core-modules/ui/tab-view";
 
 let page: Page;
 
@@ -56,3 +57,8 @@ export async function tapSave(args: EventData) {
     gData.setValues(page.bindingContext.admin);
     await gData.save();
 }
+
+export async function switchSettings(args: SelectedIndexChangedEventData){
+    Log.print("switchSettings", args);
+}
+

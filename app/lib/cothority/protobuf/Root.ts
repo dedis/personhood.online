@@ -9,7 +9,7 @@ export function objToProto(obj: object, modelName: string): Buffer {
     const errMsg = requestModel.verify(obj);
     if (errMsg) {
         Log.error("couldn't verify data:", errMsg);
-        throw new Error(errMsg);
+        return null;
     }
     const message = requestModel.create(obj);
     const marshal = requestModel.encode(message).finish();

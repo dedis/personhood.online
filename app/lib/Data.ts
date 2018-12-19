@@ -16,9 +16,7 @@ import {Defaults} from "~/lib/Defaults";
 import {FileIO} from "~/lib/FileIO";
 import {Log} from "~/lib/Log";
 import {KeyPair, Public} from "~/lib/KeyPair";
-import {fromNativeSource, ImageSource} from "tns-core-modules/image-source";
 import {Buffer} from "buffer";
-import {screen} from "tns-core-modules/platform";
 import {RosterSocket, WebSocket, Socket} from "~/lib/network/NSNet";
 import {RequestPath} from "~/lib/network/RequestPath";
 import {InstanceID} from "~/lib/cothority/byzcoin/ClientTransaction";
@@ -36,14 +34,12 @@ import {TestStore} from "~/lib/network/TestStorage";
 import {SpawnerInstance} from "~/lib/cothority/byzcoin/contracts/SpawnerInstance";
 import {Signer} from "~/lib/cothority/darc/Signer";
 import {SignerEd25519} from "~/lib/cothority/darc/SignerEd25519";
-import {sprintf} from "sprintf-js";
+import {User} from "~/lib/User";
 
 /**
  * Data holds the data of the app.
  */
 export class Data {
-    static readonly urlCred = "https://pop.dedis.ch/qrcode/identity?";
-    static readonly urlUnregistered = "https://pop.dedis.ch/qrcode/unregistered?";
     dataFileName: string = Defaults.DataDir + "/" + "data.json";
 
     alias: string;
@@ -57,6 +53,7 @@ export class Data {
     coinInstance: CoinInstance = null;
     spawnerInstance: SpawnerInstance = null;
     constructorObj: any;
+    users: User[] = [];
 
     /**
      * Constructs a new Data, optionally initialized with an object containing
@@ -76,9 +73,20 @@ export class Data {
             this.continuousScan = obj.continuousScan ? obj.continuousScan : false;
             this.keyPersonhood = obj.keyPersonhood ? new KeyPair(Buffer.from(obj.keyPersonhood).toString('hex')) : new KeyPair();
             this.keyIdentity = obj.keyIdentity ? new KeyPair(Buffer.from(obj.keyIdentity).toString('hex')) : new KeyPair();
+            this.users = obj.users ? obj.users.filter(u => u).map(u => User.fromObject(u)) : [];
         } catch (e) {
             Log.catch(e);
         }
+    }
+
+    delete() {
+        this.setValues({});
+        this.bc = null;
+        this.darcInstance = null;
+        this.credentialInstance = null;
+        this.coinInstance = null;
+        this.spawnerInstance = null;
+        this.constructorObj = {};
     }
 
     async connectByzcoin(): Promise<ByzCoinRPC> {
@@ -87,9 +95,12 @@ export class Data {
                 Log.lvl2("Not connecting if bc is already initialized");
             }
             let obj = this.constructorObj;
-            if (Defaults.Testing && obj.bcID == null) {
-                Log.lvl2("Not initializing bc with Defaults when testing");
-                return;
+            if (Defaults.Testing && this.bc == null) {
+                Log.lvl1("Loading data from TestStore");
+                let ts = await TestStore.load(Defaults.Roster);
+                Defaults.ByzCoinID = ts.bcID;
+                Defaults.SpawnerIID = ts.spawnerIID;
+                Log.lvl1("Stored new bcID:", ts.bcID);
             }
             let bcID = obj.bcID ? Buffer.from(obj.bcID) : Defaults.ByzCoinID;
             let roster = obj.roster ? Roster.fromObject(obj.roster) : Defaults.Roster;
@@ -109,6 +120,12 @@ export class Data {
             if (obj.spawnerInstance) {
                 let ci = new InstanceID(Buffer.from(obj.spawnerInstance));
                 this.spawnerInstance = SpawnerInstance.fromProof(this.bc, await this.bc.getProof(ci));
+            } else {
+                if (Defaults.Testing) {
+                    let ts = await TestStore.load(Defaults.Roster);
+                    Defaults.SpawnerIID = ts.spawnerIID;
+                }
+                this.spawnerInstance = SpawnerInstance.fromProof(this.bc, await this.bc.getProof(Defaults.SpawnerIID));
             }
         } catch (e) {
             Log.catch(e);
@@ -123,6 +140,7 @@ export class Data {
             continuousScan: this.continuousScan,
             keyPersonhood: Buffer.from(this.keyPersonhood._private.marshalBinary()),
             keyIdentity: Buffer.from(this.keyIdentity._private.marshalBinary()),
+            users: this.users.map(u => u.toObject()),
             bcRoster: null,
             bcID: null,
             darcInstance: null,
@@ -148,10 +166,11 @@ export class Data {
     async load(): Promise<Data> {
         try {
             let str = await FileIO.readFile(this.dataFileName);
+            let obj = {};
             if (str.length > 0) {
-                let obj = JSON.parse(str);
-                await this.setValues(obj);
+                obj = JSON.parse(str);
             }
+            await this.setValues(obj);
             await this.connectByzcoin()
         } catch (e) {
             Log.catch(e);
@@ -164,70 +183,59 @@ export class Data {
         return this;
     }
 
-    qrcodeIdentityStr(): string {
-        if (this.credentialInstance) {
-            return Data.urlCred + sprintf("credentials:%s+alias:%s",
-                this.credentialInstance.iid.iid.toString('hex'), this.alias);
-        } else {
-            return Data.urlUnregistered + sprintf("public_ed25519:%s+alias:%s",
-                Buffer.from(this.keyIdentity._public.marshalBinary()).toString('hex'), this.alias);
+    async canPay(amount: Long): Promise<boolean> {
+        if (!(this.coinInstance && this.spawnerInstance)) {
+            return Promise.reject("Cannot sign up a user without coins and spawner");
         }
+        await gData.coinInstance.update();
+        if (amount.lessThanOrEqual(0)) {
+            return Promise.reject("Cannot send 0 or less coins");
+        }
+        return gData.coinInstance.coin.value.gte(amount);
     }
 
-    qrcodeIdentity(): ImageSource {
-        const sideLength = screen.mainScreen.widthPixels / 4;
-        const qrcode = QRGenerator.createBarcode({
-            encode: this.qrcodeIdentityStr(),
-            format: ZXing.QR_CODE,
-            height: sideLength,
-            width: sideLength
-        });
-        return fromNativeSource(qrcode);
+    dummyProgress(text: string = "", width: number = 0){
+        Log.lvl2("Dummyprogress:", text, width);
     }
 
-    static parseQRCode(str: string): any {
-        let url = str.split("?", 2);
-        if (url.length != 2){
-            throw new Error("wrong QRCode");
-        }
-        let parts = url[1].split("+", 2);
-        if (parts.length != 2){
-            throw new Error("wrong QRCode");
-        }
-        let ret = {};
-        parts.forEach(p => {
-            let r = p.split(":", 2);
-            ret[r[0]] = r[1];
-        });
-        return ret;
-    }
+    async registerUser(user: User, balance: Long = Long.fromNumber(0), progress:Function = this.dummyProgress): Promise<any> {
+        try {
+            progress("Verifying Registration", 10);
+            if (user.isRegistered()) {
+                return Promise.reject("cannot register already registered user");
+            }
+            let pub = user.pubIdentity;
+            Log.lvl2("Registering user", user.alias,
+                "with public key:", Buffer.from(pub.marshalBinary()).toString('hex'));
+            Log.lvl2("Registering darc");
+            progress("Creating Darc", 20);
+            let darcInstance = await this.spawnerInstance.createDarc(this.coinInstance,
+                [this.keyIdentitySigner], pub, "new user " + user.alias);
 
-    async registerUser(user: string, balance: Long = Long.fromNumber(0)) {
-        if (!user.startsWith(Data.urlUnregistered)) {
-            throw new Error("this is not an unregistered user");
-        }
-        let qrObj = Data.parseQRCode(user);
-        if (!qrObj.public_ed25519 || !qrObj.alias) {
-            throw new Error("wrong data for registered user");
-        }
-        let pub = Public.fromBuffer(Buffer.from(qrObj.public_ed25519, 'hex'));
-        let alias = qrObj.alias;
+            progress("Creating Coin", 50);
+            Log.lvl2("Registering coin");
+            let coinInstance = await this.spawnerInstance.createCoin(this.coinInstance,
+                [this.keyIdentitySigner], darcInstance.darc.getBaseId());
+            let referral = null;
+            if (this.credentialInstance) {
+                referral = this.credentialInstance.iid.iid;
+                Log.lvl2("Adding a referral to the credentials");
+            }
+            Log.lvl2("Registering credential");
 
-        Log.lvl2("Registering user with public key:", Buffer.from(pub.marshalBinary()).toString('hex'));
-        let darcInstance = await this.spawnerInstance.createDarc(this.coinInstance,
-            [this.keyIdentitySigner], pub, "new user " + alias);
-        let coinInstance = await this.spawnerInstance.createCoin(this.coinInstance,
-            [this.keyIdentitySigner], darcInstance.darc.getBaseId());
-        let referral = null;
-        if (this.credentialInstance) {
-            referral = this.credentialInstance.iid.iid;
-            Log.lvl2("Adding a referral to the credentials");
+            progress("CreatingCredential", 80);
+            let credentialInstance = await this.createUserCredentials(pub, darcInstance.iid.iid, coinInstance.iid.iid,
+                referral);
+            await this.coinInstance.transfer(balance, coinInstance.iid, [this.keyIdentitySigner]);
+            Log.lvl2("Registered user for darc::coin::credential:", darcInstance.iid.iid, coinInstance.iid.iid,
+                credentialInstance.iid.iid)
+            user.credentialIID = credentialInstance.iid;
+            user.credential = credentialInstance.credential;
+            progress("Done", 100);
+        } catch(e){
+            progress("Error: " + e.toString(), -100);
+            return Promise.reject(e);
         }
-        let credentialInstance = await this.createUserCredentials(pub, darcInstance.iid.iid, coinInstance.iid.iid,
-            referral);
-        await this.coinInstance.transfer(balance, coinInstance.iid, [this.keyIdentitySigner]);
-        Log.lvl2("Registered user for darc::coin::credential:", darcInstance.iid.iid, coinInstance.iid.iid,
-            credentialInstance.iid.iid)
     }
 
     async createUserCredentials(pub: any = this.keyIdentity._public,
@@ -251,10 +259,13 @@ export class Data {
 
     async verifyRegistration() {
         if (this.bc == null) {
-            throw new Error("cannot verify if no byzCoin connection is set");
+            return Promise.reject("cannot verify if no byzCoin connection is set");
         }
+        Log.lvl1("Verifying user", this.alias,
+            "with public key", this.keyIdentity._public.marshalBinary());
         let darcIID: InstanceID;
         if (this.darcInstance) {
+            Log.lvl2("Using existing darc instance:", this.darcInstance.iid.iid);
             darcIID = this.darcInstance.iid;
         } else {
             let d = SpawnerInstance.prepareDarc(this.keyIdentity._public, "new user " + this.alias);
@@ -289,6 +300,19 @@ export class Data {
                 this.coinInstance = CoinInstance.fromProof(this.bc, p);
             }
         }
+    }
+
+    addUser(nu: User) {
+        this.rmUser(nu);
+        this.users.push(nu);
+    }
+
+    rmUser(nu: User) {
+        this.users = this.users.filter(u => !u.equals(nu));
+    }
+
+    get user(): User {
+        return User.fromData(this);
     }
 
     get keyIdentitySigner(): Signer {

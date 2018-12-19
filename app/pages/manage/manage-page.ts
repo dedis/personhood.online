@@ -9,37 +9,38 @@ import {gData} from "~/lib/Data";
 import {Page} from "tns-core-modules/ui/page";
 import {Log} from "~/lib/Log";
 import * as dialogs from "tns-core-modules/ui/dialogs";
+import {GestureEventData} from "tns-core-modules/ui/gestures";
+import {Frame, getFrameById, topmost} from "tns-core-modules/ui/frame";
+import {SelectedIndexChangedEventData} from "tns-core-modules/ui/tab-view";
 
-let identity = fromObject({
-    showStack: 0,
-});
+let identity = fromObject({});
+
+export let frame: Frame;
 
 // Event handler for Page "navigatingTo" event attached in identity.xml
-export function navigatingTo(args: EventData) {
+export async function navigatingTo(args: GestureEventData) {
+    Log.print("navigating to manage page");
     let page = <Page>args.object;
+    page.bindingContext = identity;
+    // return getFrameById("app-root").navigate("pages/manage/friends/friends-page");
+    // await goFriends(args);
+}
+
+export function goFriends(args: GestureEventData) {
+    Log.print("Going to friends");
+    frame = args.view.page.frame;
+    return frame.navigate({
+        moduleName: "pages/manage/friends/friends-page",
+    })
+}
+
+export async function switchManage(args: SelectedIndexChangedEventData) {
     try {
-        page.bindingContext = identity;
+        if (frame) {
+            return frame.navigate("pages/manage/manage-page");
+        }
     } catch (e) {
         Log.catch(e);
     }
 }
 
-export function friends() {
-    identity.set("showStack", 0);
-}
-
-export function badges() {
-    identity.set("showStack", 1);
-}
-
-export function devices() {
-    identity.set("showStack", 2);
-}
-
-export function linkID() {
-    identity.set("showStack", 3);
-}
-
-export function backupRestore() {
-    identity.set("showStack", 4);
-}

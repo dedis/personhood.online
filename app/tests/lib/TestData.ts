@@ -7,6 +7,8 @@ import {CreateByzCoin} from "~/tests/lib/cothority/byzcoin/stdByzcoin";
 import * as Long from "long";
 import {FileIO} from "~/lib/FileIO";
 import {InstanceID} from "~/lib/cothority/byzcoin/ClientTransaction";
+import {User} from "~/lib/User";
+import {parseQRCode} from "~/lib/Scan";
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
 
@@ -103,9 +105,9 @@ describe("verify qrcode en/decoding", ()=>{
     it ("show correctly encode", ()=>{
         let d = new Data();
         d.alias = "org1";
-        let str = d.qrcodeIdentityStr();
-        expect(str.startsWith(Data.urlUnregistered)).toBeTruthy();
-        let user = Data.parseQRCode(str);
+        let str = d.user.qrcodeIdentityStr();
+        expect(str.startsWith(User.urlUnregistered)).toBeTruthy();
+        let user = parseQRCode(str, 3);
         Log.print(user);
         Log.print(user);
         expect(user.public_ed25519).not.toBeUndefined();
@@ -113,9 +115,9 @@ describe("verify qrcode en/decoding", ()=>{
         expect(user.alias).not.toBeUndefined();
 
         d.credentialInstance = <any>{iid: new InstanceID(Buffer.alloc(32))};
-        str = d.qrcodeIdentityStr();
-        expect(str.startsWith(Data.urlCred)).toBeTruthy();
-        user = Data.parseQRCode(str);
+        str = d.user.qrcodeIdentityStr();
+        expect(str.startsWith(User.urlCred)).toBeTruthy();
+        user = parseQRCode(str, 3);
         expect(user.public_ed25519).toBeUndefined();
         expect(user.credentials).not.toBeUndefined();
         expect(user.alias).not.toBeUndefined();
@@ -146,8 +148,8 @@ describe("send and receive coins", () => {
         expect(d2.credentialInstance).toBeNull();
 
         Log.lvl1("First register wrongly org2, then correctly");
-        await expectAsync(td1.d.registerUser(td1.d.qrcodeIdentityStr())).toBeRejected();
-        await td1.d.registerUser(d2.qrcodeIdentityStr(), Long.fromNumber(1e6));
+        // await expectAsync(td1.d.registerUser(d.user.qrcodeIdentityStr())).toBeRejected();
+        // await td1.d.registerUser(d2.user.qrcodeIdentityStr(), Long.fromNumber(1e6));
 
         Log.lvl1("Making sure org2 is now registered");
         await d2.verifyRegistration();

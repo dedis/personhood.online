@@ -18,7 +18,7 @@ export class LogC {
             if (typeof a === "string") {
                 return a;
             }
-            if (a == null){
+            if (a == null) {
                 return "null";
             }
             try {
@@ -36,7 +36,7 @@ export class LogC {
                 let content = a.toString();
                 if (type === "Uint8Array" || type === "Buffer") {
                     content = Buffer.from(a).toString("hex");
-                } else if (content == "[object Object]"){
+                } else if (content == "[object Object]") {
                     content = util.inspect(a);
                 }
                 return "{" + type + "}: " + content;
@@ -137,28 +137,38 @@ export class LogC {
         if (e.message) {
             errMsg = e.message;
         }
-        for (let i = 1; i < e.stack.split("\n").length; i++) {
-            if ( i > 1){
-                errMsg = "";
+        if (e.stack) {
+            for (let i = 1; i < e.stack.split("\n").length; i++) {
+                if (i > 1) {
+                    errMsg = "";
+                }
+                console.log("C : " + this.printCaller(e, i) + " -> (" + errMsg + ") " +
+                    this.joinArgs(args));
             }
-            console.log("C : " + this.printCaller(e, i) + " -> (" + errMsg + ") " +
+        } else {
+            console.log("C : " + this.printCaller(e, 1) + " -> (" + errMsg + ") " +
                 this.joinArgs(args));
         }
     }
 
-    rcatch(e, ...args) {
+    rcatch(e, ...args): Promise<string> {
         let errMsg = e;
         if (e.message) {
             errMsg = e.message;
         }
-        for (let i = 1; i < e.stack.split("\n").length; i++) {
-            if ( i > 1){
-                errMsg = "";
+        if (e.stack) {
+            for (let i = 1; i < e.stack.split("\n").length; i++) {
+                if (i > 1) {
+                    errMsg = "";
+                }
+                console.log("C : " + this.printCaller(e, i) + " -> (" + errMsg + ") " +
+                    this.joinArgs(args));
             }
-            console.log("C : " + this.printCaller(e, i) + " -> (" + errMsg + ") " +
+        } else {
+            console.log("C : " + this.printCaller(e, 1) + " -> (" + errMsg + ") " +
                 this.joinArgs(args));
         }
-        throw new Error(errMsg.toString().replace(/Error: /, ""));
+        return Promise.reject(errMsg.toString().replace(/Error: /, ""));
     }
 
     set lvl(l) {

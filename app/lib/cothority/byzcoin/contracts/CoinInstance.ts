@@ -61,7 +61,7 @@ export class CoinInstance {
         let coinIID = new InstanceID(inst.deriveId());
         let p = await bc.getProof(coinIID);
         if (!p.matchContract(CoinInstance.contractID)){
-            throw new Error("didn't find correct instanceID");
+            return Promise.reject("didn't find correct instanceID");
         }
         return new CoinInstance(bc,
             p.requestedIID,

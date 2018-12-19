@@ -186,9 +186,16 @@ export class Delete {
 }
 
 export class InstanceID {
-    constructor(public iid: Buffer) {
+    iid: Buffer;
+
+    constructor(iid: Buffer) {
         if (iid.length != 32) {
             throw new Error("instanceIDs are always 32 bytes");
         }
+        this.iid = Buffer.from(iid);
+    }
+
+    static fromHex(str: string): InstanceID{
+        return new InstanceID(Buffer.from(str, 'hex'));
     }
 }

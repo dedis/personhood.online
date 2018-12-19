@@ -2,7 +2,9 @@
       xmlns:df="nativescript-ui-dataform"
       navigatingTo="navigatingTo"
       class="page">
-
+    <ActionBar class="action-bar">
+        <Label class="action-bar-title" text="Settings"></Label>
+    </ActionBar>
     <StackLayout class="p-20">
         <Label text="Admin" class="h1 text-center"/>
         <df:RadDataForm id="myDataForm" source="{{ admin }}" />

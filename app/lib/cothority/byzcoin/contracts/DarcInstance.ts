@@ -3,6 +3,7 @@ import {Darc} from "~/lib/cothority/darc/Darc";
 import {Argument, ClientTransaction, InstanceID, Instruction} from "~/lib/cothority/byzcoin/ClientTransaction";
 import {Proof} from "~/lib/cothority/byzcoin/Proof";
 import {Signer} from "~/lib/cothority/darc/Signer";
+import {Log} from "~/lib/Log";
 
 export class DarcInstance {
     static readonly contractID = "darc";
@@ -48,7 +49,8 @@ export class DarcInstance {
 
     static darcFromProof(p: Proof): Darc{
         if (p.contractID != DarcInstance.contractID) {
-            throw new Error("Got non-darc proof: " + p.contractID);
+            Log.error("Got non-darc proof: " + p.contractID);
+            return null;
         }
         return Darc.fromProto(p.value);
     }

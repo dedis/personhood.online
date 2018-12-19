@@ -80,9 +80,8 @@ export class WebSocket {
                 } catch (err) {
                     Log.error("got message with length", buffer.length);
                     Log.error("unmarshalling into", responseModel);
-                    Log.catch(err, "error while decoding, buffer is:", Buffer.from(buffer).toString("hex"));
                     ws.close();
-                    reject(err);
+                    Log.rcatch(err, "error while decoding, buffer is:", Buffer.from(buffer).toString("hex"));
                 }
             });
 
@@ -102,7 +101,7 @@ export class WebSocket {
             });
 
             ws.on('error', (socket, error) => {
-                Log.rcatch(error, "error in websocket:");
+                return Log.rcatch(error, "error in websocket:");
             });
 
             ws.open();
@@ -168,7 +167,7 @@ export class RosterSocket {
                 Log.rcatch(err, "rostersocket");
             }
         }
-        throw new Error("no conodes are available or all conodes returned an error");
+        return Promise.reject("no conodes are available or all conodes returned an error");
     }
 }
 
@@ -187,7 +186,7 @@ export class LeaderSocket {
         this.roster = roster;
 
         if (this.roster.identities.length === 0) {
-            throw new Error("Roster should have atleast one node");
+            throw new Error("Roster should have at least one node");
         }
     }
 
@@ -218,7 +217,7 @@ export class LeaderSocket {
                     lastErr = err
                 }
             }
-            throw new Error("couldn't send request after 3 attempts: " + lastErr.message);
+            return Promise.reject("couldn't send request after 3 attempts: " + lastErr.message);
         });
         return fn();
     }

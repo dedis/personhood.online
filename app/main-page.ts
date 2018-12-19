@@ -10,29 +10,69 @@ import {gData} from "~/lib/Data";
 import {Log} from "~/lib/Log";
 import {Defaults} from "~/lib/Defaults";
 import {TestStore} from "~/lib/network/TestStorage";
+import {navigatingToHome, switchHome} from "~/pages/home/home-page";
+import * as dialogs from "tns-core-modules/ui/dialogs";
+import {platform} from "os";
+import {platformNames} from "tns-core-modules/platform";
+import * as application from "application";
+import android = platformNames.android;
+import {SelectedIndexChangedEventData} from "tns-core-modules/ui/tab-view";
+import {switchSettings} from "~/pages/settings/settings-page";
+import {switchLab} from "~/pages/lab/lab-page";
+import {switchManage} from "~/pages/manage/manage-page";
+declare const exit: (code: number)=>void;
 
 // Verify if we already have data or not. If it's a new installation, present the project
 // and ask for an alias, and set up keys.
 export async function navigatingTo(args: EventData) {
     try {
         if (Defaults.Testing) {
-            try {
                 let ts = await TestStore.load(Defaults.Roster);
                 Defaults.ByzCoinID = ts.bcID;
                 Defaults.SpawnerIID = ts.spawnerIID;
-            } catch(e){
-                Log.catch(e);
-            }
         }
         await gData.load();
-        Log.print("Loaded", gData.alias);
+        Log.lvl1("Loaded", gData.alias);
         if (gData.alias == "") {
             return getFrameById("app-root").navigate("pages/setup/1-present");
-            // return topmost().navigate("pages/setup/1-present");
         } else if (!gData.darcInstance) {
             return getFrameById("app-root").navigate("pages/setup/3-activate");
         }
+        await navigatingToHome(args);
     } catch (e) {
         Log.catch(e);
+        await dialogs.alert("Error when setting up communication: " + e.toString());
+        let again = await dialogs.confirm({
+            title: "Network error",
+            message: "Do you want to try again?",
+            okButtonText: "Try again",
+            cancelButtonText: "Quit",
+        });
+        if (again){
+            await navigatingTo(args);
+        } else {
+            if (application.android){
+                application.android.foregroundActivity.finish();
+            } else {
+                exit(0);
+            }
+        }
+    }
+}
+
+export async function onChangeTab(args: SelectedIndexChangedEventData){
+    switch (args.newIndex){
+        case 0:
+            await switchHome(args);
+            break;
+        case 1:
+            await switchManage(args);
+            break;
+        case 2:
+            await switchLab(args);
+            break;
+        case 3:
+            await switchSettings(args);
+            break;
     }
 }

@@ -9,15 +9,28 @@ import {getFrameById, Page, topmost} from "tns-core-modules/ui/frame";
 import * as dialogs from "tns-core-modules/ui/dialogs";
 import {gData} from "~/lib/Data";
 import {Log} from "~/lib/Log";
-
-let identity = fromObject({
-    alias: gData.alias,
-    qrcode: gData.qrcodeIdentity(),
-});
+import {User} from "~/lib/User";
 
 export function navigatingTo(args: EventData) {
     let page = <Page>args.object;
-    page.bindingContext = identity;
+    page.bindingContext = fromObject({
+        alias: gData.alias,
+        qrcode: gData.user.qrcodeIdentity(),
+    });
+}
+
+export async function verifyActivation(args: EventData){
+    try {
+        await gData.verifyRegistration();
+        if (gData.credentialInstance) {
+            await gData.save();
+            return gotoMain("Congratulations - you've been registered!");
+        } else {
+            return dialogs.alert("Sorry - your account hasn't been registered yet.")
+        }
+    } catch (e){
+        Log.rcatch(e);
+    }
 }
 
 // Start when somebody sends enough coins to create an account.

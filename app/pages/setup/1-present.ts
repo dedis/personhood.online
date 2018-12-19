@@ -14,6 +14,9 @@ import {Defaults} from "~/lib/Defaults";
 import {gData, TestData} from "~/lib/Data";
 import {Label} from "tns-core-modules/ui/label";
 import {Attribute, Credential, CredentialStruct} from "~/lib/cothority/byzcoin/contracts/CredentialInstance";
+import {ByzCoinRPC} from "~/lib/cothority/byzcoin/ByzCoinRPC";
+import {RosterSocket} from "~/lib/network/NSNet";
+import {RequestPath} from "~/lib/network/RequestPath";
 
 let view: Observable = fromObjectRecursive({
     networkStatus: undefined
@@ -56,11 +59,11 @@ export async function goInitTest(args: EventData) {
 
 export async function goReloadBC(args: EventData) {
     try {
-        Log.lvl1("Loading data from TestStore");
         let ts = await TestStore.load(Defaults.Roster);
         Defaults.ByzCoinID = ts.bcID;
         Defaults.SpawnerIID = ts.spawnerIID;
-        Log.lvl1("Stored new bcID:", ts.bcID);
+        gData.delete();
+        await gData.connectByzcoin();
     } catch (e) {
         Log.rcatch(e);
     }

@@ -3,6 +3,7 @@ import {InstanceID} from "~/lib/cothority/byzcoin/ClientTransaction";
 import {Roster} from "~/lib/network/Roster";
 import {WebSocket} from "~/lib/network/NSNet";
 import {RequestPath} from "~/lib/network/RequestPath";
+import {Log} from "~/lib/Log";
 
 export class TestStore{
     constructor (public bcID: Buffer, public spawnerIID: InstanceID){}
@@ -16,8 +17,12 @@ export class TestStore{
     }
 
     static async load(r: Roster): Promise<TestStore>{
-        let s = new WebSocket(r.list[0].toWebsocket(""), RequestPath.PERSONHOOD);
-        let ts = await s.send(RequestPath.PERSONHOOD_TESTSTORE, RequestPath.PERSONHOOD_TESTSTORE,{});
-        return new TestStore(ts.byzcoinid, ts.spawneriid);
+        try {
+            let s = new WebSocket(r.list[0].toWebsocket(""), RequestPath.PERSONHOOD);
+            let ts = await s.send(RequestPath.PERSONHOOD_TESTSTORE, RequestPath.PERSONHOOD_TESTSTORE, {});
+            return new TestStore(Buffer.from(ts.byzcoinid), new InstanceID(ts.spawneriid));
+        } catch (e){
+            Log.rcatch(e);
+        }
     }
 }

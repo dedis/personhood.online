@@ -1,0 +1,22 @@
+<Page xmlns="http://schemas.nativescript.org/tns.xsd"
+      navigatingTo="navigatingTo"
+      class="page">
+    <ActionBar class="action-bar">
+        <Label class="action-bar-title" text="Manage Friends"></Label>
+        <ActionItem tap="addFriend"
+                    ios.systemIcon="4" ios.position="right"
+                    icon="res://ic_add_white" android.position="actionBar"/>
+    </ActionBar>
+    <ListView items="{{ items }}" itemTap="tapFriend" class="list-group" row="1">
+        <ListView.itemTemplate>
+            <StackLayout orientation="horizontal" class="basic-list-decorated">
+                <StackLayout padding="10%" ontap="tapFriend">
+                    <Label text="{{ alias }}" class="h3" style="horizontal-align: center; text-align: center;"
+                           textWrap="true" stretch="aspectFill" textTransform="uppercase"/>
+                    <Button text="&#xf2ed;" class="fas btn" tap="deleteUser"/>
+                </StackLayout>
+            </StackLayout>
+        </ListView.itemTemplate>
+    </ListView>
+
+</Page>

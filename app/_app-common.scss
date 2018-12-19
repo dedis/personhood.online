@@ -83,14 +83,6 @@ ActionBar .action-bar-title {
   horizontal-align: center;
 }
 
-.cisc-new-or-changed {
-  color: green;
-}
-
-.cisc-deleted {
-  color: red;
-}
-
 .list-view-label {
   padding: 5px;
 }
@@ -150,7 +142,7 @@ ActionBar .action-bar-title {
 // Status text for Org Party List
 // TODO Change this as soon as possible (CSS selector is not recognized in the page's SCSS ?)
 .status-text {
-  color: #919dad;
+  color: #adadad;
   font-size: 17;
   text-transform: uppercase;
   horizontal-align: right;

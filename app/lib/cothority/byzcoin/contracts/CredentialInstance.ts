@@ -46,7 +46,7 @@ export class CredentialStruct {
     }
 
     static fromProto(buf: Buffer): CredentialStruct {
-        return new CredentialStruct(Root.lookup(CredentialStruct.protoName).decode(buf));
+        return new CredentialStruct(Root.lookup(CredentialStruct.protoName).decode(buf).credentials);
     }
 
     static create(): CredentialStruct {
