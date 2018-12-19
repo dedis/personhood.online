@@ -2,22 +2,17 @@
  * This is the main library for storing and getting things from the phone's file
  * system.
  */
-import {Proof} from "~/lib/cothority/byzcoin/Proof";
-
 require("nativescript-nodeify");
 
 import {ByzCoinRPC} from "~/lib/cothority/byzcoin/ByzCoinRPC";
-
-const ZXing = require("nativescript-zxing");
-const QRGenerator = new ZXing();
 
 import * as Long from "long";
 import {Defaults} from "~/lib/Defaults";
 import {FileIO} from "~/lib/FileIO";
 import {Log} from "~/lib/Log";
-import {KeyPair, Public} from "~/lib/KeyPair";
+import {KeyPair} from "~/lib/KeyPair";
 import {Buffer} from "buffer";
-import {RosterSocket, WebSocket, Socket} from "~/lib/network/NSNet";
+import {RosterSocket} from "~/lib/network/NSNet";
 import {RequestPath} from "~/lib/network/RequestPath";
 import {InstanceID} from "~/lib/cothority/byzcoin/ClientTransaction";
 import {DarcInstance} from "~/lib/cothority/byzcoin/contracts/DarcInstance";
@@ -35,6 +30,8 @@ import {SpawnerInstance} from "~/lib/cothority/byzcoin/contracts/SpawnerInstance
 import {Signer} from "~/lib/cothority/darc/Signer";
 import {SignerEd25519} from "~/lib/cothority/darc/SignerEd25519";
 import {User} from "~/lib/User";
+import {Badge} from "~/lib/Badge";
+import {Party} from "~/lib/Party";
 
 /**
  * Data holds the data of the app.
@@ -194,11 +191,11 @@ export class Data {
         return gData.coinInstance.coin.value.gte(amount);
     }
 
-    dummyProgress(text: string = "", width: number = 0){
+    dummyProgress(text: string = "", width: number = 0) {
         Log.lvl2("Dummyprogress:", text, width);
     }
 
-    async registerUser(user: User, balance: Long = Long.fromNumber(0), progress:Function = this.dummyProgress): Promise<any> {
+    async registerUser(user: User, balance: Long = Long.fromNumber(0), progress: Function = this.dummyProgress): Promise<any> {
         try {
             progress("Verifying Registration", 10);
             if (user.isRegistered()) {
@@ -232,7 +229,7 @@ export class Data {
             user.credentialIID = credentialInstance.iid;
             user.credential = credentialInstance.credential;
             progress("Done", 100);
-        } catch(e){
+        } catch (e) {
             progress("Error: " + e.toString(), -100);
             return Promise.reject(e);
         }
@@ -309,6 +306,25 @@ export class Data {
 
     rmUser(nu: User) {
         this.users = this.users.filter(u => !u.equals(nu));
+    }
+
+    async getBadges(): Promise<Badge[]> {
+        let p = new Party("party #16", "1st new Personhood party", "19th of December 2018",
+            "BC410", []);
+        return [new Badge(p, this.keyPersonhood)];
+    }
+
+    async getParties(): Promise<Party[]> {
+        let parties = [
+            new Party("party #17", "2nd new Personhood party", "20th of December 2018",
+            "BC410", []),
+            new Party("party #18", "3rd new Personhood party", "21st of December 2018",
+            "BC410", []),
+            new Party("party #19", "4th new Personhood party", "22nd of December 2018",
+            "BC410", []),
+        ];
+        parties[0].isOrganizer = true;
+        return parties;
     }
 
     get user(): User {

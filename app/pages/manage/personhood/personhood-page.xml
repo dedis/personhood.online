@@ -2,21 +2,47 @@
       navigatingTo="navigatingTo"
       class="page">
     <ActionBar class="action-bar">
-        <Label class="action-bar-title" text="Manage Friends"></Label>
-        <ActionItem tap="addFriend"
+        <Label class="action-bar-title" text="Manage Badges and Parties"></Label>
+        <ActionItem tap="addParty" visibility="{{ canAddParty ? 'visible' : 'collapse' }}"
                     ios.systemIcon="4" ios.position="right"
                     icon="res://ic_add_white" android.position="actionBar"/>
     </ActionBar>
-    <ListView items="{{ items }}" itemTap="tapFriend" class="list-group" row="1">
-        <ListView.itemTemplate>
-            <StackLayout orientation="horizontal" class="basic-list-decorated">
-                <StackLayout padding="10%" ontap="tapFriend">
-                    <Label text="{{ alias }}" class="h3" style="horizontal-align: center; text-align: center;"
-                           textWrap="true" stretch="aspectFill" textTransform="uppercase"/>
-                    <Button text="&#xf2ed;" class="fas btn" tap="deleteUser"/>
+    <GridLayout rows="*, auto" row="1" tap="cancelNetwork">
+        <ListView items="{{ elements }}" class="list-group" row="0">
+            <ListView.itemTemplate>
+                <StackLayout tap="{{ onTap }}">
+                    <StackLayout orientation="horizontal" class="{{ 'basic-list-decorated ' + bgcolor }}">
+                        <Image src="{{ qrcode }}"
+                               visibility="{{ qrcode ? 'visible' : 'collapse' }}"
+                               width="30%"/>
+                        <StackLayout style="margin-left:5%;">
+                            <Label text="{{ party.name }}" class="h2" textTransform="uppercase"/>
+                            <StackLayout visibility="{{ showDetails ? 'visible' : 'collapse' }}">
+                                <Label text="{{ party.desc }}" class="h3"/>
+                                <Label text="{{ party.date }}" class="h3"/>
+                                <Label text="{{ party.location }}" class="h3"/>
+                            </StackLayout>
+                        </StackLayout>
+                    </StackLayout>
+                    <StackLayout visibility="{{ nextStep ? 'visible' : 'collapse' }}">
+                        <Label text="{{ nextStep }}" class="h2"/>
+                        <Label width="100%" style="horizontal-align:left; opacity:0.5;"
+                               id="{{ 'progress_bar_' + party.name }}"/>
+                    </StackLayout>
                 </StackLayout>
-            </StackLayout>
-        </ListView.itemTemplate>
-    </ListView>
+            </ListView.itemTemplate>
+        </ListView>
 
+        <StackLayout row="0" backgroundColor="gray"
+                     style="opacity:0.0;"/>
+        <!--style="{{ networkStatus ? 'opacity:0.5;' : 'opacity:0;' }}"/>-->
+        <GridLayout rows="auto"
+                    row="1"
+                    visibility="{{ networkStatus ? 'visible' : 'collapse'}}">
+            <Label row="0" text="{{ networkStatus }}" class="label-title"
+                   id="progress_text"/>
+            <Label row="0" width="100%" style="horizontal-align:left; opacity:0.5;"
+                   id="progress_bar" tap="setProgress"/>
+        </GridLayout>
+    </GridLayout>
 </Page>

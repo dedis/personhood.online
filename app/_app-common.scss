@@ -99,13 +99,29 @@ ActionBar .action-bar-title {
 .basic-list {
   border-bottom-width: 1;
   border-bottom-color: #ced1d6;
-  // margin-top: 5;
+  //margin-top: 5;
   //margin-left: 10;
   //margin-right: 10;
   box-shadow: 10;
   padding: 10;
   padding-left: 20;
   background-color: white;
+}
+
+.party-owner {
+  background-color: #fff0e0;
+}
+
+.party-participate {
+  background-color: #e0fff0;
+}
+
+.party-available {
+  background-color: #eeeeee;
+}
+
+.badge {
+  background-color: #dddddd;
 }
 
 .basic-list-decorated {

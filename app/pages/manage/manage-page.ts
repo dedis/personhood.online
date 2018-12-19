@@ -19,18 +19,24 @@ export let frame: Frame;
 
 // Event handler for Page "navigatingTo" event attached in identity.xml
 export async function navigatingTo(args: GestureEventData) {
-    Log.print("navigating to manage page");
     let page = <Page>args.object;
     page.bindingContext = identity;
     // return getFrameById("app-root").navigate("pages/manage/friends/friends-page");
     // await goFriends(args);
+    await goPersonhood(args);
 }
 
 export function goFriends(args: GestureEventData) {
-    Log.print("Going to friends");
     frame = args.view.page.frame;
     return frame.navigate({
         moduleName: "pages/manage/friends/friends-page",
+    })
+}
+
+export function goPersonhood(args: GestureEventData) {
+    frame = args.view.page.frame;
+    return frame.navigate({
+        moduleName: "pages/manage/personhood/personhood-page",
     })
 }
 

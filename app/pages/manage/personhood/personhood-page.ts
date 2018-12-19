@@ -14,69 +14,29 @@ import {User} from "~/lib/User";
 import * as Long from "long";
 import {scanNewUser} from "~/lib/ui/friends";
 import {ObservableArray} from "tns-core-modules/data/observable-array";
+import {PersonhoodView} from "~/pages/manage/personhood/personhood-view";
 
-let users = new ObservableArray();
-
-let identity = fromObject({
-    items: ObservableArray,
-});
+export let elements: PersonhoodView;
+let page: Page;
 
 // Event handler for Page "navigatingTo" event attached in identity.xml
-export function navigatingTo(args: EventData) {
-    let page = <Page>args.object;
-    identity.set("items", users);
-    page.bindingContext = identity;
-    updateList();
+export async function navigatingTo(args: EventData) {
+    page = <Page>args.object;
+    elements = new PersonhoodView();
+    page.bindingContext = elements;
+    await updateList();
 }
 
-function updateList() {
-    users.splice(0);
-    gData.users.forEach(u => {
-        Log.print("pushing user", u);
-        users.push(u);
-    })
-}
-
-export async function addFriend(args: GestureEventData) {
-    let u = await scanNewUser(gData);
-    if (!u.isRegistered()) {
-        if (gData.canPay(gData.spawnerInstance.signupCost)) {
-            Log.print("shall I pay?");
-            let pay = await dialogs.confirm("This user is not registered yet - do you want to pay " +
-                gData.spawnerInstance.signupCost.toString() + " for the registration of " + u.alias + "?");
-            if (pay) {
-                await gData.registerUser(u);
-                await dialogs.alert(u.alias + " is now registered");
-            }
-        } else {
-            await dialogs.alert("Cannot register user now");
-        }
+async function updateList() {
+    try {
+        elements.updateParties(await gData.getParties());
+        elements.updateBadges(await gData.getBadges());
+    } catch(e){
+        Log.catch(e);
     }
-    Log.print("Scanned user", u);
-    updateList();
+}
+
+export async function addParty(args: GestureEventData) {
+    return dialogs.alert("Adding a new party");
     await gData.save();
-}
-
-export async function tapFriend(args: GestureEventData) {
-    let user = new User('test');
-    let reply = await dialogs.prompt({
-        title: "Send coins",
-        message: "How many coins do you want to send to " + user.alias,
-        okButtonText: "Send",
-        cancelButtonText: "Cancel",
-        defaultText: "10000",
-    });
-    if (reply.result) {
-        let coins = Long.fromString(reply.text);
-        if (gData.canPay(coins)) {
-            Log.print("getting address");
-            let target = user.getCoinAddress();
-            Log.print("got address", target);
-            if (target) {
-                await gData.coinInstance.transfer(coins, target, [gData.keyIdentitySigner]);
-            }
-        } else {
-            await dialogs.alert("Cannot pay " + coins.toString() + " coins.");
-        }
-    }
 }
