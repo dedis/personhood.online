@@ -15,6 +15,9 @@
                         <Image src="{{ qrcode }}"
                                visibility="{{ qrcode ? 'visible' : 'collapse' }}"
                                width="30%"/>
+                        <Image src="{{ icon }}"
+                               visibility="{{ icon ? 'visible' : 'collapse' }}"
+                               width="10%"/>
                         <StackLayout style="margin-left:5%;">
                             <Label text="{{ party.name }}" class="h2" textTransform="uppercase"/>
                             <StackLayout visibility="{{ showDetails ? 'visible' : 'collapse' }}">

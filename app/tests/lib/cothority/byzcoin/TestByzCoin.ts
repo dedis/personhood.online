@@ -13,11 +13,11 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
 describe("setup byzcoin", () => {
     it("Must create byzcoin", async () => {
         // Creating a new ledger
-        Log.print("creating new ledger");
+        Log.lvl1("creating new ledger");
         let bc = await ByzCoinRPC.newLedger(Defaults.Roster);
-        Log.print("Getting config");
+        Log.lvl1("Getting config");
         await bc.updateConfig();
-        Log.print("verifying Interval", bc.config.blockinterval, 1e9);
+        Log.lvl1("verifying Interval", bc.config.blockinterval, 1e9);
         expect(bc.config.blockinterval.equals(1e9)).toBeTruthy();
     })
 });

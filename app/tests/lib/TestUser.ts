@@ -6,7 +6,12 @@ import {CredentialStruct} from "~/lib/cothority/byzcoin/contracts/CredentialInst
 import {InstanceID} from "~/lib/cothority/byzcoin/ClientTransaction";
 
 describe("no byzcoin needed to test", ()=>{
-    fit("Simple qr-code parsing should work", async () =>{
+    afterEach(()=>{
+        Log.print("will be overwritten");
+        Log.print("will be overwritten");
+    });
+
+    it("Simple qr-code parsing should work", async () =>{
         let reg1 = new User('reg1');
         reg1.pubIdentity = Public.fromRand();
         reg1.credential = new CredentialStruct([]);

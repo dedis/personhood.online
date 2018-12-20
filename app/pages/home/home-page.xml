@@ -20,16 +20,18 @@
                 </StackLayout>
                 <Button text="Send coins" tap="coins" class="btn btn-primary"/>
             </FlexboxLayout>
-            <StackLayout class="p-20" width="50%">
-                <Image src="{{ qrcode }}"
-                       visibility="visible"
-                       width="100%"/>
+            <StackLayout width="50%" class="p-20">
+                <GridLayout rows="auto">
+                    <Image src="{{ qrcode }}"
+                           width="100%" row="0"/>
+                    <Image src="~/images/icon-personhood-64.png"
+                           width="20%" row="0"/>
+                </GridLayout>
                 <Label text="Get your QRCode scanned to receive coins to your account"
                        class="h3"
                        textWrap="true"
-                       style="text-align: center;"/>
+                       style="text-align: center;" row="1"/>
             </StackLayout>
-
             <Button text="Login to service" tap="login" class="btn btn-primary btn-stub"/>
         </StackLayout>
         <StackLayout row="0" backgroundColor="gray"

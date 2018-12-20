@@ -16,6 +16,7 @@ import {DarcInstance} from "~/lib/cothority/byzcoin/contracts/DarcInstance";
 import {Identity} from "~/lib/cothority/darc/Identity";
 import {IdentityEd25519} from "~/lib/cothority/darc/IdentityEd25519";
 import {Buffer} from "buffer";
+import {Public} from "~/lib/KeyPair";
 
 let coinName = new Buffer(32);
 coinName.write("SpawnerCoin");
@@ -139,15 +140,15 @@ export class SpawnerInstance {
         return this.fromProof(bc, await bc.getProof(iid));
     }
 
-    static prepareDarc(pubKey: any, desc: string): Darc {
-        let id = new IdentityEd25519(pubKey);
+    static prepareDarc(pubKey: Public, desc: string): Darc {
+        let id = new IdentityEd25519(pubKey.point);
         let r = Rules.fromOwnersSigners([id], [id]);
         r.list.push(Rule.fromIdentities("invoke:fetch", [id], "&"));
         r.list.push(Rule.fromIdentities("invoke:transfer", [id], "&"));
         return Darc.fromRulesDesc(r, desc);
     }
 
-    static darcIID(pubKey: any, desc: string): InstanceID {
+    static darcIID(pubKey: Public, desc: string): InstanceID {
         return new InstanceID(SpawnerInstance.prepareDarc(pubKey, desc).getBaseId());
     }
 

@@ -2,6 +2,7 @@
  * This is the main library for storing and getting things from the phone's file
  * system.
  */
+
 require("nativescript-nodeify");
 
 import {ByzCoinRPC} from "~/lib/cothority/byzcoin/ByzCoinRPC";
@@ -10,7 +11,7 @@ import * as Long from "long";
 import {Defaults} from "~/lib/Defaults";
 import {FileIO} from "~/lib/FileIO";
 import {Log} from "~/lib/Log";
-import {KeyPair} from "~/lib/KeyPair";
+import {KeyPair, Public} from "~/lib/KeyPair";
 import {Buffer} from "buffer";
 import {RosterSocket} from "~/lib/network/NSNet";
 import {RequestPath} from "~/lib/network/RequestPath";
@@ -68,8 +69,8 @@ export class Data {
             this.alias = obj.alias ? obj.alias : "";
             this.email = obj.email ? obj.email : "";
             this.continuousScan = obj.continuousScan ? obj.continuousScan : false;
-            this.keyPersonhood = obj.keyPersonhood ? new KeyPair(Buffer.from(obj.keyPersonhood).toString('hex')) : new KeyPair();
-            this.keyIdentity = obj.keyIdentity ? new KeyPair(Buffer.from(obj.keyIdentity).toString('hex')) : new KeyPair();
+            this.keyPersonhood = obj.keyPersonhood ? new KeyPair(obj.keyPersonhood) : new KeyPair();
+            this.keyIdentity = obj.keyIdentity ? new KeyPair(obj.keyIdentity) : new KeyPair();
             this.users = obj.users ? obj.users.filter(u => u).map(u => User.fromObject(u)) : [];
         } catch (e) {
             Log.catch(e);
@@ -135,8 +136,8 @@ export class Data {
             alias: this.alias,
             email: this.email,
             continuousScan: this.continuousScan,
-            keyPersonhood: Buffer.from(this.keyPersonhood._private.marshalBinary()),
-            keyIdentity: Buffer.from(this.keyIdentity._private.marshalBinary()),
+            keyPersonhood: this.keyPersonhood._private.toHex(),
+            keyIdentity: this.keyIdentity._private.toHex(),
             users: this.users.map(u => u.toObject()),
             bcRoster: null,
             bcID: null,
@@ -203,7 +204,7 @@ export class Data {
             }
             let pub = user.pubIdentity;
             Log.lvl2("Registering user", user.alias,
-                "with public key:", Buffer.from(pub.marshalBinary()).toString('hex'));
+                "with public key:", pub.toHex());
             Log.lvl2("Registering darc");
             progress("Creating Darc", 20);
             let darcInstance = await this.spawnerInstance.createDarc(this.coinInstance,
@@ -235,13 +236,13 @@ export class Data {
         }
     }
 
-    async createUserCredentials(pub: any = this.keyIdentity._public,
+    async createUserCredentials(pub: Public = this.keyIdentity._public,
                                 darcID: Buffer = this.darcInstance.iid.iid,
                                 coinIID: Buffer = this.coinInstance.iid.iid,
                                 referral: Buffer = null): Promise<CredentialInstance> {
         Log.lvl1("Creating user credential");
         let credPub = new Credential("public",
-            [new Attribute("ed25519", pub.marshalBinary())]);
+            [new Attribute("ed25519", pub.toBuffer())]);
         let credDarc = new Credential("darc",
             [new Attribute("darcID", darcID)]);
         let credCoin = new Credential("coin",
@@ -259,7 +260,7 @@ export class Data {
             return Promise.reject("cannot verify if no byzCoin connection is set");
         }
         Log.lvl1("Verifying user", this.alias,
-            "with public key", this.keyIdentity._public.marshalBinary());
+            "with public key", this.keyIdentity._public.toHex());
         let darcIID: InstanceID;
         if (this.darcInstance) {
             Log.lvl2("Using existing darc instance:", this.darcInstance.iid.iid);
@@ -332,7 +333,7 @@ export class Data {
     }
 
     get keyIdentitySigner(): Signer {
-        return new SignerEd25519(this.keyIdentity._public, this.keyIdentity._private);
+        return new SignerEd25519(this.keyIdentity._public.point, this.keyIdentity._private.scalar);
     }
 
 

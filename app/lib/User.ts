@@ -19,7 +19,7 @@ export class User {
     static readonly urlUnregistered = "https://pop.dedis.ch/qrcode/unregistered?";
     credentialIID: InstanceID = null;
     credential: CredentialStruct = null;
-    pubIdentity: any;
+    pubIdentity: Public;
 
     constructor(public alias: string) {
     }
@@ -27,7 +27,7 @@ export class User {
     toObject(): object {
         let o = {
             alias: this.alias,
-            pubIdentity: Buffer.from(this.pubIdentity.marshalBinary()),
+            pubIdentity: this.pubIdentity.toHex(),
             credential: null,
             credentialIID: null,
         };
@@ -76,8 +76,7 @@ export class User {
         if (this.credentialIID) {
             str = sprintf("%scredentialIID:%s+", User.urlCred, this.credentialIID.iid.toString('hex'));
         }
-        str += sprintf("public_ed25519:%s+alias:%s",
-            Buffer.from(this.pubIdentity.marshalBinary()).toString('hex'), this.alias);
+        str += sprintf("public_ed25519:%s+alias:%s", this.pubIdentity.toHex(), this.alias);
         return str;
     }
 

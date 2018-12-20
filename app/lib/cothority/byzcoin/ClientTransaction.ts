@@ -14,10 +14,10 @@ export class ClientTransaction {
         this.instructions = inst;
     }
 
-    async signBy(ss: Signer[][], bc: ByzCoinRPC = null) {
+    async signBy(ss: Signer[][], bc: ByzCoinRPC = null){
         try {
             if (bc != null) {
-                Log.lvl3("Updating signature counters");
+                Log.llvl3("Updating signature counters");
                 for (let i = 0; i < ss.length; i++) {
                     let ids = ss[i].map(s => s.identity);
                     this.instructions[i].signerCounter =
@@ -32,7 +32,7 @@ export class ClientTransaction {
                     })
             })
         } catch (e){
-            Log.rcatch(e);
+            Log.catch(e);
         }
     }
 

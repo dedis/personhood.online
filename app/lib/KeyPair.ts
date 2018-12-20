@@ -10,8 +10,8 @@ import {Log} from "~/lib/Log";
  * key.
  */
 export class KeyPair {
-    _private: any;
-    _public: any;
+    _private: Private;
+    _public: Public;
 
     constructor(privHex: string = "") {
         if (privHex && privHex.length == 64) {
@@ -22,26 +22,16 @@ export class KeyPair {
     }
 
     setPrivateHex(privHex: string) {
-        let priv = Curve25519.scalar();
-        priv.unmarshalBinary(new Uint8Array(Buffer.from(privHex, "hex")));
-        this.setPrivate(priv);
+        this.setPrivate(Private.fromHex(privHex));
     }
 
-    setPrivate(priv: any) {
+    setPrivate(priv: Private) {
         this._private = priv;
-        this._public = Curve25519.point().mul(this._private, null);
+        this._public = new Public(Curve25519.point().mul(this._private.scalar, null));
     }
 
     randomize() {
-        this.setPrivate(Curve25519.newKey());
-    }
-
-    privateToHex(): string {
-        return new Buffer(this._private.marshalBinary()).toString("hex");
-    }
-
-    publicToHex(): string {
-        return new Buffer(this._public.marshalBinary()).toString("hex");
+        this.setPrivate(Private.fromRand());
     }
 
     static fromBuffer(priv: any): KeyPair{
@@ -49,26 +39,66 @@ export class KeyPair {
     }
 }
 
-export class Private{}
+export class Private{
+    constructor(public scalar: any){}
 
-export class Public{
-    static fromBuffer(buf: Buffer): any{
-        let p = Curve25519.point();
-        p.unmarshalBinary(new Uint8Array(buf));
-        return p;
+    toHex():string{
+        return this.toBuffer().toString('hex');
     }
 
-    static fromHex(hex: string): any{
+    toBuffer():Buffer{
+        return Buffer.from(this.scalar.marshalBinary());
+    }
+
+    static fromBuffer(buf: Buffer): Private{
+        let p = Curve25519.scalar();
+        p.unmarshalBinary(new Uint8Array(buf));
+        return new Private(p);
+    }
+
+    static fromHex(hex: string): Private{
+        return Private.fromBuffer(Buffer.from(hex, 'hex'));
+    }
+
+    static zero(): Private{
+        let p = Curve25519.point();
+        p.null();
+        return new Private(p);
+    }
+
+    static fromRand(): Private{
+        return new Private(Curve25519.newKey());
+    }
+}
+
+export class Public{
+    constructor(public point: any){}
+
+    toHex():string{
+        return this.toBuffer().toString('hex');
+    }
+
+    toBuffer():Buffer{
+        return Buffer.from(this.point.marshalBinary());
+    }
+
+    static fromBuffer(buf: Buffer): Public{
+        let p = Curve25519.point();
+        p.unmarshalBinary(new Uint8Array(buf));
+        return new Public(p);
+    }
+
+    static fromHex(hex: string): Public{
         return Public.fromBuffer(Buffer.from(hex, 'hex'));
     }
 
-    static zero(): any{
+    static zero(): Public{
         let p = Curve25519.point();
         p.null();
-        return p;
+        return new Public(p);
     }
 
-    static fromRand(): any{
+    static fromRand(): Public{
         let kp = new KeyPair();
         return kp._public;
     }

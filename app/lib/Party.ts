@@ -16,7 +16,8 @@ export class Party{
     constructor(public name: string, public desc: string, public date: string, public location: string,
                 public attendees: Public[]){}
 
-    get qrcode(): ImageSource{
+    qrcode(key: Public): ImageSource{
+        let url="https://pop.dedis.ch/qrcode/party?public=" + key
         const sideLength = screen.mainScreen.widthPixels / 4;
         const qrcode = QRGenerator.createBarcode({
             encode: this.name,

@@ -13,7 +13,7 @@ import {Public} from "~/lib/KeyPair";
 export class Roster {
     id: Buffer;
     list: ServerIdentity[];
-    aggregate: any;
+    aggregate: Public;
 
     constructor(list: ServerIdentity[]) {
         this.list = list;
@@ -21,7 +21,7 @@ export class Roster {
         this.aggregate = Public.zero();
         list.forEach(l => {
             h.update(l.public);
-            this.aggregate.add(this.aggregate, Public.fromBuffer(l.public));
+            this.aggregate.point.add(this.aggregate.point, l.public.point);
         });
         this.id = new UUID(5, "ns:URL", h.digest().toString('hex')).export();
     }
@@ -30,7 +30,7 @@ export class Roster {
         return {
             id: this.id,
             list: this.list.map(l => l.toObject()),
-            aggregate: this.aggregate.marshalBinary(),
+            aggregate: this.aggregate.toBuffer(),
         }
     }
 
@@ -75,14 +75,14 @@ export class Roster {
 }
 
 export class ServerIdentity {
-    public: any;
+    public: Public;
     id: Buffer;
     address: string;
     description: string;
 
-    constructor(pub: any, a: string, desc: string = "") {
+    constructor(pub: Public, a: string, desc: string = "") {
         this.public = pub;
-        const hex = new Buffer(pub.marshalBinary()).toString('hex');
+        const hex = pub.toHex();
         const url = "https://dedis.epfl.ch/id/" + hex;
         this.id = new UUID(5, "ns:URL", url).export();
         this.address = a;
@@ -95,7 +95,7 @@ export class ServerIdentity {
 
     toObject(): object{
         return {
-            public: this.public.marshalBinary(),
+            public: this.public.toBuffer(),
             id: this.id,
             address: this.address,
             description: this.description,

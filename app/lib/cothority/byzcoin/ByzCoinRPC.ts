@@ -141,11 +141,11 @@ export class ByzCoinRPC {
 
     static async newLedger(roster: any, rules: string[] = []): Promise<ByzCoinRPC> {
         let admin = new KeyPair();
-        let ids = [new IdentityEd25519(admin._public)];
+        let ids = [new IdentityEd25519(admin._public.point)];
         let msg = this.defaultGenesisMessage(roster, rules, ids);
         let socket = new RosterSocket(roster, RequestPath.BYZCOIN);
         let reply = await socket.send(RequestPath.BYZCOIN_CREATE_GENESIS, RequestPath.BYZCOIN_CREATE_GENESIS_RESPONSE, msg);
-        let adminSigner = new SignerEd25519(admin._public, admin._private);
+        let adminSigner = new SignerEd25519(admin._public.point, admin._private.scalar);
         let bc = new ByzCoinRPC(socket, Buffer.from(reply.skipblock.hash), msg.genesisdarc, null);
         bc.admin = adminSigner;
         await bc.updateConfig();
