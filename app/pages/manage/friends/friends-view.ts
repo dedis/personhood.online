@@ -7,6 +7,8 @@ import {topmost} from "tns-core-modules/ui/frame";
 import {ItemEventData} from "tns-core-modules/ui/list-view";
 import * as dialogs from "tns-core-modules/ui/dialogs";
 import * as Long from "long";
+import {assertRegistered, sendCoins} from "~/lib/ui/users";
+import {msgFailed, msgOK} from "~/lib/ui/messages";
 
 export class FriendsView extends Observable {
     private _users: UserView[];
@@ -52,9 +54,16 @@ export class UserView extends Observable {
     }
 
     public async deleteUser(arg: ItemEventData) {
-        gData.rmUser(this._user);
-        await gData.save();
-        friendsUpdateList();
+        if (await dialogs.confirm({
+            title: "Remove user",
+            message: "Are you sure to remove user " + this._user.alias + " from your list?",
+            okButtonText: "Remove",
+            cancelButtonText: "Keep",
+        })) {
+            gData.rmUser(this._user);
+            await gData.save();
+            friendsUpdateList();
+        }
     }
 
     public async showUser(arg: ItemEventData){
@@ -64,33 +73,10 @@ export class UserView extends Observable {
 
     public async payUser(args: ItemEventData) {
         try {
-            let reply = await dialogs.prompt({
-                title: "Send coins",
-                message: "How many coins do you want to send to " + this._user.alias,
-                okButtonText: "Send",
-                cancelButtonText: "Cancel",
-                defaultText: "10000",
-            });
-            if (reply.result) {
-                let coins = Long.fromString(reply.text);
-                if (gData.canPay(coins)) {
-                    let target = this._user.getCoinAddress();
-                    if (target) {
-                        setProgress("Transferring coin", 50);
-                        await gData.coinInstance.transfer(coins, target, [gData.keyIdentitySigner]);
-                        setProgress("Success", 100);
-                        await dialogs.alert({
-                            title: "Success",
-                            message: "Transferred " + coins.toString() + " to " + this._user.alias,
-                            okButtonText: "Nice",
-                        })
-                    }
-                } else {
-                    await dialogs.alert("Cannot pay " + coins.toString() + " coins.");
-                }
-            }
+            await sendCoins(this._user, setProgress);
         } catch(e){
             Log.catch(e);
+            await msgFailed(e, "Error");
         }
         setProgress();
     }

@@ -12,9 +12,10 @@ import * as dialogs from "tns-core-modules/ui/dialogs";
 import {GestureEventData} from "tns-core-modules/ui/gestures";
 import {User} from "~/lib/User";
 import * as Long from "long";
-import {scanNewUser} from "~/lib/ui/friends";
+import {scanNewUser} from "~/lib/ui/users";
 import {ObservableArray} from "tns-core-modules/data/observable-array";
 import {PersonhoodView} from "~/pages/manage/personhood/personhood-view";
+import {msgOK} from "~/lib/ui/messages";
 
 export let elements: PersonhoodView;
 let page: Page;
@@ -29,6 +30,7 @@ export async function navigatingTo(args: EventData) {
 
 async function updateList() {
     try {
+        await elements.updateAddParty();
         elements.updateParties(await gData.getParties());
         elements.updateBadges(await gData.getBadges());
     } catch(e){
@@ -37,6 +39,6 @@ async function updateList() {
 }
 
 export async function addParty(args: GestureEventData) {
-    return dialogs.alert("Adding a new party");
+    return msgOK("Adding a new party");
     await gData.save();
 }

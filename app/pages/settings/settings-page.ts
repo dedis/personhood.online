@@ -12,6 +12,7 @@ import {Log} from "~/lib/Log"
 import * as dialogs from "tns-core-modules/ui/dialogs";
 import {Defaults} from "~/lib/Defaults";
 import {SelectedIndexChangedEventData} from "tns-core-modules/ui/tab-view";
+import {msgFailed, msgOK} from "~/lib/ui/messages";
 
 let page: Page;
 
@@ -38,7 +39,7 @@ export async function tapClear(args: EventData) {
             await dialogs.confirm("You will lose all your data! No way back!")) {
             await gData.setValues({});
             await gData.save();
-            await dialogs.alert("ALL YOUR DATA HAS BEEN DELETED!");
+            await msgOK("ALL YOUR DATA HAS BEEN DELETED!");
             return getFrameById("app-root").navigate({
                 moduleName: "main-page",
                 // Page navigation, without saving navigation history.
@@ -50,7 +51,7 @@ export async function tapClear(args: EventData) {
 }
 
 export function tapCreateParty(args: EventData) {
-    return dialogs.alert("You need at least 1e7 coins to do that.")
+    return msgFailed("You need at least 1e7 coins to do that.")
 }
 
 export async function tapSave(args: EventData) {

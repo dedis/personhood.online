@@ -13,6 +13,8 @@ import {GestureEventData} from "tns-core-modules/ui/gestures";
 import {fromFile, ImageSource} from "tns-core-modules/image-source";
 import {elements} from "~/pages/manage/personhood/personhood-page";
 import {Folder, knownFolders, path} from "tns-core-modules/file-system";
+import {sprintf} from "sprintf-js";
+import {msgOK} from "~/lib/ui/messages";
 
 export class PersonhoodView extends Observable {
     parties: PartyView[] = [];
@@ -22,14 +24,23 @@ export class PersonhoodView extends Observable {
 
     constructor() {
         super();
-        this.canAddParty = true;
     }
 
-    get elements(): ViewElement[]{
+    get elements(): ViewElement[] {
         let ret: ViewElement[] = [];
         this.parties.forEach(p => ret.push(p));
         this.badges.forEach(b => ret.push(b));
         return ret;
+    }
+
+    async updateAddParty() {
+        try {
+            this.canAddParty = gData.spawnerInstance &&
+                await gData.canPay(gData.spawnerInstance.spawner.costParty.value);
+        } catch (e) {
+            Log.catch(e);
+            this.canAddParty = false;
+        }
     }
 
     updateBadges(badges: Badge[]) {
@@ -43,12 +54,15 @@ export class PersonhoodView extends Observable {
     }
 }
 
-interface ViewElement{
+interface ViewElement {
     party: Party;
     qrcode: ImageSource;
     icon: ImageSource;
     bgcolor: string;
     showDetails: boolean;
+    nextStep: string;
+    stepWidth: string;
+
     onTap(arg: GestureEventData)
 }
 
@@ -61,31 +75,36 @@ function getImage(name: string): ImageSource {
 export class BadgeView extends Observable {
     party: Party;
     showDetails = false;
+
     constructor(public badge: Badge) {
         super();
         this.party = badge.party;
     }
 
-    get qrcode(): ImageSource{
+    get qrcode(): ImageSource {
         return null;
     }
 
-    get icon(): ImageSource{
+    get icon(): ImageSource {
         return getImage("icon-personhood-64.png");
     }
 
-    get bgcolor(): string{
+    get bgcolor(): string {
         return "badge";
     }
 
-    onTap(arg: GestureEventData){
+    get nextStep(): string {
+        return null;
+    }
+
+    get stepWidth(): string {
+        return null;
+    }
+
+    onTap(arg: GestureEventData) {
         Log.print("Tapped badge")
         let p = this.badge.party;
-        return dialogs.alert({
-            title: "Details for badge",
-            message: [p.name, p.desc, p.date, p.location].join("\n"),
-            okButtonText: "Dismiss",
-        })
+        return msgOK([p.name, p.desc, p.date, p.location].join("\n"), "Details for badge");
     }
 }
 
@@ -97,30 +116,55 @@ export class PartyView extends Observable {
         super();
     }
 
-    get qrcode(): ImageSource{
-        return this.chosen ? this.party.qrcode(gData.keyPersonhood._public) : null;
+    get qrcode(): ImageSource {
+        return (this.chosen && this.party.state == 1) ? this.party.qrcode(gData.keyPersonhood._public) : null;
     }
 
-    get icon(): ImageSource{
+    get icon(): ImageSource {
         return null;
     }
 
-    get bgcolor(): string{
+    get bgcolor(): string {
         if (this.party.isOrganizer) {
             return "party-owner";
         }
         return this.chosen ? "party-participate" : "party-available";
     }
 
-    setChosen(c: boolean){
-        this.chosen = c;
-        this.notifyPropertyChange("bgcolor", this.bgcolor);
-        this.notifyPropertyChange("qrcode", this.qrcode);
+    get nextStep(): string {
+        if (this.party.isOrganizer) {
+            return ["Waiting for barrier point",
+                "Scan attendees' public keys",
+                "Finalize the party"][this.party.state % 3];
+        }
+        if (!this.chosen) {
+            return null;
+        }
+        return ["Go to party",
+            "Get your qrcode scanned",
+            "Mining coins"][this.party.state % 3];
     }
 
-    async onTap(arg: GestureEventData){
-        if (this.party.isOrganizer){
-            return dialogs.alert("Starting to scan attendees");
+    get stepWidth(): string {
+        if (!this.chosen && !this.party.isOrganizer) {
+            return null;
+        }
+        return sprintf("%d%%", ((this.party.state % 3) + 1) * 25);
+    }
+
+    setChosen(c: boolean) {
+        this.chosen = c;
+        ["bgcolor", "qrcode", "nextStep", "stepWidth"].forEach(
+            key => this.notifyPropertyChange(key, this[key]));
+    }
+
+    async onTap(arg: GestureEventData) {
+        if (this.party.isOrganizer) {
+            await msgOK(["Activating barrier point",
+                "Scan attendees' public keys",
+                "Finalizing party"][(this.party.state++) % 3]);
+            this.setChosen(this.chosen);
+            return;
         }
         let c = !this.chosen;
         elements.parties.forEach(p => p.setChosen(false));

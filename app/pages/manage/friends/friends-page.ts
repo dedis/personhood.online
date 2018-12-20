@@ -12,7 +12,7 @@ import * as dialogs from "tns-core-modules/ui/dialogs";
 import {GestureEventData} from "tns-core-modules/ui/gestures";
 import {User} from "~/lib/User";
 import * as Long from "long";
-import {scanNewUser} from "~/lib/ui/friends";
+import {assertRegistered, scanNewUser} from "~/lib/ui/users";
 import {ObservableArray} from "tns-core-modules/data/observable-array";
 import {ItemEventData} from "tns-core-modules/ui/list-view";
 import {FriendsView} from "~/pages/manage/friends/friends-view";
@@ -35,19 +35,7 @@ export function friendsUpdateList() {
 
 export async function addFriend(args: GestureEventData) {
     let u = await scanNewUser(gData);
-    if (!u.isRegistered()) {
-        if (gData.canPay(gData.spawnerInstance.signupCost)) {
-            let pay = await dialogs.confirm("This user is not registered yet - do you want to pay " +
-                gData.spawnerInstance.signupCost.toString() + " for the registration of " + u.alias + "?");
-            if (pay) {
-                await gData.registerUser(u, Long.fromNumber(0), setProgress);
-                await dialogs.alert(u.alias + " is now registered");
-            }
-        } else {
-            await dialogs.alert("Cannot register user now");
-        }
-    }
-    setProgress();
+    await assertRegistered(u, setProgress);
     friendsUpdateList();
     await gData.save();
 }

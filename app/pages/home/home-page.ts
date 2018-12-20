@@ -8,11 +8,10 @@ import {EventData, fromObject} from "tns-core-modules/data/observable";
 import {gData} from "~/lib/Data";
 import {Page} from "tns-core-modules/ui/page";
 import {Log} from "~/lib/Log";
-import * as dialogs from "tns-core-modules/ui/dialogs";
-import * as Long from "long";
-import {scanNewUser} from "~/lib/ui/friends";
+import {scanNewUser, sendCoins} from "~/lib/ui/users";
 import {SelectedIndexChangedEventData} from "tns-core-modules/ui/tab-view";
 import {Label} from "tns-core-modules/ui/label";
+import {msgFailed, msgOK} from "~/lib/ui/messages";
 
 let identity = fromObject({
     alias: "unknown",
@@ -25,6 +24,7 @@ let page: Page;
 
 // Event handler for Page "navigatingTo" event attached in identity.xml
 export async function navigatingToHome(args: EventData) {
+    Log.print("setting page in home");
     page = <Page>args.object;
     try {
         page.bindingContext = identity;
@@ -50,7 +50,7 @@ async function updateView() {
 }
 
 export function login() {
-    return dialogs.alert("Scanning QRCode of login page");
+    return msgOK("Scanning QRCode of login page");
 }
 
 export async function updateCoins() {
@@ -66,73 +66,14 @@ export async function updateCoins() {
 export async function coins(args: EventData) {
     try {
         let u = await scanNewUser(gData);
-        if (!u.isRegistered()) {
-            if (gData.canPay(gData.spawnerInstance.signupCost)) {
-                let pay = await dialogs.confirm("This user is not registered yet - do you want to pay " +
-                    gData.spawnerInstance.signupCost.toString() + " for the registration of " + u.alias + "?");
-                if (pay) {
-                    try {
-                        await gData.registerUser(u, Long.fromNumber(0), setProgress);
-                        await dialogs.alert({
-                            title: "Success",
-                            message: u.alias + " is now registered and can be verified.",
-                            okButtonText: "Cool"
-                        });
-                        setProgress();
-                    } catch (e) {
-                        await dialogs.alert({
-                            title: "Error",
-                            message: "Couldn't register user: " + e.toString(),
-                            okButtonText: "Too bad",
-                        });
-                        return;
-                    }
-                }
-            } else {
-                await dialogs.alert("Cannot register user now");
-                return;
-            }
-        }
-        await u.update(gData.bc);
-
-        if (!u.isRegistered()) {
-            return dialogs.alert("Cannot send coins to an unregistered user.");
-        }
-        await gData.coinInstance.update();
-        let reply = await dialogs.prompt({
-            title: "Send coins",
-            message: "How many coins do you want to send to " + u.alias,
-            okButtonText: "Send",
-            cancelButtonText: "Cancel",
-            defaultText: "10000",
-        });
-
-        if (reply.result) {
-            let coins = Long.fromString(reply.text);
-            if (gData.canPay(coins)) {
-                setProgress("Sending coins", 50);
-                await gData.coinInstance.transfer(coins, u.getCoinAddress(), [gData.keyIdentitySigner]);
-                setProgress("Done", 100);
-                await dialogs.alert({
-                    title: "Success",
-                    message: "Transferred " + coins.toString() + " coins to " + u.alias,
-                    okButtonText: "Nice",
-                });
-                setProgress();
-            } else {
-                return dialogs.alert("You don't have this many coins.");
-            }
-        }
+        await sendCoins(u, setProgress);
         await updateView();
         await gData.save();
     } catch (e) {
         Log.catch(e);
-        await dialogs.alert({
-            title: "Error",
-            message: "Something unforseen happened: " + e.toString(),
-            okButtonText: "Too bad",
-        })
+        await msgFailed("Something unforseen happened: " + e.toString());
     }
+    setProgress();
 }
 
 export async function switchHome(args: SelectedIndexChangedEventData) {
@@ -140,6 +81,7 @@ export async function switchHome(args: SelectedIndexChangedEventData) {
 }
 
 export function setProgress(text: string = "", width: number = 0) {
+    Log.print("home page is", page);
     if (width == 0) {
         identity.set("networkStatus", undefined);
     } else {

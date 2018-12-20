@@ -12,14 +12,12 @@ import {Defaults} from "~/lib/Defaults";
 import {TestStore} from "~/lib/network/TestStorage";
 import {navigatingToHome, switchHome} from "~/pages/home/home-page";
 import * as dialogs from "tns-core-modules/ui/dialogs";
-import {platform} from "os";
-import {platformNames} from "tns-core-modules/platform";
 import * as application from "application";
-import android = platformNames.android;
 import {SelectedIndexChangedEventData} from "tns-core-modules/ui/tab-view";
 import {switchSettings} from "~/pages/settings/settings-page";
 import {switchLab} from "~/pages/lab/lab-page";
 import {switchManage} from "~/pages/manage/manage-page";
+import {msgFailed} from "~/lib/ui/messages";
 declare const exit: (code: number)=>void;
 
 // Verify if we already have data or not. If it's a new installation, present the project
@@ -41,7 +39,7 @@ export async function navigatingTo(args: EventData) {
         await navigatingToHome(args);
     } catch (e) {
         Log.catch(e);
-        await dialogs.alert("Error when setting up communication: " + e.toString());
+        await msgFailed("Error when setting up communication: " + e.toString());
         let again = await dialogs.confirm({
             title: "Network error",
             message: "Do you want to try again?",

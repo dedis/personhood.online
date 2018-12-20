@@ -189,7 +189,12 @@ export class Data {
         if (amount.lessThanOrEqual(0)) {
             return Promise.reject("Cannot send 0 or less coins");
         }
-        return gData.coinInstance.coin.value.gte(amount);
+        Log.print(amount, gData.coinInstance.coin.value);
+        if (amount.greaterThan(gData.coinInstance.coin.value)){
+            Log.print("rejecting");
+            return Promise.reject("You only have " + gData.coinInstance.coin.value.toString() + " coins.");
+        }
+        return true;
     }
 
     dummyProgress(text: string = "", width: number = 0) {
@@ -231,6 +236,7 @@ export class Data {
             user.credential = credentialInstance.credential;
             progress("Done", 100);
         } catch (e) {
+            Log.catch(e);
             progress("Error: " + e.toString(), -100);
             return Promise.reject(e);
         }
@@ -310,22 +316,33 @@ export class Data {
     }
 
     async getBadges(): Promise<Badge[]> {
-        let p = new Party("party #16", "1st new Personhood party", "19th of December 2018",
-            "BC410", []);
-        return [new Badge(p, this.keyPersonhood)];
+        if (Defaults.PartyBadgeExamples) {
+            let p = new Party("party #16", "1st new Personhood party", "19th of December 2018",
+                "BC410", []);
+            return [new Badge(p, this.keyPersonhood)];
+        }
+        return [];
     }
 
     async getParties(): Promise<Party[]> {
-        let parties = [
-            new Party("party #17", "2nd new Personhood party", "20th of December 2018",
-            "BC410", []),
-            new Party("party #18", "3rd new Personhood party", "21st of December 2018",
-            "BC410", []),
-            new Party("party #19", "4th new Personhood party", "22nd of December 2018",
-            "BC410", []),
-        ];
-        parties[0].isOrganizer = true;
-        return parties;
+        if (Defaults.PartyBadgeExamples) {
+            let parties = [
+                new Party("party #17", "2nd new Personhood party", "20th of December 2018",
+                    "BC410", []),
+                new Party("party #18", "3rd new Personhood party", "21st of December 2018",
+                    "BC410", []),
+                new Party("party #19", "4th new Personhood party", "22nd of December 2018",
+                    "BC410", []),
+                new Party("party #20", "5th new Personhood party", "23nd of December 2018",
+                    "BC410", []),
+            ];
+            parties[0].isOrganizer = true;
+            parties[1].state = 0;
+            parties[2].state = 1;
+            parties[3].state = 2;
+            return parties;
+        }
+        return [];
     }
 
     get user(): User {

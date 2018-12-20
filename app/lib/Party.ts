@@ -14,7 +14,10 @@ export class Party{
     isOrganizer: boolean;
 
     constructor(public name: string, public desc: string, public date: string, public location: string,
-                public attendees: Public[]){}
+                public attendees: Public[]){
+        this.state = 0;
+        this.isOrganizer = false;
+    }
 
     qrcode(key: Public): ImageSource{
         let url="https://pop.dedis.ch/qrcode/party?public=" + key

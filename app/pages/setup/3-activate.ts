@@ -10,6 +10,7 @@ import * as dialogs from "tns-core-modules/ui/dialogs";
 import {gData} from "~/lib/Data";
 import {Log} from "~/lib/Log";
 import {User} from "~/lib/User";
+import {msgFailed, msgOK} from "~/lib/ui/messages";
 
 export function navigatingTo(args: EventData) {
     let page = <Page>args.object;
@@ -26,7 +27,7 @@ export async function verifyActivation(args: EventData){
             await gData.save();
             return gotoMain("Congratulations - you've been registered!");
         } else {
-            return dialogs.alert("Sorry - your account hasn't been registered yet.")
+            return msgFailed("Sorry - your account hasn't been registered yet.")
         }
     } catch (e){
         Log.rcatch(e);
@@ -39,8 +40,8 @@ export function activatePersonhood(args: EventData) {
 }
 
 // Start when included in a party.
-export function activateParty(args: EventData) {
-    return gotoMain("Go to a party!")
+export async function activateParty(args: EventData) {
+    await msgFailed("This option is not available yet", "Not implemented");
 }
 
 // Start by using a Tequila login.
@@ -64,7 +65,7 @@ export async function deleteAll() {
 }
 
 async function gotoMain(msg: string) {
-    await dialogs.alert(msg);
+    await msgOK(msg);
     return getFrameById("app-root").navigate({
         moduleName: "main-page",
         // Page navigation, without saving navigation history.

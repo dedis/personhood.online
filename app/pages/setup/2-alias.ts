@@ -9,6 +9,7 @@ import {getFrameById, Page} from "tns-core-modules/ui/frame";
 import {Log} from "~/lib/Log";
 import {gData} from "~/lib/Data";
 import * as dialogs from "tns-core-modules/ui/dialogs";
+import {msgFailed} from "~/lib/ui/messages";
 
 let input = fromObject({
     input: {alias: ""}
@@ -26,7 +27,7 @@ export async function goActivate(args: EventData) {
     let a = page.bindingContext.get("input").alias;
     Log.lvl1("saving alias", a);
     if (a.length == 0) {
-        return dialogs.alert("Please enter an alias")
+        return msgFailed("Please enter an alias")
     }
     gData.alias = a;
     try {
