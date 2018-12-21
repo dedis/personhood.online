@@ -111,13 +111,17 @@ export class BadgeView extends Observable {
 export class PartyView extends Observable {
     chosen: boolean;
     showDetails = true;
+    qrCache: ImageSource = undefined;
 
     constructor(public party: Party) {
         super();
     }
 
     get qrcode(): ImageSource {
-        return (this.chosen && this.party.state == 1) ? this.party.qrcode(gData.keyPersonhood._public) : null;
+        if (!this.qrCache) {
+            this.qrCache = (this.chosen && this.party.state == 1) ? this.party.qrcode(gData.keyPersonhood._public) : null;
+        }
+        return this.qrCache;
     }
 
     get icon(): ImageSource {
