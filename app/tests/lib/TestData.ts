@@ -1,9 +1,8 @@
-import {Data, TestData} from "~/lib/Data";
+import {CreateByzCoin, Data, TestData} from "~/lib/Data";
 import {KeyPair} from "~/lib/KeyPair";
 import {Log} from "~/lib/Log";
 import {Defaults} from "~/lib/Defaults";
 import {ByzCoinRPC} from "~/lib/cothority/byzcoin/ByzCoinRPC";
-import {CreateByzCoin} from "~/tests/lib/cothority/byzcoin/stdByzcoin";
 import * as Long from "long";
 import {FileIO} from "~/lib/FileIO";
 import {InstanceID} from "~/lib/cothority/byzcoin/ClientTransaction";

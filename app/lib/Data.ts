@@ -25,9 +25,8 @@ import {
 } from "~/lib/cothority/byzcoin/contracts/CredentialInstance";
 import {CoinInstance} from "~/lib/cothority/byzcoin/contracts/CoinInstance";
 import {Roster} from "~/lib/network/Roster";
-import {CreateByzCoin} from "~/tests/lib/cothority/byzcoin/stdByzcoin";
 import {TestStore} from "~/lib/network/TestStorage";
-import {SpawnerInstance} from "~/lib/cothority/byzcoin/contracts/SpawnerInstance";
+import {SpawnerCoin, SpawnerInstance} from "~/lib/cothority/byzcoin/contracts/SpawnerInstance";
 import {Signer} from "~/lib/cothority/darc/Signer";
 import {SignerEd25519} from "~/lib/cothority/darc/SignerEd25519";
 import {User} from "~/lib/User";
@@ -185,14 +184,14 @@ export class Data {
         if (!(this.coinInstance && this.spawnerInstance)) {
             return Promise.reject("Cannot sign up a user without coins and spawner");
         }
-        await gData.coinInstance.update();
+        await this.coinInstance.update();
         if (amount.lessThanOrEqual(0)) {
             return Promise.reject("Cannot send 0 or less coins");
         }
-        Log.print(amount, gData.coinInstance.coin.value);
-        if (amount.greaterThan(gData.coinInstance.coin.value)){
+        Log.print(amount, this.coinInstance.coin.value);
+        if (amount.greaterThan(this.coinInstance.coin.value)){
             Log.print("rejecting");
-            return Promise.reject("You only have " + gData.coinInstance.coin.value.toString() + " coins.");
+            return Promise.reject("You only have " + this.coinInstance.coin.value.toString() + " coins.");
         }
         return true;
     }
@@ -396,6 +395,54 @@ export class TestData {
         await this.createUserCoin();
         await this.createUserCredentials();
     }
+}
+
+export class CreateByzCoin {
+    constructor(public bc: ByzCoinRPC = null, public spawner: SpawnerInstance = null,
+                public genesisDarcIID: InstanceID = null, public genesisCoin: CoinInstance = null) {
+    }
+
+    async addUser(alias: string, balance: Long = Long.fromNumber(0)): Promise<cbcUser>{
+        Log.lvl1("Creating user with spawner");
+        Log.lvl1("Spawning darc");
+        let user = new KeyPair();
+        let userDarc = await this.spawner.createDarc(this.genesisCoin,
+            [this.bc.admin], user._public, "new user");
+
+        Log.lvl1("Spawning coin");
+        let userCoin = await this.spawner.createCoin(this.genesisCoin,
+            [this.bc.admin], userDarc.darc.getBaseId(), Long.fromNumber(1e6));
+        return new cbcUser(userDarc, userCoin);
+    }
+
+    static async start() : Promise<CreateByzCoin>{
+        Log.lvl1("Creating Byzcoin");
+        let bc = await ByzCoinRPC.newLedger(Defaults.Roster,
+            ["spawn:spawner", "spawn:coin",
+                "invoke:mint", "invoke:transfer", "invoke:fetch"]);
+
+        Log.lvl1("Creating genesis-account");
+        let genesisDarcIID = new InstanceID(bc.genesisDarc.getBaseId());
+        Log.lvl2("Created genesis-iid", bc.genesisDarc.getBaseId());
+        let genesisCoin = await CoinInstance.create(bc, genesisDarcIID, [bc.admin], SpawnerCoin);
+        Log.lvl2("Created coin", genesisCoin.iid.iid);
+        Log.lvl1("Minting some money");
+        await genesisCoin.mint([bc.admin],
+            Long.fromNumber(1e10));
+
+        Log.lvl1("Creating spawner");
+        let spawner = await SpawnerInstance.create(bc, genesisDarcIID,
+            [bc.admin],
+            Long.fromNumber(100), Long.fromNumber(100),
+            Long.fromNumber(100), Long.fromNumber(1e7),
+            genesisCoin.iid);
+        Log.lvl2("Created spawner:", spawner.iid.iid);
+        return new CreateByzCoin(bc, spawner, genesisDarcIID, genesisCoin);
+    }
+}
+
+export class cbcUser{
+    constructor(public darcInst: DarcInstance, public coinInst: CoinInstance){}
 }
 
 /**

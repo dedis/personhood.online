@@ -8,15 +8,10 @@ import {EventData, fromObjectRecursive, Observable} from "tns-core-modules/data/
 import {getFrameById, Page} from "tns-core-modules/ui/frame";
 import * as dialogs from "tns-core-modules/ui/dialogs";
 import {Log} from "~/lib/Log";
-import {CreateByzCoin} from "~/tests/lib/cothority/byzcoin/stdByzcoin";
 import {TestStore} from "~/lib/network/TestStorage";
 import {Defaults} from "~/lib/Defaults";
 import {gData, TestData} from "~/lib/Data";
 import {Label} from "tns-core-modules/ui/label";
-import {Attribute, Credential, CredentialStruct} from "~/lib/cothority/byzcoin/contracts/CredentialInstance";
-import {ByzCoinRPC} from "~/lib/cothority/byzcoin/ByzCoinRPC";
-import {RosterSocket} from "~/lib/network/NSNet";
-import {RequestPath} from "~/lib/network/RequestPath";
 
 let view: Observable = fromObjectRecursive({
     networkStatus: undefined
