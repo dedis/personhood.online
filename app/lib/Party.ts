@@ -31,3 +31,7 @@ export class Party{
         return fromNativeSource(qrcode);
     }
 }
+
+export class PartyStruct{
+
+}

@@ -17,6 +17,7 @@ import {Identity} from "~/lib/cothority/darc/Identity";
 import {IdentityEd25519} from "~/lib/cothority/darc/IdentityEd25519";
 import {Buffer} from "buffer";
 import {Public} from "~/lib/KeyPair";
+import {Party, PartyStruct} from "~/lib/Party";
 
 let coinName = new Buffer(32);
 coinName.write("SpawnerCoin");
@@ -86,6 +87,25 @@ export class SpawnerInstance {
     async createCredential(coin: CoinInstance, signers: Signer[], darcID: Buffer,
                            cred: CredentialStruct):
         Promise<CredentialInstance> {
+        let valueBuf = this.spawner.costCred.value.toBytesLE();
+        let ctx = new ClientTransaction([
+            Instruction.createInvoke(coin.iid,
+                "fetch", [
+                    new Argument("coins", Buffer.from(valueBuf))
+                ]),
+            Instruction.createSpawn(this.iid,
+                CredentialInstance.contractID, [
+                    new Argument("darcID", darcID),
+                    new Argument("credential", cred.toProto()),
+                ])]);
+        await ctx.signBy([signers, []], this.bc);
+        await this.bc.sendTransactionAndWait(ctx);
+        return CredentialInstance.fromByzcoin(this.bc, SpawnerInstance.credentialIID(darcID));
+    }
+
+    async createParty(coin: CoinInstance, signers: Signer[], darcID: Buffer,
+                           party: PartyStruct):
+        Promise<PartyInstance> {
         let valueBuf = this.spawner.costCred.value.toBytesLE();
         let ctx = new ClientTransaction([
             Instruction.createInvoke(coin.iid,

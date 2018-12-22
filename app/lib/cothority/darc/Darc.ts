@@ -6,6 +6,7 @@ import {Log} from "~/lib/Log";
 import {objToProto, Root} from "~/lib/cothority/protobuf/Root";
 import {Identity} from "~/lib/cothority/darc/Identity";
 import {DarcInstance} from "~/lib/cothority/byzcoin/contracts/DarcInstance";
+import {Buffer} from "buffer";
 
 export class Rule {
     action: string;

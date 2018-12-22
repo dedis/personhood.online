@@ -8,6 +8,7 @@ import {FileIO} from "~/lib/FileIO";
 import {InstanceID} from "~/lib/cothority/byzcoin/ClientTransaction";
 import {User} from "~/lib/User";
 import {parseQRCode} from "~/lib/Scan";
+import {Buffer} from "buffer";
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
 
