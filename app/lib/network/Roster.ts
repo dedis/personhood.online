@@ -9,6 +9,7 @@ import {WebSocket} from "~/lib/network/NSNet";
 import {RequestPath} from "~/lib/network/RequestPath";
 import {DecodeType} from "~/lib/network/DecodeType";
 import {Public} from "~/lib/KeyPair";
+import {Log} from "~/lib/Log";
 
 export class Roster {
     id: Buffer;
@@ -36,7 +37,7 @@ export class Roster {
 
     static fromObject(obj: any): Roster{
         let pub = Public.fromBuffer(obj.pub);
-        return new Roster(obj.list.map(l => new ServerIdentity(pub, obj.address, obj.description)));
+        return new Roster(obj.list.map(l => new ServerIdentity(pub, l.address, l.description)));
     }
 
     /**
@@ -91,6 +92,7 @@ export class ServerIdentity {
 
     toWebsocket(path: string): string {
         return ServerIdentity.addressToWebsocket(this.address, path);
+        //.replace("pop.dedis.ch", "192.168.0.1");
     }
 
     toObject(): object{

@@ -90,23 +90,6 @@ describe("TestData tests", ()=> {
         })
     });
 
-    describe("setup byzcoin and create party", () => {
-        it("Must create byzcoin", async () => {
-            // Creating a new ledger
-            Log.lvl1("creating new ledger");
-            let bc = await ByzCoinRPC.newLedger(Defaults.Roster);
-            Log.lvl1("Getting config");
-            await bc.updateConfig();
-            Log.lvl1("verifying Interval");
-            expect(bc.config.blockinterval.equals(Long.fromNumber(1e9))).toBeTruthy();
-
-            // Setting up organizer1
-            let dataOrg1 = new Data({alias: "org1"});
-            // Approving organizer1 by sending 10MCoins to the account
-            // await bc.mintCoins(dataOrg1.coinInstID, 1e7);
-        });
-    });
-
     describe("verify qrcode en/decoding", () => {
         it("show correctly encode", () => {
             let d = new Data();
@@ -130,7 +113,6 @@ describe("TestData tests", ()=> {
 
     describe("send and receive coins", () => {
         it("must send coins to store org2", async () => {
-            jasmine.getEnv().throwOnExpectationFailure(true);
             // create two organizers, the 1st one being the main organizer, and the 2nd one being
             // one that needs to be signed on.
 

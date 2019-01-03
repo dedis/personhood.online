@@ -1,5 +1,4 @@
 <Page xmlns="http://schemas.nativescript.org/tns.xsd"
-      navigatingTo="navigatingTo"
       class="page">
     <ActionBar class="action-bar">
         <Label class="action-bar-title" text="Manage Identity"></Label>

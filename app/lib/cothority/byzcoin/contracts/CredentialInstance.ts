@@ -1,10 +1,6 @@
 import {ByzCoinRPC} from "~/lib/cothority/byzcoin/ByzCoinRPC";
-import {Instance} from "~/lib/cothority/byzcoin/Instance";
-import {Darc} from "~/lib/cothority/darc/Darc";
-import {Argument, InstanceID} from "~/lib/cothority/byzcoin/ClientTransaction";
+import {InstanceID} from "~/lib/cothority/byzcoin/ClientTransaction";
 import {Proof} from "~/lib/cothority/byzcoin/Proof";
-import {Signer} from "~/lib/cothority/darc/Signer";
-import {Coin} from "~/lib/cothority/byzcoin/contracts/CoinInstance";
 import {objToProto, Root} from "~/lib/cothority/protobuf/Root";
 
 export class CredentialInstance {
@@ -19,8 +15,8 @@ export class CredentialInstance {
         return this;
     }
 
-    static fromProof(bc: ByzCoinRPC, p: Proof): CredentialInstance {
-        p.matchOrFail(CredentialInstance.contractID);
+    static async fromProof(bc: ByzCoinRPC, p: Proof): Promise<CredentialInstance> {
+        await p.matchOrFail(CredentialInstance.contractID);
         return new CredentialInstance(bc, p.requestedIID,
             CredentialStruct.fromProto(p.value))
     }

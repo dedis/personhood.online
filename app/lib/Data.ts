@@ -108,7 +108,7 @@ export class Data {
             }
             if (obj.credentialInstance) {
                 let ci = new InstanceID(Buffer.from(obj.credentialInstance));
-                this.credentialInstance = CredentialInstance.fromProof(this.bc, await this.bc.getProof(ci));
+                this.credentialInstance = await CredentialInstance.fromProof(this.bc, await this.bc.getProof(ci));
             }
             if (obj.coinInstance) {
                 let ci = new InstanceID(Buffer.from(obj.coinInstance));
@@ -189,7 +189,7 @@ export class Data {
             return Promise.reject("Cannot send 0 or less coins");
         }
         Log.print(amount, this.coinInstance.coin.value);
-        if (amount.greaterThan(this.coinInstance.coin.value)){
+        if (amount.greaterThan(this.coinInstance.coin.value)) {
             Log.print("rejecting");
             return Promise.reject("You only have " + this.coinInstance.coin.value.toString() + " coins.");
         }
@@ -271,7 +271,7 @@ export class Data {
             Log.lvl2("Using existing darc instance:", this.darcInstance.iid.iid);
             darcIID = this.darcInstance.iid;
         } else {
-            let d = SpawnerInstance.prepareDarc(this.keyIdentity._public, "new user " + this.alias);
+            let d = SpawnerInstance.prepareCoinDarc(this.keyIdentity._public, "new user " + this.alias);
             darcIID = new InstanceID(d.getBaseId());
             Log.lvl2("Searching for darcID:", darcIID.iid);
             let p = await this.bc.getProof(darcIID);
@@ -289,7 +289,7 @@ export class Data {
             if (!p.matchContract(CredentialInstance.contractID)) {
                 Log.lvl2("didn't find credentialInstance");
             } else {
-                this.credentialInstance = CredentialInstance.fromProof(this.bc, p);
+                this.credentialInstance = await CredentialInstance.fromProof(this.bc, p);
             }
         }
 
@@ -316,8 +316,8 @@ export class Data {
 
     async getBadges(): Promise<Badge[]> {
         if (Defaults.PartyBadgeExamples) {
-            let p = new Party("party #16", "1st new Personhood party", "19th of December 2018",
-                "BC410", []);
+            let p = Party.fromDescription("party #16", "1st new Personhood party", "BC410",
+                Long.fromNumber(0));
             return [new Badge(p, this.keyPersonhood)];
         }
         return [];
@@ -326,19 +326,19 @@ export class Data {
     async getParties(): Promise<Party[]> {
         if (Defaults.PartyBadgeExamples) {
             let parties = [
-                new Party("party #17", "2nd new Personhood party", "20th of December 2018",
-                    "BC410", []),
-                new Party("party #18", "3rd new Personhood party", "21st of December 2018",
-                    "BC410", []),
-                new Party("party #19", "4th new Personhood party", "22nd of December 2018",
-                    "BC410", []),
-                new Party("party #20", "5th new Personhood party", "23nd of December 2018",
-                    "BC410", []),
+                Party.fromDescription("party #17", "2nd new Personhood party", "BC410",
+                    Long.fromNumber(0)),
+                Party.fromDescription("party #18", "3rd new Personhood party", "BC410",
+                    Long.fromNumber(0)),
+                Party.fromDescription("party #19", "4th new Personhood party", "BC410",
+                    Long.fromNumber(0)),
+                Party.fromDescription("party #20", "5th new Personhood party", "BC410",
+                    Long.fromNumber(0)),
             ];
             parties[0].isOrganizer = true;
-            parties[1].state = 0;
-            parties[2].state = 1;
-            parties[3].state = 2;
+            parties[1].partyInstance.popPartyStruct.state = 1;
+            parties[2].partyInstance.popPartyStruct.state = 2;
+            parties[3].partyInstance.popPartyStruct.state = 3;
             return parties;
         }
         return [];
@@ -402,7 +402,7 @@ export class CreateByzCoin {
                 public genesisDarcIID: InstanceID = null, public genesisCoin: CoinInstance = null) {
     }
 
-    async addUser(alias: string, balance: Long = Long.fromNumber(0)): Promise<cbcUser>{
+    async addUser(alias: string, balance: Long = Long.fromNumber(0)): Promise<cbcUser> {
         Log.lvl1("Creating user with spawner");
         Log.lvl1("Spawning darc");
         let user = new KeyPair();
@@ -415,7 +415,7 @@ export class CreateByzCoin {
         return new cbcUser(userDarc, userCoin);
     }
 
-    static async start() : Promise<CreateByzCoin>{
+    static async start(): Promise<CreateByzCoin> {
         Log.lvl1("Creating Byzcoin");
         let bc = await ByzCoinRPC.newLedger(Defaults.Roster,
             ["spawn:spawner", "spawn:coin",
@@ -441,8 +441,9 @@ export class CreateByzCoin {
     }
 }
 
-export class cbcUser{
-    constructor(public darcInst: DarcInstance, public coinInst: CoinInstance){}
+export class cbcUser {
+    constructor(public darcInst: DarcInstance, public coinInst: CoinInstance) {
+    }
 }
 
 /**

@@ -3,10 +3,9 @@ import * as Long from "long";
 import {Log} from "~/lib/Log";
 import {Defaults} from "~/lib/Defaults";
 import {ByzCoinRPC} from "~/lib/cothority/byzcoin/ByzCoinRPC";
-import {Argument, ClientTransaction, InstanceID, Instruction} from "~/lib/cothority/byzcoin/ClientTransaction";
+import {InstanceID} from "~/lib/cothority/byzcoin/ClientTransaction";
 import {SpawnerCoin, SpawnerInstance} from "~/lib/cothority/byzcoin/contracts/SpawnerInstance";
-import {Coin, CoinInstance} from "~/lib/cothority/byzcoin/contracts/CoinInstance";
-import {DarcInstance} from "~/lib/cothority/byzcoin/contracts/DarcInstance";
+import {CoinInstance} from "~/lib/cothority/byzcoin/contracts/CoinInstance";
 import {KeyPair} from "~/lib/KeyPair";
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
 
@@ -19,6 +18,9 @@ describe("setup byzcoin", () => {
         await bc.updateConfig();
         Log.lvl1("verifying Interval", bc.config.blockinterval, 1e9);
         expect(bc.config.blockinterval.equals(1e9)).toBeTruthy();
+        Log.lvl1("darc is:", bc.genesisDarc);
+        Log.lvl1("darc is:", bc.genesisDarc.rules);
+        Log.lvl1("darc is:", bc.genesisDarc.rules);
     })
 });
 

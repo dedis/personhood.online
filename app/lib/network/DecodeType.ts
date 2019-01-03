@@ -1,4 +1,4 @@
-export var DecodeType: {
+export var DecodeType = {
 
     /**
      * @file File containing the different message types to decode for the Cothority.
@@ -52,4 +52,4 @@ export var DecodeType: {
      */
     // This points to an empty message type as cothority doesn't provide one by default
     EMPTY_REPLY: "status.Request",
-}
+};

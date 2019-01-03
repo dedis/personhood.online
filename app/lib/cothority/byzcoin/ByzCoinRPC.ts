@@ -132,7 +132,7 @@ export class ByzCoinRPC {
         });
 
         let rosterPubs = roster.list.map(l => {
-            return "ed25519:" + l.public;
+            return "ed25519:" + l.public.point;
         });
         d.rules.list.push(Rule.fromIdentities("invoke:view_change", rosterPubs, "|"));
 

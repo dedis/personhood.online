@@ -1,12 +1,6 @@
 import {Observable} from "tns-core-modules/data/observable";
-import {User} from "~/lib/User";
 import {Log} from "~/lib/Log";
-import {Data, gData} from "~/lib/Data";
-import {friendsUpdateList, setProgress} from "~/pages/manage/friends/friends-page";
-import {topmost} from "tns-core-modules/ui/frame";
-import {ItemEventData} from "tns-core-modules/ui/list-view";
-import * as dialogs from "tns-core-modules/ui/dialogs";
-import * as Long from "long";
+import {gData} from "~/lib/Data";
 import {Badge} from "~/lib/Badge";
 import {Party} from "~/lib/Party";
 import {GestureEventData} from "tns-core-modules/ui/gestures";
@@ -103,8 +97,8 @@ export class BadgeView extends Observable {
 
     onTap(arg: GestureEventData) {
         Log.print("Tapped badge")
-        let p = this.badge.party;
-        return msgOK([p.name, p.desc, p.date, p.location].join("\n"), "Details for badge");
+        let p = this.badge.party.partyInstance.popPartyStruct.description;
+        return msgOK([p.name, p.purpose, p.dateTime, p.location].join("\n"), "Details for badge");
     }
 }
 
@@ -118,10 +112,15 @@ export class PartyView extends Observable {
     }
 
     get qrcode(): ImageSource {
-        if (!this.qrCache) {
-            this.qrCache = (this.chosen && this.party.state == 1) ? this.party.qrcode(gData.keyPersonhood._public) : null;
+        if (this.chosen && this.party.state == 2) {
+            if (!this.qrCache) {
+                this.qrCache = this.party.qrcode(gData.keyPersonhood._public);
+            }
+            return this.qrCache;
+        } else {
+            this.qrCache = null;
         }
-        return this.qrCache;
+        return null;
     }
 
     get icon(): ImageSource {
@@ -139,21 +138,21 @@ export class PartyView extends Observable {
         if (this.party.isOrganizer) {
             return ["Waiting for barrier point",
                 "Scan attendees' public keys",
-                "Finalize the party"][this.party.state % 3];
+                "Finalize the party"][this.party.state -1];
         }
         if (!this.chosen) {
             return null;
         }
         return ["Go to party",
             "Get your qrcode scanned",
-            "Mining coins"][this.party.state % 3];
+            "Mining coins"][this.party.state -1];
     }
 
     get stepWidth(): string {
         if (!this.chosen && !this.party.isOrganizer) {
             return null;
         }
-        return sprintf("%d%%", ((this.party.state % 3) + 1) * 25);
+        return sprintf("%d%%", (this.party.state * 25));
     }
 
     setChosen(c: boolean) {
@@ -164,9 +163,10 @@ export class PartyView extends Observable {
 
     async onTap(arg: GestureEventData) {
         if (this.party.isOrganizer) {
+            this.party.state = (this.party.state + 1) % 4 + 1;
             await msgOK(["Activating barrier point",
                 "Scan attendees' public keys",
-                "Finalizing party"][(this.party.state++) % 3]);
+                "Finalizing party"][this.party.state]);
             this.setChosen(this.chosen);
             return;
         }

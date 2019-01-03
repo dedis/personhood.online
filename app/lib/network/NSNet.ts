@@ -1,3 +1,5 @@
+import {Defaults} from "~/lib/Defaults";
+
 const Timer = require("tns-core-modules/timer");
 const co = require("co");
 const shuffle = require("shuffle-array");
@@ -37,7 +39,11 @@ export class WebSocket {
      */
     async send(request: string, response: string, data: any): Promise<any> {
         return new Promise((resolve, reject) => {
-            const path = this.url + "/" + request.replace(/.*\./, '');
+            let u = this.url;
+            if (Defaults.NetRedirect){
+                u = u.replace(Defaults.NetRedirect[0], Defaults.NetRedirect[1]);
+            }
+            const path = u + "/" + request.replace(/.*\./, '');
             Log.lvl2("Socket: new WebSocketA(" + path + ")");
             const ws = new WS(path, {timeout: 6000});
             let protoMessage = undefined;
@@ -87,7 +93,7 @@ export class WebSocket {
 
             ws.on('close', (socket, code, reason) => {
                 Timer.clearInterval(timerId);
-                if (!retry) {
+                if (!retry || Defaults.Testing) {
                     if (code === 4000) {
                         Log.lvl1("Got close:", code, reason)
                         reject(new Error(reason));
@@ -165,6 +171,9 @@ export class RosterSocket {
                 return socketResponse;
             } catch (err) {
                 Log.rcatch(err, "rostersocket");
+                if (Defaults.Testing){
+                    return Promise.reject("faster returning when testing");
+                }
             }
         }
         return Promise.reject("no conodes are available or all conodes returned an error");

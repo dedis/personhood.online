@@ -11,7 +11,7 @@ export class Badge{
     get qrcode(): ImageSource{
         const sideLength = screen.mainScreen.widthPixels / 4;
         const qrcode = QRGenerator.createBarcode({
-            encode: this.party.name,
+            encode: this.party.partyInstance.popPartyStruct.description.name,
             format: ZXing.QR_CODE,
             height: sideLength,
             width: sideLength

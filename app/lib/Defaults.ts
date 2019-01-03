@@ -61,6 +61,8 @@ export var Defaults = {
     Confirm: true,
     // Testing
     Testing: true,
+    // Redirect pop.dedis.ch to another (local) IP
+    NetRedirect: ["pop.dedis.ch", "192.168.0.1"],
     // Show Party- and Badges examples
     PartyBadgeExamples: true,
 };

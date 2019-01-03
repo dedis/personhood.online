@@ -15,11 +15,13 @@ import {SelectedIndexChangedEventData} from "tns-core-modules/ui/tab-view";
 import {msgFailed, msgOK} from "~/lib/ui/messages";
 
 let page: Page;
+export let adminView: AdminViewModel;
 
 // Event handler for Page "navigatingTo" event attached in identity.xml
 export function navigatingTo(args: EventData) {
     page = <Page>args.object;
-    page.bindingContext = new AdminViewModel(gData);
+    adminView = new AdminViewModel(gData);
+    page.bindingContext = adminView;
 }
 
 export async function tapClear(args: EventData) {
