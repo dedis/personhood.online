@@ -74,6 +74,7 @@ export class PopPartyInstance {
         if (this.popPartyStruct.state != 2) {
             return Promise.reject("party did not pass barrier-point yet");
         }
+        this.tmpAttendees.sort((a, b) => Buffer.compare(a.toBuffer(), b.toBuffer()));
         this.popPartyStruct.attendees.keys = this.tmpAttendees;
 
         let ctx = new ClientTransaction([
