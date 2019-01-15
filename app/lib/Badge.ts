@@ -19,9 +19,9 @@ export class Badge{
         }
     }
 
-    async mine(d: Data){
+    async mine(d: Data, setProgress: Function = null){
         this.mined = true;
-        return this.party.partyInstance.mineFromData(d);
+        return this.party.partyInstance.mineFromData(d, setProgress);
     }
 
     get qrcode(): ImageSource{

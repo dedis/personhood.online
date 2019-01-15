@@ -1,5 +1,5 @@
 import {Observable} from "tns-core-modules/data/observable";
-import {Data} from "~/lib/Data";
+import {Data, gData} from "~/lib/Data";
 import {ServerIdentity} from "~/lib/network/Roster";
 import {WebSocket} from "~/lib/network/NSNet";
 import {RequestPath} from "~/lib/network/RequestPath";
@@ -14,7 +14,12 @@ export class AdminViewModel extends Observable {
     constructor(d: Data) {
         super();
         this.admin = new Admin(d.alias, d.email, d.continuousScan, d.personhoodPublished);
-        d.bc.config.roster.list.forEach(si => this.nodes.push(new Node(si)));
+        this.updateNodes();
+    }
+
+    updateNodes(){
+        this.nodes.splice(0);
+        gData.bc.config.roster.list.forEach(si => this.nodes.push(new Node(si)));
     }
 
     set admin(value: Admin) {

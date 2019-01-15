@@ -12,9 +12,9 @@
 
     </ActionBar>
     <Label text="Loading" class="h1"
-    visibility="{{ init ? 'visible' : 'collapse' }}"/>
+           visibility="{{ init ? 'visible' : 'collapse' }}"/>
     <GridLayout rows="*, auto" row="1" tap="cancelNetwork"
-    visibility="{{ init ? 'collapse' : 'visible' }}">
+                visibility="{{ init ? 'collapse' : 'visible' }}">
         <StackLayout class="p-20" row="0">
             <FlexboxLayout justifyContent="center">
                 <StackLayout style="vertical-align: center">

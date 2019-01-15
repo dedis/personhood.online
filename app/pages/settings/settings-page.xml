@@ -5,26 +5,29 @@
     <ActionBar class="action-bar">
         <Label class="action-bar-title" text="Settings"></Label>
     </ActionBar>
-    <GridLayout rows="auto, *, auto">
-        <StackLayout class="p-20" row="0">
-            <Label text="Settings" class="h1 text-center"/>
-            <df:RadDataForm id="myDataForm" source="{{ admin }}"/>
-            <Button text="Clear all data" tap="tapClear" class="btn btn-test"/>
-            <Button text="Create Party" tap="tapCreateParty" class="btn btn-stub"/>
-            <Button text="Save" tap="tapSave" class="btn btn-primary btn-active"/>
-        </StackLayout>
-        <StackLayout row="1">
-            <ListView items="{{ nodes }}" class="list-group">
-                <ListView.itemTemplate>
-                    <FlexboxLayout orientation="horizontal" flexDirection="row"
-                                   class="basic-list-decorated"
-                                   alignItems="center">
-                        <Label text="{{ address + ' - ' + status }}" class="h3"/>
-                    </FlexboxLayout>
-                </ListView.itemTemplate>
-            </ListView>
-        </StackLayout>
+    <ScrollView>
+        <GridLayout rows="auto, auto, auto">
+            <StackLayout class="p-20" row="0">
+                <Label text="Settings" class="h1 text-center"/>
+                <df:RadDataForm id="myDataForm" source="{{ admin }}"/>
+                <Button text="Clear all data" tap="tapClear" class="btn btn-test"/>
+                <Button text="Create Party" tap="tapCreateParty" class="btn btn-stub"/>
+                <Button text="Save" tap="tapSave" class="btn btn-primary btn-active"/>
+            </StackLayout>
+            <StackLayout row="1">
+                <ListView items="{{ nodes }}" class="list-group"
+                          height="200" tap="{{ updateNodes }}">
+                    <ListView.itemTemplate>
+                        <FlexboxLayout orientation="horizontal" flexDirection="row"
+                                       class="basic-list-decorated"
+                                       alignItems="center">
+                            <Label text="{{ address + ' - ' + status }}" class="h3"/>
+                        </FlexboxLayout>
+                    </ListView.itemTemplate>
+                </ListView>
+            </StackLayout>
 
-        <Label text="Version 0.1.5" class="h5" row="2" style="text-align: right; margin-right: 5%;"/>
-    </GridLayout>
+            <Label text="Version 0.2.3" class="h5" row="2" style="text-align: right; margin-right: 5%;"/>
+        </GridLayout>
+    </ScrollView>
 </Page>

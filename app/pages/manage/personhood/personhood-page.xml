@@ -15,7 +15,7 @@
                     <!--ios.systemIcon="13" ios.position="right"-->
                     <!--icon="res://ic_reload_white" android.position="actionBar"/>-->
     </ActionBar>
-    <GridLayout rows="*, auto" row="1" tap="cancelNetwork">
+    <GridLayout rows="*, auto" tap="cancelNetwork">
         <ListView items="{{ elements }}" class="list-group" row="0">
             <ListView.itemTemplate>
                 <StackLayout tap="{{ onTap }}" class="{{ 'basic-list-decorated ' + bgcolor }}">
@@ -52,7 +52,7 @@
         <!--style="{{ networkStatus ? 'opacity:0.5;' : 'opacity:0;' }}"/>-->
         <GridLayout rows="auto"
                     row="1"
-                    visibility="{{ networkStatus ? 'visible' : 'collapse'}}">
+                    visibility="{{ networkStatusShow ? 'visible' : 'collapse'}}">
             <Label row="0" text="{{ networkStatus }}" class="label-title"
                    id="progress_text"/>
             <Label row="0" width="100%" style="horizontal-align:left; opacity:0.5;"

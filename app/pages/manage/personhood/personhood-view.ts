@@ -12,12 +12,14 @@ import {msgFailed, msgOK} from "~/lib/ui/messages";
 import {PopDesc, PopPartyStruct} from "~/lib/cothority/byzcoin/contracts/PopPartyInstance";
 import * as dialogs from "tns-core-modules/ui/dialogs";
 import {getFrameById, topmost} from "tns-core-modules/ui/frame";
+import {Label} from "tns-core-modules/ui/label";
 
 export class PersonhoodView extends Observable {
     parties: PartyView[] = [];
     badges: BadgeView[] = [];
     networkStatus: string;
     canAddParty: boolean;
+    networkStatusShow: boolean = false;
 
     constructor() {
         super();
@@ -32,10 +34,6 @@ export class PersonhoodView extends Observable {
 
     async updateAddParty() {
         try {
-            Log.print(gData.spawnerInstance);
-            Log.print(gData.personhoodPublished);
-            Log.print(gData.spawnerInstance.spawner.costParty.value);
-            Log.print(await gData.canPay(gData.spawnerInstance.spawner.costParty.value));
             this.canAddParty = gData.spawnerInstance &&
                 gData.personhoodPublished &&
                 await gData.canPay(gData.spawnerInstance.spawner.costParty.value);
@@ -53,7 +51,9 @@ export class PersonhoodView extends Observable {
     }
 
     async updateParties() {
+        this.setProgress("Updating parties", 50);
         await gData.updateParties();
+        this.setProgress("Got parties", 100);
         this.parties = gData.parties.map(p => new PartyView(p))
             .sort((a, b) => a.party.partyInstance.popPartyStruct.description.dateTime.sub(
                 b.party.partyInstance.popPartyStruct.description.dateTime).toNumber());
@@ -62,6 +62,23 @@ export class PersonhoodView extends Observable {
             this.parties[0].setChosen(true);
         }
         this.notifyPropertyChange("elements", this.elements);
+        this.setProgress();
+    }
+
+    setProgress(text: string = "", width: number = 0) {
+        Log.print("setting progress to", text, width, this, elements);
+        if (width == 0) {
+            elements.set("networkStatusShow", false);
+        } else {
+            elements.set("networkStatusShow", true);
+            let color = "#308080;";
+            if (width < 0) {
+                color = "#a04040";
+            }
+            topmost().getViewById("progress_bar").setInlineStyle("width:" + Math.abs(width) + "%; background-color: " + color);
+            Log.print("updating networkStatus");
+            elements.notifyPropertyChange("networkStatus", text);
+        }
     }
 }
 
@@ -127,8 +144,9 @@ export class BadgeView extends Observable {
         }
         try {
             let registered = gData.contact.isRegistered();
-            await this.badge.mine(gData);
+            await this.badge.mine(gData, elements.setProgress);
             await msgOK("Successfully mined\n" + details, "Details for badge");
+            elements.setProgress();
             if (!registered){
                 return getFrameById("app-root").navigate({
                     moduleName: "main-page",
@@ -137,6 +155,7 @@ export class BadgeView extends Observable {
                 });
             }
         } catch (e){
+            Log.catch(e);
             await msgFailed("Couldn't mine:\n" + e.toString());
             this.badge.mined = true;
         }
@@ -248,8 +267,11 @@ export class PartyView extends Observable {
                     })) {
                         let index = gData.parties.findIndex(p => this.party == p);
                         gData.parties.splice(index, 1);
+                        elements.setProgress("Updating parties", 50);
                         await elements.updateParties();
+                        elements.setProgress("Parties updated", 100);
                         await gData.save();
+                        elements.setProgress();
                     }
                     break;
                 case BARRIER:
@@ -263,12 +285,15 @@ export class PartyView extends Observable {
                     });
                     break;
                 case FINALIZE:
+                    elements.setProgress("Finalizing party", 50);
                     await this.party.partyInstance.finalize(gData.keyIdentitySigner);
+                    elements.setProgress("Party finalized", 100);
                     if (this.party.partyInstance.popPartyStruct.state == Party.Finalized) {
                         await msgOK("Finalized the party");
                     } else {
                         await msgOK("Waiting for other organizers to finalize");
                     }
+                    elements.setProgress();
             }
 
             this.setChosen(true);

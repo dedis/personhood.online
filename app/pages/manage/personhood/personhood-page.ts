@@ -26,7 +26,7 @@ export async function navigatingTo(args: EventData) {
     page = <Page>args.object;
     elements = new PersonhoodView();
     page.bindingContext = elements;
-    await updateParties();
+    setTimeout(()=>updateParties(), 1);
 }
 
 export async function updateParties() {

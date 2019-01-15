@@ -51,8 +51,8 @@ export var Defaults = {
 `,
     Roster: null,
     // ByzCoinID
-    ByzCoinID: Buffer.from("7950e968cd86fe103dcb37c99eba80e9a4f1c17e9351a8e74a87d3135e98f346", 'hex'),
-    SpawnerIID: new InstanceID(Buffer.from("2afb8984ec5bd07296899b03e754e642db5fda415759bae6255de95c62fe21b9", 'hex')),
+    ByzCoinID: Buffer.from("aaa5b2db9523c5c66eedac22d878bc3d718d19f60d944004a53a9b977ed88ba3", 'hex'),
+    SpawnerIID: new InstanceID(Buffer.from("7dc459097579d6ce91f9a6c4ca3f4af6215036cc1e0e7d1dcf80e9c940b7e6a7", 'hex')),
 
     // - Testing settings
 

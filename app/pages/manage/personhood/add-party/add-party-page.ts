@@ -25,7 +25,7 @@ let dataForm = fromObject({
     time: "",
     purpose: "",
     location: "",
-    reward: 1e9,
+    reward: 1e6,
 });
 
 let viewModel = fromObject({
