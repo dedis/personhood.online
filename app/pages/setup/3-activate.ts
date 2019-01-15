@@ -9,15 +9,16 @@ import {getFrameById, Page, topmost} from "tns-core-modules/ui/frame";
 import * as dialogs from "tns-core-modules/ui/dialogs";
 import {gData} from "~/lib/Data";
 import {Log} from "~/lib/Log";
-import {User} from "~/lib/User";
+import {Contact} from "~/lib/Contact";
 import {msgFailed, msgOK} from "~/lib/ui/messages";
 
 export function navigatingTo(args: EventData) {
     let page = <Page>args.object;
     page.bindingContext = fromObject({
         alias: gData.alias,
-        qrcode: gData.user.qrcodeIdentity(),
+        qrcode: gData.contact.qrcodeIdentity(),
     });
+    Log.print(gData.contact.qrcodeIdentityStr());
 }
 
 export async function verifyActivation(args: EventData){
@@ -30,18 +31,16 @@ export async function verifyActivation(args: EventData){
             return msgFailed("Sorry - your account hasn't been registered yet.")
         }
     } catch (e){
-        Log.rcatch(e);
+        Log.catch(e);
+        await msgFailed("Couldn't contact server: " + e.toString());
     }
-}
-
-// Start when somebody sends enough coins to create an account.
-export function activatePersonhood(args: EventData) {
-    return gotoMain("Get somebody to send you coins!")
 }
 
 // Start when included in a party.
 export async function activateParty(args: EventData) {
-    await msgFailed("This option is not available yet", "Not implemented");
+    return getFrameById("app-root").navigate({
+        moduleName: "pages/manage/personhood/personhood-page",
+    });
 }
 
 // Start by using a Tequila login.

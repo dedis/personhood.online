@@ -1,11 +1,11 @@
 import {fromObject} from "tns-core-modules/data/observable";
 import {Page} from "tns-core-modules/ui/page";
-import {User} from "~/lib/User";
+import {Contact} from "~/lib/Contact";
 
 let closeCallback: Function;
 
 export function onShownModally(args) {
-    const user = <User>args.context;
+    const user = <Contact>args.context;
     closeCallback = args.closeCallback;
     const page: Page = <Page>args.object;
     page.bindingContext = fromObject({

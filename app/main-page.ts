@@ -4,26 +4,30 @@ a code-behind file. The code-behind is a great place to place your view
 logic, and to set up your page’s data binding.
 */
 
-import {EventData} from "tns-core-modules/data/observable";
-import {getFrameById, topmost} from "tns-core-modules/ui/frame";
+import {EventData, fromObject} from "tns-core-modules/data/observable";
+import {getFrameById, Page, topmost} from "tns-core-modules/ui/frame";
 import {gData} from "~/lib/Data";
 import {Log} from "~/lib/Log";
 import {Defaults} from "~/lib/Defaults";
-import {TestStore} from "~/lib/network/TestStorage";
+import {TestStore} from "~/lib/network/TestStore";
 import {navigatingToHome, switchHome} from "~/pages/home/home-page";
 import * as dialogs from "tns-core-modules/ui/dialogs";
 import * as application from "application";
 import {SelectedIndexChangedEventData} from "tns-core-modules/ui/tab-view";
-import {switchSettings} from "~/pages/settings/settings-page";
+import {adminView, switchSettings} from "~/pages/settings/settings-page";
 import {switchLab} from "~/pages/lab/lab-page";
 import {switchManage} from "~/pages/manage/manage-page";
 import {msgFailed} from "~/lib/ui/messages";
+import {AdminViewModel} from "~/pages/settings/settings-view";
 declare const exit: (code: number)=>void;
 
 // Verify if we already have data or not. If it's a new installation, present the project
 // and ask for an alias, and set up keys.
 export async function navigatingTo(args: EventData) {
     try {
+        let page = <Page>args.object;
+        page.bindingContext = fromObject({loaded: false});
+
         if (Defaults.Testing) {
                 let ts = await TestStore.load(Defaults.Roster);
                 Defaults.ByzCoinID = ts.bcID;

@@ -10,7 +10,7 @@ import {Page} from "tns-core-modules/ui/page";
 import {Log} from "~/lib/Log";
 import * as dialogs from "tns-core-modules/ui/dialogs";
 import {GestureEventData} from "tns-core-modules/ui/gestures";
-import {User} from "~/lib/User";
+import {Contact} from "~/lib/Contact";
 import * as Long from "long";
 import {assertRegistered, scanNewUser} from "~/lib/ui/users";
 import {ObservableArray} from "tns-core-modules/data/observable-array";
@@ -23,14 +23,14 @@ let page: Page;
 
 // Event handler for Page "navigatingTo" event attached in identity.xml
 export function navigatingTo(args: EventData) {
-    identity = new FriendsView(gData.users);
+    identity = new FriendsView(gData.friends);
     page = <Page>args.object;
     page.bindingContext = identity;
     friendsUpdateList();
 }
 
 export function friendsUpdateList() {
-    identity.updateUsers(gData.users);
+    identity.updateUsers(gData.friends);
 }
 
 export async function addFriend(args: GestureEventData) {

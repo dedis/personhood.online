@@ -1,6 +1,6 @@
-import {Identity} from "~/lib/cothority/darc/Identity";
 import {Roster} from "~/lib/network/Roster";
 import {InstanceID} from "~/lib/cothority/byzcoin/ClientTransaction";
+import {Log} from "~/lib/Log";
 
 export var Defaults = {
     DataDir: "storage",
@@ -51,8 +51,8 @@ export var Defaults = {
 `,
     Roster: null,
     // ByzCoinID
-    ByzCoinID: Buffer.from("837f6069373081967788d934e5847a31a54a76bf3fd74e83eed54db170ca8a31", 'hex'),
-    SpawnerIID: new InstanceID(Buffer.from("1b817a3646d68948004714c1a523b48b395d4ea3c8853e659cecdec8d97a07c5", 'hex')),
+    ByzCoinID: Buffer.from("7950e968cd86fe103dcb37c99eba80e9a4f1c17e9351a8e74a87d3135e98f346", 'hex'),
+    SpawnerIID: new InstanceID(Buffer.from("2afb8984ec5bd07296899b03e754e642db5fda415759bae6255de95c62fe21b9", 'hex')),
 
     // - Testing settings
 
@@ -60,11 +60,11 @@ export var Defaults = {
     // easier UI testing.
     Confirm: true,
     // Testing
-    Testing: true,
+    Testing: false,
     // Redirect pop.dedis.ch to another (local) IP
-    NetRedirect: ["pop.dedis.ch", "192.168.0.1"],
+    // NetRedirect: ["pop.dedis.ch", "192.168.0.1"],
     // Show Party- and Badges examples
-    PartyBadgeExamples: true,
+    PartyBadgeExamples: false,
 };
 
 Defaults.Roster = Roster.fromTOML(Defaults.RosterTOMLDEDIS);

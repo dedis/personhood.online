@@ -2,6 +2,7 @@
  * This is the main library for storing and getting things from the phone's file
  * system.
  */
+import {PersonhoodParty, PersonhoodRPC} from "~/lib/PersonhoodRPC";
 
 require("nativescript-nodeify");
 
@@ -25,13 +26,14 @@ import {
 } from "~/lib/cothority/byzcoin/contracts/CredentialInstance";
 import {CoinInstance} from "~/lib/cothority/byzcoin/contracts/CoinInstance";
 import {Roster} from "~/lib/network/Roster";
-import {TestStore} from "~/lib/network/TestStorage";
+import {TestStore} from "~/lib/network/TestStore";
 import {SpawnerCoin, SpawnerInstance} from "~/lib/cothority/byzcoin/contracts/SpawnerInstance";
 import {Signer} from "~/lib/cothority/darc/Signer";
 import {SignerEd25519} from "~/lib/cothority/darc/SignerEd25519";
-import {User} from "~/lib/User";
+import {Contact} from "~/lib/Contact";
 import {Badge} from "~/lib/Badge";
 import {Party} from "~/lib/Party";
+import {PopPartyInstance} from "~/lib/cothority/byzcoin/contracts/PopPartyInstance";
 
 /**
  * Data holds the data of the app.
@@ -42,6 +44,7 @@ export class Data {
     alias: string;
     email: string;
     continuousScan: boolean;
+    personhoodPublished: boolean;
     keyPersonhood: KeyPair;
     keyIdentity: KeyPair;
     bc: ByzCoinRPC = null;
@@ -50,7 +53,9 @@ export class Data {
     coinInstance: CoinInstance = null;
     spawnerInstance: SpawnerInstance = null;
     constructorObj: any;
-    users: User[] = [];
+    friends: Contact[] = [];
+    parties: Party[] = [];
+    badges: Badge[] = [];
 
     /**
      * Constructs a new Data, optionally initialized with an object containing
@@ -68,9 +73,10 @@ export class Data {
             this.alias = obj.alias ? obj.alias : "";
             this.email = obj.email ? obj.email : "";
             this.continuousScan = obj.continuousScan ? obj.continuousScan : false;
+            this.personhoodPublished = obj.personhoodPublished ? obj.personhoodPublished : false;
             this.keyPersonhood = obj.keyPersonhood ? new KeyPair(obj.keyPersonhood) : new KeyPair();
             this.keyIdentity = obj.keyIdentity ? new KeyPair(obj.keyIdentity) : new KeyPair();
-            this.users = obj.users ? obj.users.filter(u => u).map(u => User.fromObject(u)) : [];
+            this.friends = obj.friends ? obj.friends.filter(u => u).map(u => Contact.fromObject(this.bc, u)) : [];
         } catch (e) {
             Log.catch(e);
         }
@@ -84,12 +90,15 @@ export class Data {
         this.coinInstance = null;
         this.spawnerInstance = null;
         this.constructorObj = {};
+        this.parties = [];
+        this.badges = [];
     }
 
     async connectByzcoin(): Promise<ByzCoinRPC> {
         try {
             if (this.bc != null) {
                 Log.lvl2("Not connecting if bc is already initialized");
+                return this.bc;
             }
             let obj = this.constructorObj;
             if (Defaults.Testing && this.bc == null) {
@@ -104,7 +113,7 @@ export class Data {
             this.bc = await ByzCoinRPC.fromByzcoin(new RosterSocket(roster, RequestPath.BYZCOIN), bcID);
             if (obj.darcInstance) {
                 let di = new InstanceID(Buffer.from(obj.darcInstance));
-                this.darcInstance = DarcInstance.fromProof(this.bc, await this.bc.getProof(di));
+                this.darcInstance = await DarcInstance.fromProof(this.bc, await this.bc.getProof(di));
             }
             if (obj.credentialInstance) {
                 let ci = new InstanceID(Buffer.from(obj.credentialInstance));
@@ -122,28 +131,40 @@ export class Data {
                     let ts = await TestStore.load(Defaults.Roster);
                     Defaults.SpawnerIID = ts.spawnerIID;
                 }
+            }
+            if (!this.spawnerInstance){
+                Log.print("loading spawner instance", Defaults.SpawnerIID);
                 this.spawnerInstance = SpawnerInstance.fromProof(this.bc, await this.bc.getProof(Defaults.SpawnerIID));
             }
+            if (obj.parties) {
+                this.parties = obj.parties.map(p => Party.fromObject(this.bc, p));
+            }
+            if (obj.badges) {
+                this.badges = obj.badges.map(b => Badge.fromObject(this.bc, b));
+            }
         } catch (e) {
-            Log.catch(e);
+            await Log.rcatch(e);
         }
         return this.bc;
     }
 
-    getValues(): any {
+    toObject(): any {
         let v = {
             alias: this.alias,
             email: this.email,
             continuousScan: this.continuousScan,
+            personhoodPublished: this.personhoodPublished,
             keyPersonhood: this.keyPersonhood._private.toHex(),
             keyIdentity: this.keyIdentity._private.toHex(),
-            users: this.users.map(u => u.toObject()),
+            friends: this.friends.map(u => u.toObject()),
             bcRoster: null,
             bcID: null,
             darcInstance: null,
             credentialInstance: null,
             coinInstance: null,
             spawnerInstance: null,
+            parties: null,
+            badges: null,
         };
         if (this.bc) {
             v.bcRoster = this.bc.config.roster.toObject();
@@ -152,8 +173,25 @@ export class Data {
             v.credentialInstance = this.credentialInstance ? this.credentialInstance.iid.iid : null;
             v.coinInstance = this.coinInstance ? this.coinInstance.iid.iid : null;
             v.spawnerInstance = this.spawnerInstance ? this.spawnerInstance.iid.iid : null;
+            v.parties = this.parties ? this.parties.map(p => p.toObject()) : null;
+            v.badges = this.badges ? this.badges.map(b => b.toObject()) : null;
         }
         return v;
+    }
+
+    async publishPersonhood(publish: boolean) {
+        this.personhoodPublished = publish;
+        if (publish) {
+            // if (!this.credentialInstance.getAttribute("personhood", "ed25519")) {
+            try {
+                Log.lvl2("Personhood not yet stored - adding to credential");
+                await this.credentialInstance.setAttribute(this.keyIdentitySigner, "personhood",
+                    "ed25519", this.keyPersonhood._public.toBuffer());
+                // }
+            } catch (e){
+                Log.catch(e);
+            }
+        }
     }
 
     /**
@@ -176,21 +214,19 @@ export class Data {
     }
 
     async save(): Promise<Data> {
-        await FileIO.writeFile(this.dataFileName, JSON.stringify(this.getValues()));
+        await FileIO.writeFile(this.dataFileName, JSON.stringify(this.toObject()));
         return this;
     }
 
     async canPay(amount: Long): Promise<boolean> {
         if (!(this.coinInstance && this.spawnerInstance)) {
-            return Promise.reject("Cannot sign up a user without coins and spawner");
+            return Promise.reject("Cannot sign up a contact without coins and spawner");
         }
         await this.coinInstance.update();
         if (amount.lessThanOrEqual(0)) {
             return Promise.reject("Cannot send 0 or less coins");
         }
-        Log.print(amount, this.coinInstance.coin.value);
-        if (amount.greaterThan(this.coinInstance.coin.value)) {
-            Log.print("rejecting");
+        if (amount.greaterThanOrEqual(this.coinInstance.coin.value)) {
             return Promise.reject("You only have " + this.coinInstance.coin.value.toString() + " coins.");
         }
         return true;
@@ -200,19 +236,19 @@ export class Data {
         Log.lvl2("Dummyprogress:", text, width);
     }
 
-    async registerUser(user: User, balance: Long = Long.fromNumber(0), progress: Function = this.dummyProgress): Promise<any> {
+    async registerContact(contact: Contact, balance: Long = Long.fromNumber(0), progress: Function = this.dummyProgress): Promise<any> {
         try {
             progress("Verifying Registration", 10);
-            if (user.isRegistered()) {
-                return Promise.reject("cannot register already registered user");
+            if (contact.isRegistered()) {
+                return Promise.reject("cannot register already registered contact");
             }
-            let pub = user.pubIdentity;
-            Log.lvl2("Registering user", user.alias,
+            let pub = contact.pubIdentity;
+            Log.lvl2("Registering contact", contact.alias,
                 "with public key:", pub.toHex());
             Log.lvl2("Registering darc");
             progress("Creating Darc", 20);
-            let darcInstance = await this.spawnerInstance.createDarc(this.coinInstance,
-                [this.keyIdentitySigner], pub, "new user " + user.alias);
+            let darcInstance = await this.spawnerInstance.createUserDarc(this.coinInstance,
+                [this.keyIdentitySigner], pub, contact.alias);
 
             progress("Creating Coin", 50);
             Log.lvl2("Registering coin");
@@ -230,9 +266,8 @@ export class Data {
                 referral);
             await this.coinInstance.transfer(balance, coinInstance.iid, [this.keyIdentitySigner]);
             Log.lvl2("Registered user for darc::coin::credential:", darcInstance.iid.iid, coinInstance.iid.iid,
-                credentialInstance.iid.iid)
-            user.credentialIID = credentialInstance.iid;
-            user.credential = credentialInstance.credential;
+                credentialInstance.iid.iid);
+            await contact.update(this.bc);
             progress("Done", 100);
         } catch (e) {
             Log.catch(e);
@@ -270,15 +305,17 @@ export class Data {
         if (this.darcInstance) {
             Log.lvl2("Using existing darc instance:", this.darcInstance.iid.iid);
             darcIID = this.darcInstance.iid;
+            Log.print(this.darcInstance.darc);
         } else {
-            let d = SpawnerInstance.prepareCoinDarc(this.keyIdentity._public, "new user " + this.alias);
+            let d = SpawnerInstance.prepareUserDarc(this.keyIdentity._public, this.alias);
             darcIID = new InstanceID(d.getBaseId());
+            Log.print(d);
             Log.lvl2("Searching for darcID:", darcIID.iid);
             let p = await this.bc.getProof(darcIID);
             if (!p.matchContract(DarcInstance.contractID)) {
                 Log.lvl2("didn't find darcInstance");
             } else {
-                this.darcInstance = DarcInstance.fromProof(this.bc, p);
+                this.darcInstance = await DarcInstance.fromProof(this.bc, p);
             }
         }
 
@@ -305,13 +342,13 @@ export class Data {
         }
     }
 
-    addUser(nu: User) {
-        this.rmUser(nu);
-        this.users.push(nu);
+    addContact(nu: Contact) {
+        this.rmContact(nu);
+        this.friends.push(nu);
     }
 
-    rmUser(nu: User) {
-        this.users = this.users.filter(u => !u.equals(nu));
+    rmContact(nu: Contact) {
+        this.friends = this.friends.filter(u => !u.equals(nu));
     }
 
     async getBadges(): Promise<Badge[]> {
@@ -320,7 +357,51 @@ export class Data {
                 Long.fromNumber(0));
             return [new Badge(p, this.keyPersonhood)];
         }
-        return [];
+        return this.badges;
+    }
+
+    async reloadParties(): Promise<Party[]> {
+        let phrpc = new PersonhoodRPC(new RosterSocket(this.bc.config.roster, "Personhood"));
+        let phParties = await phrpc.listPartiesRPC();
+        await Promise.all(phParties.map(async php => {
+            if (this.parties.find(p => p.partyInstance.iid.equals(php.instanceID)) == null) {
+                Log.lvl2("Found new party id");
+                let ppi = await PopPartyInstance.fromByzcoin(this.bc, php.instanceID);
+                Log.lvl2("Found new party", ppi.popPartyStruct.description.name);
+                let orgKeys = await ppi.fetchOrgKeys();
+                let p = new Party(ppi);
+                p.isOrganizer = !!orgKeys.find(k => k.equal(this.keyPersonhood._public));
+                this.parties.push(p);
+            }
+        }));
+        Log.lvl2("finished with searching");
+        return this.parties;
+    }
+
+    async updateParties(): Promise<Party[]> {
+        await Promise.all(this.parties.map(async p => p.partyInstance.update()));
+        // Move all finalized parties into badges
+        let parties: Party[] = [];
+        this.parties.forEach(p => {
+            if (p.state == Party.Finalized) {
+                if (p.partyInstance.popPartyStruct.attendees.keys.find(k =>
+                    k.equal(this.keyPersonhood._public))) {
+                    this.badges.push(new Badge(p, this.keyPersonhood));
+                }
+                Log.lvl2("removing party that doesn't have our key stored");
+            } else {
+                parties.push(p);
+            }
+        });
+        this.parties = parties;
+        return this.parties;
+    }
+
+    async addParty(p: Party) {
+        this.parties.push(p);
+        let phrpc = new PersonhoodRPC(new RosterSocket(this.bc.config.roster, "Personhood"));
+        let bid = new InstanceID(this.bc.bcID);
+        await phrpc.listPartiesRPC(new PersonhoodParty(this.bc.config.roster, bid, p.partyInstance.iid));
     }
 
     async getParties(): Promise<Party[]> {
@@ -336,23 +417,33 @@ export class Data {
                     Long.fromNumber(0)),
             ];
             parties[0].isOrganizer = true;
-            parties[1].partyInstance.popPartyStruct.state = 1;
-            parties[2].partyInstance.popPartyStruct.state = 2;
-            parties[3].partyInstance.popPartyStruct.state = 3;
+            parties[1].partyInstance.popPartyStruct.state = Party.PreBarrier;
+            parties[2].partyInstance.popPartyStruct.state = Party.Scanning;
+            parties[3].partyInstance.popPartyStruct.state = Party.Finalized;
             return parties;
         }
-        return [];
+        this.parties = this.parties.filter(p => {
+            return !!p.partyInstance && !!p.partyInstance.popPartyStruct;
+        });
+        return this.parties;
     }
 
-    get user(): User {
-        return User.fromData(this);
+    get contact(): Contact {
+        let c = new Contact(this.alias);
+        if (this.darcInstance) {
+            c.darcInstance = this.darcInstance;
+        }
+        if (this.credentialInstance) {
+            c.credentialInstance = this.credentialInstance;
+        } else {
+            c.unregisteredPub = this.keyIdentity._public;
+        }
+        return c;
     }
 
     get keyIdentitySigner(): Signer {
         return new SignerEd25519(this.keyIdentity._public.point, this.keyIdentity._private.scalar);
     }
-
-
 }
 
 export class TestData {
@@ -373,8 +464,8 @@ export class TestData {
     async createUserDarc(alias: string) {
         Log.lvl1("Creating user darc");
         this.d.alias = alias;
-        this.d.darcInstance = await this.cbc.spawner.createDarc(this.cbc.genesisCoin,
-            [this.cbc.bc.admin], this.d.keyIdentity._public, "new user");
+        this.d.darcInstance = await this.cbc.spawner.createUserDarc(this.cbc.genesisCoin,
+            [this.cbc.bc.admin], this.d.keyIdentity._public, alias);
         Log.lvl2("Created user darc", this.d.darcInstance.iid.iid)
     }
 
@@ -406,8 +497,8 @@ export class CreateByzCoin {
         Log.lvl1("Creating user with spawner");
         Log.lvl1("Spawning darc");
         let user = new KeyPair();
-        let userDarc = await this.spawner.createDarc(this.genesisCoin,
-            [this.bc.admin], user._public, "new user");
+        let userDarc = await this.spawner.createUserDarc(this.genesisCoin,
+            [this.bc.admin], user._public, alias);
 
         Log.lvl1("Spawning coin");
         let userCoin = await this.spawner.createCoin(this.genesisCoin,

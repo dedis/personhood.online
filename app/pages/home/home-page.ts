@@ -15,9 +15,10 @@ import {msgFailed, msgOK} from "~/lib/ui/messages";
 
 let identity = fromObject({
     alias: "unknown",
-    qrcode: gData.user.qrcodeIdentity(),
+    qrcode: undefined,
     coins: "0",
     networkStatus: undefined,
+    init: true,
 });
 
 let page: Page;
@@ -43,7 +44,8 @@ async function updateView() {
             coins = gData.coinInstance.coin.value.toString();
         }
         identity.set("coins", coins);
-        identity.set("qrcode", gData.user.qrcodeIdentity());
+        identity.set("qrcode", gData.contact.qrcodeIdentity());
+        identity.set("init", false);
     } catch (e) {
         Log.catch(e);
     }

@@ -4,7 +4,8 @@ module.exports = function (config) {
             jasmine: {
                 oneFailurePerSpec: true,
                 failFast: true,
-                timeoutInterval: 30000
+                timeoutInterval: 60000,
+                random: false,
             }
         },
 

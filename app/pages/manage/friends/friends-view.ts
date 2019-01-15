@@ -1,5 +1,5 @@
 import {Observable} from "tns-core-modules/data/observable";
-import {User} from "~/lib/User";
+import {Contact} from "~/lib/Contact";
 import {Log} from "~/lib/Log";
 import {gData} from "~/lib/Data";
 import {friendsUpdateList, setProgress} from "~/pages/manage/friends/friends-page";
@@ -14,14 +14,14 @@ export class FriendsView extends Observable {
     private _users: UserView[];
     private _networkStatus: string;
 
-    constructor(users: User[]) {
+    constructor(users: Contact[]) {
         super();
 
         // Initialize default values.
         this.updateUsers(users);
     }
 
-    updateUsers(users: User[]) {
+    updateUsers(users: Contact[]) {
         this._users = users.map(u => new UserView(u));
         this.notifyPropertyChange("users", this._users);
     }
@@ -37,15 +37,15 @@ export class FriendsView extends Observable {
 }
 
 export class UserView extends Observable {
-    private _user: User;
+    private _user: Contact;
 
-    constructor(user: User) {
+    constructor(user: Contact) {
         super();
 
         this._user = user;
     }
 
-    set user(user: User) {
+    set user(user: Contact) {
         this._user = user;
     }
 
@@ -60,7 +60,7 @@ export class UserView extends Observable {
             okButtonText: "Remove",
             cancelButtonText: "Keep",
         })) {
-            gData.rmUser(this._user);
+            gData.rmContact(this._user);
             await gData.save();
             friendsUpdateList();
         }

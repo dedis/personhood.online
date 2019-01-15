@@ -1,4 +1,4 @@
-import {Defaults} from "~/lib/Defaults";
+// import {Defaults} from "~/lib/Defaults";
 
 const Timer = require("tns-core-modules/timer");
 const co = require("co");
@@ -12,7 +12,15 @@ import {Roster} from "~/lib/network/Roster";
 
 export interface Socket {
     send(request: string, response: string, data: any): Promise<any>;
+    addresses: string[];
+    service: string;
 }
+
+var Defaults = {
+    // NetRedirect: ["pop.dedis.ch", "192.168.0.1"],
+    NetRedirect: null,
+    Testing: false,
+};
 
 /**
  * Socket is a WebSocket object instance through which protobuf messages are
@@ -20,17 +28,19 @@ export interface Socket {
  * @param {string} addr websocket address of the conode to contact.
  * @param {string} service name. A socket is tied to a service name.
  *
- * @throws {TypeError} when urlCred is not a string or protobuf is not an object
+ * @throws {TypeError} when urlRegistered is not a string or protobuf is not an object
  */
 export class WebSocket {
     url: string;
+    addresses: string[];
 
-    constructor(addr, service) {
+    constructor(addr: string, public service: string) {
+        this.addresses = [addr];
         this.url = addr + "/" + service;
     }
 
     /**
-     * Send transmits data to a given urlCred and parses the response.
+     * Send transmits data to a given urlRegistered and parses the response.
      * @param {string} request name of registered protobuf message
      * @param {string} response name of registered protobuf message
      * @param {object} data to be sent
@@ -170,10 +180,10 @@ export class RosterSocket {
                 that.lastGoodServer = addr;
                 return socketResponse;
             } catch (err) {
-                Log.rcatch(err, "rostersocket");
                 if (Defaults.Testing){
-                    return Promise.reject("faster returning when testing");
+                    return Promise.reject("quickquit: " + err.toString());
                 }
+                await Log.rcatch(err, "rostersocket");
             }
         }
         return Promise.reject("no conodes are available or all conodes returned an error");
@@ -200,7 +210,7 @@ export class LeaderSocket {
     }
 
     /**
-     * Send transmits data to a given urlCred and parses the response.
+     * Send transmits data to a given urlRegistered and parses the response.
      * @param {string} request name of registered protobuf message
      * @param {string} response name of registered protobuf message
      * @param {object} data to be sent

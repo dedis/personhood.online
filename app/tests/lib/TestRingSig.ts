@@ -2,7 +2,7 @@ import {KeyPair, Private, Public} from "~/lib/KeyPair";
 import {Sign, Suite, Verify} from "~/lib/RingSig";
 import {Log} from "~/lib/Log";
 
-fdescribe("When creating Ring Signature", () => {
+describe("When creating Ring Signature", () => {
     let k1 = new KeyPair();
     let k2 = new KeyPair();
     let k3 = new KeyPair();

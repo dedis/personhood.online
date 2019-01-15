@@ -16,14 +16,13 @@ Here the user can enter his alias
                width="30%"/>
         <Label text="Once your identity got activated, verify it:" class="h3 text-center"
                textWrap="true"/>
-        <!--<Label text="Or chose another activation method:" class="h3 text-center"-->
-               <!--textWrap="true"/>-->
-        <!--<Button text="Receive personhood-coins" tap="activatePersonhood" class="btn btn-primary btn-stub"/>-->
         <Button text="Verify activation" tap="verifyActivation" class="btn btn-primary"/>
         <Button text="Delete all" tap="deleteAll" class="btn btn-primary btn-test"/>
+        <!--<Label text="Or chose another activation method:" class="h3 text-center"-->
+        <!--textWrap="true"/>-->
         <Button text="Visit a personhood-party" tap="activateParty" class="btn btn-primary"/>
         <Button text="Login through EPFL" tap="activateEPFL" class="btn btn-primary btn-stub"/>
         <!--<Button text="Use email" tap="activateEmail" class="btn btn-primary btn-stub"/>-->
-        <Button text="Pay for account" tap="activateParty" class="btn btn-primary"/>
+        <Button text="Pay for account" tap="activateParty" class="btn btn-primary btn-stub"/>
     </StackLayout>
 </Page>

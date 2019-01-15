@@ -17,8 +17,8 @@ export class CreateByzCoin {
         Log.lvl1("Creating user with spawner");
         Log.lvl1("Spawning darc");
         let user = new KeyPair();
-        let userDarc = await this.spawner.createDarc(this.genesisCoin,
-            [this.bc.admin], user._public, "new user");
+        let userDarc = await this.spawner.createUserDarc(this.genesisCoin,
+            [this.bc.admin], user._public, alias);
 
         Log.lvl1("Spawning coin");
         let userCoin = await this.spawner.createCoin(this.genesisCoin,

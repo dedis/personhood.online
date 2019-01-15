@@ -1,6 +1,6 @@
 import {Identity} from "~/lib/cothority/darc/Identity";
 
-const crypto = require("crypto");
+const crypto = require("crypto-browserify");
 
 export class Request {
   _baseId: Buffer;

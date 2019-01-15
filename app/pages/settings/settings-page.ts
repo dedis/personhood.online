@@ -7,7 +7,7 @@ logic, and to set up your page’s data binding.
 import {EventData} from "tns-core-modules/data/observable";
 import {getFrameById, Page, topmost} from "tns-core-modules/ui/frame";
 import {gData} from "~/lib/Data";
-import {AdminViewModel} from "./settings-view";
+import {Admin, AdminViewModel} from "./settings-view";
 import {Log} from "~/lib/Log"
 import * as dialogs from "tns-core-modules/ui/dialogs";
 import {Defaults} from "~/lib/Defaults";
@@ -27,9 +27,8 @@ export function navigatingTo(args: EventData) {
 export async function tapClear(args: EventData) {
     const page = <Page>args.object;
     if (!Defaults.Confirm) {
-        gData.setValues({});
+        gData.delete();
         await gData.save();
-        Log.print("going to app-root/main-page");
         return topmost().navigate("main-page");
         // return getFrameById("app-root").navigate({
         //     moduleName: "main-page",
@@ -39,7 +38,7 @@ export async function tapClear(args: EventData) {
     } else {
         if (await dialogs.confirm("Do you really want to delete everything? There is no way back!") &&
             await dialogs.confirm("You will lose all your data! No way back!")) {
-            await gData.setValues({});
+            await gData.delete();
             await gData.save();
             await msgOK("ALL YOUR DATA HAS BEEN DELETED!");
             return getFrameById("app-root").navigate({
@@ -52,16 +51,16 @@ export async function tapClear(args: EventData) {
     }
 }
 
-export function tapCreateParty(args: EventData) {
-    return msgFailed("You need at least 1e7 coins to do that.")
-}
-
 export async function tapSave(args: EventData) {
-    gData.setValues(page.bindingContext.admin);
+    let a: Admin = page.bindingContext.admin;
+    gData.alias = a.alias;
+    gData.email = a.email;
+    gData.continuousScan = a.continuousScan;
+    await gData.publishPersonhood(a.publishPersonhood);
     await gData.save();
 }
 
-export async function switchSettings(args: SelectedIndexChangedEventData){
+export async function switchSettings(args: SelectedIndexChangedEventData) {
     Log.print("switchSettings", args);
 }
 

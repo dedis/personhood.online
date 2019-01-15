@@ -7,8 +7,10 @@ import {Log} from "~/lib/Log";
 
 export class DarcInstance {
     static readonly contractID = "darc";
+    public iid: InstanceID;
 
-    constructor(public bc: ByzCoinRPC, public iid: InstanceID, public darc: Darc) {
+    constructor(public bc: ByzCoinRPC, public darc: Darc) {
+        this.iid = new InstanceID(darc.getBaseId());
     }
 
     /**
@@ -23,6 +25,17 @@ export class DarcInstance {
         return this;
     }
 
+    toObject(): any{
+        return {
+            darc: this.darc.toProto(),
+        }
+    }
+
+    static fromObject(bc: ByzCoinRPC, obj: any): DarcInstance{
+        let d = Darc.fromProto(Buffer.from(obj.darc));
+        return new DarcInstance(bc, d);
+    }
+
     static async create(bc: ByzCoinRPC, iid: InstanceID, signers: Signer[], d: Darc): Promise<DarcInstance> {
         let inst = Instruction.createSpawn(iid,
             this.contractID,
@@ -30,12 +43,12 @@ export class DarcInstance {
         let ctx = new ClientTransaction([inst]);
         await ctx.signBy([signers], bc);
         await bc.sendTransactionAndWait(ctx, 5);
-        return new DarcInstance(bc, new InstanceID(d.getBaseId()), d);
+        return new DarcInstance(bc, d);
     }
 
-    static fromProof(bc: ByzCoinRPC, p: Proof): DarcInstance {
-        p.matchOrFail(DarcInstance.contractID);
-        return new DarcInstance(bc, p.requestedIID, DarcInstance.darcFromProof(p));
+    static async fromProof(bc: ByzCoinRPC, p: Proof): Promise<DarcInstance> {
+        await p.matchOrFail(DarcInstance.contractID);
+        return new DarcInstance(bc, DarcInstance.darcFromProof(p));
     }
 
     /**
@@ -44,7 +57,7 @@ export class DarcInstance {
      * @param instID
      */
     static async fromByzcoin(bc: ByzCoinRPC, iid: InstanceID): Promise<DarcInstance> {
-        return DarcInstance.fromProof(bc, await bc.getProof(iid));
+        return await DarcInstance.fromProof(bc, await bc.getProof(iid));
     }
 
     static darcFromProof(p: Proof): Darc{

@@ -31,10 +31,14 @@ export class Proof {
      * @param iid the instanceID that this proof represents
      */
     constructor(p: any, iid: InstanceID) {
+        this.reqIID = iid;
+        if (p == null){
+            // This is for testing
+            return;
+        }
         this.inclusionproof = new InclusionProof(p.inclusionproof);
         this.latest = p.latest;
         this.links = p.links;
-        this.reqIID = iid;
         this.matches = iid.iid.equals(this.inclusionproof.key);
         if (this.matches){
             this.stateChangeBody = StateChangeBody.fromProto(this.inclusionproof.value);

@@ -13,7 +13,7 @@ export class AdminViewModel extends Observable {
 
     constructor(d: Data) {
         super();
-        this.admin = new Admin(d.alias, d.email, d.continuousScan);
+        this.admin = new Admin(d.alias, d.email, d.continuousScan, d.personhoodPublished);
         d.bc.config.roster.list.forEach(si => this.nodes.push(new Node(si)));
     }
 
@@ -27,14 +27,8 @@ export class AdminViewModel extends Observable {
 }
 
 export class Admin {
-    public alias: string;
-    public email: string;
-    public continuousScan: boolean;
-
-    constructor(alias, email, continuousScan) {
-        this.alias = alias;
-        this.email = email;
-        this.continuousScan = continuousScan;
+    constructor(public alias: string, public email:string,
+                public continuousScan: boolean, public publishPersonhood: boolean) {
     }
 }
 

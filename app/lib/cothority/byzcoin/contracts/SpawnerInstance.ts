@@ -9,15 +9,16 @@ import {Argument, ClientTransaction, InstanceID, Instruction} from "~/lib/cothor
 import {Signer} from "~/lib/cothority/darc/Signer";
 import * as Long from "long";
 import {Coin, CoinInstance} from "~/lib/cothority/byzcoin/contracts/CoinInstance";
-import {Log} from "~/lib/Log";
 import {Proof} from "~/lib/cothority/byzcoin/Proof";
 import {Root} from "~/lib/cothority/protobuf/Root";
 import {DarcInstance} from "~/lib/cothority/byzcoin/contracts/DarcInstance";
-import {Identity} from "~/lib/cothority/darc/Identity";
 import {IdentityEd25519} from "~/lib/cothority/darc/IdentityEd25519";
 import {Buffer} from "buffer";
 import {Public} from "~/lib/KeyPair";
 import {PopDesc, PopPartyInstance, PopPartyStruct} from "~/lib/cothority/byzcoin/contracts/PopPartyInstance";
+import {IdentityDarc} from "~/lib/cothority/darc/IdentityDarc";
+import {Contact} from "~/lib/Contact";
+import {Log} from "~/lib/Log";
 
 let coinName = new Buffer(32);
 coinName.write("SpawnerCoin");
@@ -43,14 +44,14 @@ export class SpawnerInstance {
      */
     async update(): Promise<SpawnerInstance> {
         let proof = await this.bc.getProof(this.iid);
-        this.spawner = Spawner.fromProto(proof.inclusionproof.value);
+        this.spawner = Spawner.fromProto(proof.value);
         return this;
     }
 
-    async createDarc(coin: CoinInstance, signers: Signer[], pubKey: any,
-                     desc: string):
+    async createUserDarc(coin: CoinInstance, signers: Signer[], pubKey: any,
+                         alias: string):
         Promise<DarcInstance> {
-        let d = SpawnerInstance.prepareCoinDarc(pubKey, desc);
+        let d = SpawnerInstance.prepareUserDarc(pubKey, alias);
         let ctx = new ClientTransaction([
             Instruction.createInvoke(coin.iid,
                 "fetch", [
@@ -104,11 +105,24 @@ export class SpawnerInstance {
     }
 
     async createPopParty(coin: CoinInstance, signers: Signer[],
-                         organizers: Public[],
+                         orgs: Contact[],
                          descr: PopDesc, reward: Long):
         Promise<PopPartyInstance> {
+
+        // Verify that all organizers have published their personhood public key
+        Log.print(orgs[0]);
+        let creds = await Promise.all(orgs.map(org => CredentialInstance.fromByzcoin(this.bc, org.credentialIID)));
+        Log.print(creds[0]);
+        await Promise.all(creds.map(async (cred: CredentialInstance, i: number) =>{
+            let pop = cred.getAttribute("personhood", "ed25519");
+            if (!pop){
+                return Promise.reject("Org " + orgs[i].alias + " didn't publish his personhood key");
+            }
+        }));
+
+        let orgDarcIDs = orgs.map(org => org.darcInstance.iid);
         let valueBuf = this.spawner.costDarc.value.add(this.spawner.costParty.value).toBytesLE();
-        let orgDarc = SpawnerInstance.preparePartyDarc(organizers, "party-darc " + descr.name);
+        let orgDarc = SpawnerInstance.preparePartyDarc(orgDarcIDs, "party-darc " + descr.name);
         let ctx = new ClientTransaction([
             Instruction.createInvoke(coin.iid,
                 "fetch", [
@@ -126,7 +140,8 @@ export class SpawnerInstance {
                 ])]);
         await ctx.signBy([signers, [], []], this.bc);
         await this.bc.sendTransactionAndWait(ctx);
-        return PopPartyInstance.fromByzcoin(this.bc, new InstanceID(ctx.instructions[2].deriveId("")));
+        let ppi = PopPartyInstance.fromByzcoin(this.bc, new InstanceID(ctx.instructions[2].deriveId("")));
+        return ppi;
     }
 
     get signupCost(): Long {
@@ -167,25 +182,22 @@ export class SpawnerInstance {
         return this.fromProof(bc, await bc.getProof(iid));
     }
 
-    static prepareCoinDarc(pubKey: Public, desc: string): Darc {
+    static prepareUserDarc(pubKey: Public, alias: string): Darc {
         let id = new IdentityEd25519(pubKey.point);
         let r = Rules.fromOwnersSigners([id], [id]);
+        r.list.push(Rule.fromIdentities("invoke:update", [id], "&"));
         r.list.push(Rule.fromIdentities("invoke:fetch", [id], "&"));
         r.list.push(Rule.fromIdentities("invoke:transfer", [id], "&"));
-        return Darc.fromRulesDesc(r, desc);
+        return Darc.fromRulesDesc(r, "user " + alias);
     }
 
-    static preparePartyDarc(pubKeys: Public[], desc: string): Darc {
-        let ids = pubKeys.map(pub => new IdentityEd25519(pub.point));
+    static preparePartyDarc(darcIDs: InstanceID[], desc: string): Darc {
+        let ids = darcIDs.map(di => new IdentityDarc(di));
         let r = Rules.fromOwnersSigners(ids, ids);
         r.list.push(Rule.fromIdentities("invoke:barrier", ids, "|"));
         r.list.push(Rule.fromIdentities("invoke:finalize", ids, "|"));
         r.list.push(Rule.fromIdentities("invoke:addParty", ids, "|"));
         return Darc.fromRulesDesc(r, desc);
-    }
-
-    static darcIID(pubKey: Public, desc: string): InstanceID {
-        return new InstanceID(SpawnerInstance.prepareCoinDarc(pubKey, desc).getBaseId());
     }
 
     static credentialIID(darcBaseID: Buffer): InstanceID {

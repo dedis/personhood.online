@@ -6,6 +6,14 @@
         <ActionItem tap="addParty" visibility="{{ canAddParty ? 'visible' : 'collapse' }}"
                     ios.systemIcon="4" ios.position="right"
                     icon="res://ic_add_white" android.position="actionBar"/>
+        <ActionItem tap="updateParties" ios.position="right" android.position="actionBar">
+            <ActionItem.actionView>
+                <Label text="&#xf2f1; " class="fas" style="font-size: 25%;"/>
+            </ActionItem.actionView>
+        </ActionItem>
+        <!--<ActionItem tap="updateParties"-->
+                    <!--ios.systemIcon="13" ios.position="right"-->
+                    <!--icon="res://ic_reload_white" android.position="actionBar"/>-->
     </ActionBar>
     <GridLayout rows="*, auto" row="1" tap="cancelNetwork">
         <ListView items="{{ elements }}" class="list-group" row="0">
@@ -19,11 +27,11 @@
                                visibility="{{ icon ? 'visible' : 'collapse' }}"
                                width="10%"/>
                         <StackLayout style="margin-left:5%;">
-                            <Label text="{{ party.name }}" class="h2" textTransform="uppercase"/>
+                            <Label text="{{ desc.name }}" class="h2" textTransform="uppercase"/>
                             <StackLayout visibility="{{ showDetails ? 'visible' : 'collapse' }}">
-                                <Label text="{{ party.desc }}" class="h3"/>
-                                <Label text="{{ party.date }}" class="h3"/>
-                                <Label text="{{ party.location }}" class="h3"/>
+                                <Label text="{{ desc.purpose }}" class="h3"/>
+                                <Label text="{{ desc.dateString }}" class="h3"/>
+                                <Label text="{{ desc.location }}" class="h3"/>
                             </StackLayout>
                         </StackLayout>
                     </StackLayout>
@@ -31,7 +39,7 @@
                         <Label text="{{ nextStep }}" class="h3" row="0" style="text-align: center;" width="100%"/>
                         <Label width="{{ stepWidth }}"
                                style="horizontal-align:left; opacity:0.5; background-color: #00caab;"
-                               id="{{ 'progress_bar_' + party.name }}" row="0"/>
+                               id="{{ 'progress_bar_' + desc.name }}" row="0"/>
                         <Label width="100%"
                                style="border-color: black; border-width: 2px;"/>
                     </GridLayout>

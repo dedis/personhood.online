@@ -9,30 +9,58 @@ import {Buffer} from "buffer";
 import {DarcInstance} from "~/lib/cothority/byzcoin/contracts/DarcInstance";
 import {Signer} from "~/lib/cothority/darc/Signer";
 import {CoinInstance} from "~/lib/cothority/byzcoin/contracts/CoinInstance";
-import {User} from "~/lib/User";
+import {Contact} from "~/lib/Contact";
 import {Data} from "~/lib/Data";
 import {promises} from "fs";
 import {Sign} from "~/lib/RingSig";
 import {SpawnerInstance} from "~/lib/cothority/byzcoin/contracts/SpawnerInstance";
 import {Darc} from "~/lib/cothority/darc/Darc";
+import {sprintf} from "sprintf-js";
+import {Party} from "~/lib/Party";
+import {BasicInstance} from "~/lib/cothority/byzcoin/contracts/Instance";
+import {CredentialInstance} from "~/lib/cothority/byzcoin/contracts/CredentialInstance";
+import {msgFailed} from "~/lib/ui/messages";
 
-export class PopPartyInstance {
+export class PopPartyInstance extends BasicInstance {
     static readonly contractID = "popParty";
 
     public tmpAttendees: Public[] = [];
+    public popPartyStruct: PopPartyStruct;
 
-    constructor(public bc: ByzCoinRPC, public iid: InstanceID, public popPartyStruct: PopPartyStruct) {
+    constructor(public bc: ByzCoinRPC, p: Proof | any = null) {
+        super(bc, PopPartyInstance.contractID, p);
+        this.popPartyStruct = PopPartyStruct.fromProto(this.data);
+    }
+
+    async fetchOrgKeys(): Promise<Public[]> {
+        let piDarc = await DarcInstance.fromByzcoin(this.bc, this.darcID);
+        let exprOrgs = piDarc.darc.rules.list.find(l => l.action == "invoke:finalize").expr;
+        let orgDarcs = exprOrgs.toString().split(" | ");
+        let orgPers: Public[] = [];
+        for (let i = 0; i < orgDarcs.length; i++) {
+            // Remove leading "darc:" from expression
+            let orgDarc = orgDarcs[i].substr(5);
+            let orgCred = SpawnerInstance.credentialIID(Buffer.from(orgDarc, 'hex'));
+            Log.lvl2("Searching personhood-identity of organizer", orgDarc, orgCred);
+            let cred = await CredentialInstance.fromByzcoin(this.bc, orgCred);
+            let credPers = cred.getAttribute("personhood", "ed25519");
+            if (!credPers) {
+                return Promise.reject("found organizer without personhood credential");
+            }
+            orgPers.push(Public.fromBuffer(credPers));
+        }
+        return orgPers;
     }
 
     async getFinalStatement(): Promise<FinalStatement> {
-        if (this.popPartyStruct.state != 3) {
+        if (this.popPartyStruct.state != Party.Finalized) {
             return Promise.reject("this party is not finalized yet");
         }
         return new FinalStatement(this.popPartyStruct.description, this.popPartyStruct.attendees);
     }
 
-    async setBarrier(org: Signer): Promise<number> {
-        if (this.popPartyStruct.state != 1) {
+    async activateBarrier(org: Signer): Promise<number> {
+        if (this.popPartyStruct.state != Party.PreBarrier) {
             return Promise.reject("barrier point has already been passed");
         }
 
@@ -46,7 +74,7 @@ export class PopPartyInstance {
     }
 
     async addAttendee(attendee: Public): Promise<number> {
-        if (this.popPartyStruct.state != 2) {
+        if (this.popPartyStruct.state != Party.Scanning) {
             return Promise.reject("party is not in attendee-adding mode");
         }
 
@@ -58,7 +86,7 @@ export class PopPartyInstance {
     }
 
     async delAttendee(attendee: Public): Promise<number> {
-        if (this.popPartyStruct.state != 2) {
+        if (this.popPartyStruct.state != Party.Scanning) {
             return Promise.reject("party is not in attendee-adding mode");
         }
 
@@ -71,7 +99,7 @@ export class PopPartyInstance {
     }
 
     async finalize(org: Signer): Promise<number> {
-        if (this.popPartyStruct.state != 2) {
+        if (this.popPartyStruct.state != Party.Scanning) {
             return Promise.reject("party did not pass barrier-point yet");
         }
         this.tmpAttendees.sort((a, b) => Buffer.compare(a.toBuffer(), b.toBuffer()));
@@ -92,6 +120,11 @@ export class PopPartyInstance {
         let proof = await this.bc.getProof(this.iid);
         await proof.matchOrFail(PopPartyInstance.contractID);
         this.popPartyStruct = PopPartyStruct.fromProto(proof.value);
+        this.data = proof.value;
+        if (this.popPartyStruct.state == Party.Scanning &&
+            this.tmpAttendees.length == 0) {
+            this.tmpAttendees = await this.fetchOrgKeys();
+        }
         return this;
     }
 
@@ -99,16 +132,22 @@ export class PopPartyInstance {
         if (att.coinInstance) {
             await this.mine(att.keyPersonhood, att.coinInstance.iid);
         } else {
-            let newDarc = SpawnerInstance.prepareCoinDarc(att.keyIdentity._public, "pop-mined darc");
+            let newDarc = SpawnerInstance.prepareUserDarc(att.keyIdentity._public, att.alias);
             await this.mine(att.keyPersonhood, null, newDarc);
             att.coinInstance = await CoinInstance.fromByzcoin(this.bc, SpawnerInstance.coinIID(newDarc.getBaseId()));
-            att.darcInstance = DarcInstance.fromProof(this.bc,
+            att.darcInstance = await DarcInstance.fromProof(this.bc,
                 await this.bc.getProof(new InstanceID(newDarc.getBaseId())));
+            Log.print(att.coinInstance);
+            Log.print(att.coinInstance.iid);
+            Log.print(att.darcInstance);
+            Log.print(att.darcInstance.iid);
+            att.credentialInstance = await att.createUserCredentials();
+            await att.save()
         }
     }
 
     async mine(att: KeyPair, coin: InstanceID, newDarc: Darc = null): Promise<any> {
-        if (this.popPartyStruct.state != 3) {
+        if (this.popPartyStruct.state != Party.Finalized) {
             return Promise.reject("cannot mine on a non-finalized party");
         }
         let lrs = await Sign(Buffer.from("mine"), this.popPartyStruct.attendees.keys, this.iid.iid, att._private);
@@ -127,14 +166,12 @@ export class PopPartyInstance {
         await this.update();
     }
 
-    static async fromProof(bc: ByzCoinRPC, p: Proof): Promise<PopPartyInstance> {
-        await p.matchOrFail(PopPartyInstance.contractID);
-        return new PopPartyInstance(bc, p.requestedIID,
-            PopPartyStruct.fromProto(p.value))
+    static fromObject(bc: ByzCoinRPC, obj: any): PopPartyInstance {
+        return new PopPartyInstance(bc, obj);
     }
 
     static async fromByzcoin(bc: ByzCoinRPC, iid: InstanceID): Promise<PopPartyInstance> {
-        return PopPartyInstance.fromProof(bc, await bc.getProof(iid));
+        return new PopPartyInstance(bc, await bc.getProof(iid));
     }
 }
 
@@ -153,17 +190,20 @@ export class PopPartyStruct {
     }
 
     toObject(): object {
-        return {
+        let o = {
             state: this.state,
             organizers: this.organizers,
             finalizations: this.finalizations,
-            description: this.description,
+            description: this.description.toObject(),
             attendees: this.attendees.toObject(),
             miners: this.miners,
             miningreward: this.miningReward,
-            previous: this.previous,
-            next: this.next,
+            previous: null,
+            next: null
         };
+        this.previous ? o.previous = this.previous.iid : null;
+        this.next ? o.previous = this.next.iid : null;
+        return o;
     }
 
     toProto(): Buffer {
@@ -172,9 +212,13 @@ export class PopPartyStruct {
 
     static fromProto(buf: Buffer): PopPartyStruct {
         let pps = Root.lookup(PopPartyStruct.protoName).decode(buf);
-        return new PopPartyStruct(pps.state, pps.organizers, pps.finalizations, pps.description,
+        let prev = (pps.previous && pps.previous.length == 32) ? new InstanceID(pps.previous) : null;
+        let next = (pps.next && pps.next.length == 32) ? new InstanceID(pps.next) : null;
+        return new PopPartyStruct(pps.state, pps.organizers, pps.finalizations,
+            PopDesc.fromObject(pps.description),
             Attendees.fromObject(pps.attendees),
-            pps.miners, pps.miningreward, pps.previous, pps.next);
+            pps.miners.map(m => LRSTag.fromObject(m)),
+            pps.miningreward, prev, next);
     }
 }
 
@@ -219,6 +263,16 @@ export class PopDesc {
         return objToProto(this.toObject(), PopDesc.protoName);
     }
 
+    get dateString(): string {
+        return new Date(this.dateTime.toNumber()).toString().replace(/ GMT.*/, "");
+    }
+
+    get uniqueName(): string {
+        let d = new Date(this.dateTime.toNumber());
+        return sprintf("%02d-%02d-%02d %02d:%02d", d.getFullYear() % 100, d.getMonth() + 1, d.getDate(),
+            d.getHours(), d.getMinutes())
+    }
+
     static fromObject(o: any): PopDesc {
         return new PopDesc(o.name, o.purpose, o.datetime, o.location);
     }
@@ -249,5 +303,9 @@ export class LRSTag {
     static readonly protoName = "personhood.LRSTag";
 
     constructor(public tag: Buffer) {
+    }
+
+    static fromObject(o: any): LRSTag {
+        return new LRSTag(o.tag);
     }
 }

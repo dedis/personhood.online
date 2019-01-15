@@ -8,7 +8,7 @@ import {EventData, fromObjectRecursive, Observable} from "tns-core-modules/data/
 import {getFrameById, Page} from "tns-core-modules/ui/frame";
 import * as dialogs from "tns-core-modules/ui/dialogs";
 import {Log} from "~/lib/Log";
-import {TestStore} from "~/lib/network/TestStorage";
+import {TestStore} from "~/lib/network/TestStore";
 import {Defaults} from "~/lib/Defaults";
 import {gData, TestData} from "~/lib/Data";
 import {Label} from "tns-core-modules/ui/label";

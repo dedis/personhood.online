@@ -7,7 +7,6 @@ import {InstanceID} from "~/lib/cothority/byzcoin/ClientTransaction";
 import {SpawnerCoin, SpawnerInstance} from "~/lib/cothority/byzcoin/contracts/SpawnerInstance";
 import {CoinInstance} from "~/lib/cothority/byzcoin/contracts/CoinInstance";
 import {KeyPair} from "~/lib/KeyPair";
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
 
 describe("setup byzcoin", () => {
     it("Must create byzcoin", async () => {
@@ -48,8 +47,8 @@ describe("create spawner", () => {
         Log.lvl1("Creating user with spawner");
         Log.lvl1("Spawning darc");
         let user = new KeyPair();
-        let userDarc = await spawner.createDarc(genesisCoin,
-            [bc.admin], user._public, "new user");
+        let userDarc = await spawner.createUserDarc(genesisCoin,
+            [bc.admin], user._public, "foo");
 
         Log.lvl1("Spawning coin");
         let userCoin = await spawner.createCoin(genesisCoin,

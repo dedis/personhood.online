@@ -14,7 +14,7 @@ export class ClientTransaction {
         this.instructions = inst;
     }
 
-    async signBy(ss: Signer[][], bc: ByzCoinRPC = null){
+    async signBy(ss: Signer[][], bc: ByzCoinRPC = null) {
         try {
             if (bc != null) {
                 Log.llvl3("Updating signature counters");
@@ -31,7 +31,7 @@ export class ClientTransaction {
                         return signer.sign(ctxHash);
                     })
             })
-        } catch (e){
+        } catch (e) {
             Log.catch(e);
         }
     }
@@ -107,13 +107,13 @@ export class Instruction {
         throw new Error("instruction without type");
     }
 
-    deriveId(what: string = ""): Buffer{
+    deriveId(what: string = ""): Buffer {
         let h = crypto.createHash("sha256");
         h.update(this.hash());
         let b = Buffer.alloc(4);
         b.writeUInt32LE(this.signatures.length, 0);
         h.update(b);
-        this.signatures.forEach(sig =>{
+        this.signatures.forEach(sig => {
             b.writeUInt32LE(sig.signature.length, 0);
             h.update(b);
             h.update(sig.signature);
@@ -145,7 +145,7 @@ export class Argument {
     name: string;
     value: Buffer;
 
-    toObject(): object{
+    toObject(): object {
         return {
             name: this.name,
             value: this.value,
@@ -195,7 +195,23 @@ export class InstanceID {
         this.iid = Buffer.from(iid);
     }
 
-    static fromHex(str: string): InstanceID{
+    equals(iid: InstanceID){
+        return this.iid.equals(iid.iid);
+    }
+
+    toObject(): any {
+        return {IID: this.iid};
+    }
+
+    static fromHex(str: string): InstanceID {
         return new InstanceID(Buffer.from(str, 'hex'));
+    }
+
+    static fromObject(obj: any): InstanceID {
+        return new InstanceID(Buffer.from(obj.IID));
+    }
+
+    static fromObjectBuffer(obj: any): InstanceID {
+        return new InstanceID(Buffer.from(obj));
     }
 }

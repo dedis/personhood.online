@@ -1,23 +1,23 @@
 import {scan} from "~/lib/Scan";
 import {Log} from "~/lib/Log";
 import {Data, gData} from "~/lib/Data";
-import {User} from "~/lib/User";
+import {Contact} from "~/lib/Contact";
 import * as dialogs from "tns-core-modules/ui/dialogs";
 import * as Long from "long";
 import {msgFailed, msgOK} from "~/lib/ui/messages";
 import {setProgress} from "~/pages/manage/friends/friends-page";
 
-export async function scanNewUser(d: Data): Promise<User> {
+export async function scanNewUser(d: Data): Promise<Contact> {
     let str = await scan("Scan Identity Code");
     Log.lvl2("Got string scanned:", str);
-    let user = await User.fromQR(d.bc, str.text);
-    await d.addUser(user);
+    let user = await Contact.fromQR(d.bc, str.text);
+    await d.addContact(user);
     await d.save();
 
     return user;
 }
 
-export async function assertRegistered(u: User, setProgress: Function): Promise<boolean> {
+export async function assertRegistered(u: Contact, setProgress: Function): Promise<boolean> {
     if (u.isRegistered()) {
         return true;
     }
@@ -31,7 +31,7 @@ export async function assertRegistered(u: User, setProgress: Function): Promise<
         });
         if (pay) {
             try {
-                await gData.registerUser(u, Long.fromNumber(0), setProgress);
+                await gData.registerContact(u, Long.fromNumber(0), setProgress);
             } catch (e) {
                 await msgFailed("Couldn't register user: " + e.toString());
                 return false;
@@ -47,7 +47,7 @@ export async function assertRegistered(u: User, setProgress: Function): Promise<
     return false;
 }
 
-export async function sendCoins(u: User, setProgress: Function) {
+export async function sendCoins(u: Contact, setProgress: Function) {
     if (await assertRegistered(u, setProgress)) {
         let reply = await dialogs.prompt({
             title: "Send coins",

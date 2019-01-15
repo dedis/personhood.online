@@ -15,9 +15,9 @@
         <Label text="&#xf0c0; " fontSize="100%" class="fas"
                row="2" col="0" style="vertical-align: center;" tap="goPosts"/>
         <StackLayout padding="10%" row="2" col="2" style="vertical-align: center;" tap="goFriends">
-            <Label text="Friends" class="h1" textWrap="true"
+            <Label text="Contacts" class="h1" textWrap="true"
                    textTransform="uppercase"/>
-            <Label text="Total Friends" textWrap="true" fontSize="15%"/>
+            <Label text="Total Contacts" textWrap="true" fontSize="15%"/>
         </StackLayout>
 
         <Label backgroundColor="#ffffff" row="3" colSpan="2" height="3%"/>

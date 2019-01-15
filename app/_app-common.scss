@@ -147,7 +147,17 @@ ActionBar .action-bar-title {
   text-align: center;
 }
 
-//Floating Button
+// Inverted element
+.inverted-gray {
+  background-color: $gray-light;
+  color: white;
+}
+.inverted-accent {
+  background-color: $accent-dark;
+  color: white;
+}
+
+  //Floating Button
 .fab-button {
   background-color: $accent-dark;
   margin: 15;

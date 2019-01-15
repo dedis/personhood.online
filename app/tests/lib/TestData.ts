@@ -1,17 +1,26 @@
 import {CreateByzCoin, Data, TestData} from "~/lib/Data";
-import {KeyPair} from "~/lib/KeyPair";
+import {KeyPair, Public} from "~/lib/KeyPair";
 import {Log} from "~/lib/Log";
 import {Defaults} from "~/lib/Defaults";
 import {ByzCoinRPC} from "~/lib/cothority/byzcoin/ByzCoinRPC";
 import * as Long from "long";
 import {FileIO} from "~/lib/FileIO";
 import {InstanceID} from "~/lib/cothority/byzcoin/ClientTransaction";
-import {User} from "~/lib/User";
+import {Contact} from "~/lib/Contact";
 import {parseQRCode} from "~/lib/Scan";
+import {PopDesc} from "~/lib/cothority/byzcoin/contracts/PopPartyInstance";
+import {setupTestData, testData} from "~/tests/lib/TestParty";
+import {Party} from "~/lib/Party";
+import {
+    Attribute,
+    Credential,
+    CredentialInstance,
+    CredentialStruct
+} from "~/lib/cothority/byzcoin/contracts/CredentialInstance";
+import {PersonhoodRPC} from "~/lib/PersonhoodRPC";
+import {RosterSocket} from "~/lib/network/NSNet";
 
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
-
-describe("TestData tests", ()=> {
+fdescribe("TestData tests", () => {
     afterEach(() => {
         Log.print("Buffer print that will be overwritten in case of error");
     });
@@ -58,15 +67,15 @@ describe("TestData tests", ()=> {
             };
             let d = new Data(JSON.stringify(dataObj));
             let d2 = new Data();
-            await expect(d2.getValues()).not.toEqual(d.getValues());
+            await expect(d2.toObject()).not.toEqual(d.toObject());
             await d2.load();
-            await expect(d2.getValues()).not.toEqual(d.getValues());
+            await expect(d2.toObject()).not.toEqual(d.toObject());
             await d.save();
             // Avoid automatic initializing of bc
             d2.bc = bc.bc;
             await d2.load();
             d2.bc = null;
-            expect(d2.getValues()).toEqual(d.getValues());
+            expect(d2.toObject()).toEqual(d.toObject());
 
             let cbc = await CreateByzCoin.start();
             let org1 = await cbc.addUser("org1");
@@ -77,16 +86,127 @@ describe("TestData tests", ()=> {
             d2 = new Data();
             await d2.load();
             await d2.connectByzcoin();
-            expect(JSON.stringify(d2.getValues())).toEqual(JSON.stringify(d.getValues()));
+            expect(JSON.stringify(d2.toObject())).toEqual(JSON.stringify(d.toObject()));
             expect(d2.darcInstance.iid).toEqual(d.darcInstance.iid);
             expect(d2.coinInstance.iid).toEqual(d.coinInstance.iid);
         })
     });
 
-    xdescribe("connects to local byzcoin", () => {
-        it("Must ping byzcoin", async () => {
-            let d = new Data({});
-            let bc = await d.connectByzcoin();
+    describe("saves/loads parties", async () => {
+        it("should load/save party", async () => {
+            Log.lvl1("Creates new party with two organizers");
+            let td = await setupTestData(1, 1);
+            let pdesc = new PopDesc("test", "testing", Long.fromNumber(0), "here");
+
+            await td.orgs[0].publishPersonhood(true);
+            let partyInst = await td.admin.cbc.spawner.createPopParty(td.admin.d.coinInstance,
+                [td.admin.d.keyIdentitySigner], [td.orgs[0].contact],
+                pdesc, Long.fromNumber(1000));
+            await partyInst.activateBarrier(td.orgs[0].keyIdentitySigner);
+
+            td.orgs[0].parties.push(new Party(partyInst));
+            Log.print(td.orgs[0].bc.bcID);
+            await td.orgs[0].connectByzcoin();
+
+            let po = td.orgs[0].toObject();
+            Log.print(po);
+            Log.print(po.spawnerInstance);
+            let dOrg = new Data(po);
+            await dOrg.setValues(po);
+            await dOrg.connectByzcoin();
+
+            expect(dOrg.toObject()).toEqual(po);
+            expect(dOrg.parties.length).toEqual(1);
+            expect(dOrg.parties[0].toObject()).toEqual(new Party(partyInst).toObject());
+        })
+    });
+
+    fdescribe("correctly handles parties and badges", async () => {
+        let td: testData = null;
+        let pdesc: PopDesc = null;
+
+        beforeAll(async () => {
+            td = await setupTestData(2, 2);
+            pdesc = new PopDesc("test", "testing", Long.fromNumber(0), "here");
+        });
+
+        it("should only get appropriate parties with one organizer", async () => {
+            Log.lvl1("*** Creates new party with one or two organizers");
+            await td.orgs[0].publishPersonhood(true);
+            let partyInst = await td.admin.cbc.spawner.createPopParty(td.admin.d.coinInstance,
+                [td.admin.d.keyIdentitySigner], [td.orgs[0].contact],
+                pdesc, Long.fromNumber(1000));
+            await td.orgs[0].addParty(new Party(partyInst));
+
+            Log.lvl1("Verify that all others get pre-barrier party");
+            let all = [td.orgs[0], td.atts[0], td.orgs[1], td.atts[1]];
+            let others = all.slice(1, 4);
+            for (let i = 0; i < others.length; i++) {
+                let d = others[i];
+                Log.lvl2("Loading parties for", d.alias);
+                await d.reloadParties();
+                expect(d.parties.length).toBe(1);
+                expect(d.parties[0].state).toBe(Party.PreBarrier);
+                expect(d.parties[0].isOrganizer).toBeFalsy();
+            }
+
+            Log.lvl1("Verify that all others get scanning party");
+            await partyInst.activateBarrier(td.orgs[0].keyIdentitySigner);
+            expect(td.orgs[0].parties[0].partyInstance.tmpAttendees.length).toBe(1);
+            Log.lvl2("finished activating barrier");
+            let phrpc = new PersonhoodRPC(new RosterSocket(td.orgs[0].bc.config.roster, "Personhood"));
+            let phParties = await phrpc.listPartiesRPC();
+            expect(phParties.length).toBe(0);
+            for (let i = 0; i < others.length; i++) {
+                let d = others[i];
+                Log.lvl2("Updating parties for", d.alias);
+                await d.updateParties();
+                expect(d.parties[0].state).toBe(Party.Scanning);
+            }
+
+            Log.lvl1("Adding attendee and finalizing party - verifying it gets converted to a badge");
+            await td.orgs[0].parties[0].partyInstance.addAttendee(td.atts[0].keyPersonhood._public);
+            Log.print(td.orgs[0].parties[0].partyInstance.tmpAttendees);
+            expect(td.orgs[0].parties[0].partyInstance.tmpAttendees.length).toBe(2);
+            await td.orgs[0].parties[0].partyInstance.finalize(td.orgs[0].keyIdentitySigner);
+            for (let i = 0; i < all.length; i++) {
+                let d = all[i];
+                Log.lvl2("Updating parties for", d.alias);
+                await d.updateParties();
+                expect(d.parties.length).toBe(0);
+                if (i < 2) {
+                    expect(d.badges.length).toBe(1);
+                    expect(d.badges[0].party.state).toBe(Party.Finalized);
+                    expect(d.badges[0].mined).toBeFalsy();
+                } else {
+                    expect(d.badges.length).toBe(0);
+                }
+            }
+
+            Log.lvl1("Mining badge for org1");
+            let d = td.orgs[0];
+            let before = d.coinInstance.coin.value;
+            await d.badges[0].mine(d);
+            await d.coinInstance.update();
+            expect(d.coinInstance.coin.value.sub(before).toNumber()).toBe(1000);
+            Log.lvl1("Mining badge for att1");
+            d = td.atts[0];
+            await d.badges[0].mine(d);
+            await d.coinInstance.update();
+            expect(d.coinInstance.coin.value.toNumber()).toBe(900);
+            expect(d.contact.isRegistered()).toBeTruthy();
+
+            Log.lvl1("Mining again");
+            let miners = [td.orgs[0], td.atts[0]];
+            for (let i = 0; i < miners.length; i++){
+                let d = miners[i];
+                Log.lvl2("Mining again", d.alias);
+                expect(d.badges[0].mined).toBeTruthy();
+                let before = d.coinInstance.coin.value;
+                await expectAsync(d.badges[0].mine(d)).toBeRejected();
+                await d.coinInstance.update();
+                expect(d.coinInstance.coin.value.sub(before).toNumber()).toBe(0);
+            }
         })
     });
 
@@ -94,16 +214,19 @@ describe("TestData tests", ()=> {
         it("show correctly encode", () => {
             let d = new Data();
             d.alias = "org1";
-            let str = d.user.qrcodeIdentityStr();
-            expect(str.startsWith(User.urlUnregistered)).toBeTruthy();
+            let str = d.contact.qrcodeIdentityStr();
+            expect(str.startsWith(Contact.urlUnregistered)).toBeTruthy();
             let user = parseQRCode(str, 3);
             expect(user.public_ed25519).not.toBeUndefined();
             expect(user.credentials).toBeUndefined();
             expect(user.alias).not.toBeUndefined();
 
-            d.credentialInstance = <any>{iid: new InstanceID(Buffer.alloc(32))};
-            str = d.user.qrcodeIdentityStr();
-            expect(str.startsWith(User.urlCred)).toBeTruthy();
+            d.credentialInstance = new CredentialInstance(null, new InstanceID(Buffer.alloc(32)),
+                new CredentialStruct([]));
+            d.credentialInstance.credential.credentials.push(new Credential("public",
+                [new Attribute("ed25519", Public.fromRand().toBuffer())]));
+            str = d.contact.qrcodeIdentityStr();
+            expect(str.startsWith(Contact.urlRegistered)).toBeTruthy();
             user = parseQRCode(str, 3);
             expect(user.public_ed25519).not.toBeUndefined();
             expect(user.credentialIID).not.toBeUndefined();
@@ -134,7 +257,7 @@ describe("TestData tests", ()=> {
             expect(d2.credentialInstance).toBeNull();
 
             Log.lvl1("Register org2");
-            await td1.d.registerUser(await User.fromQR(td1.cbc.bc, d2.user.qrcodeIdentityStr()), Long.fromNumber(1e6));
+            await td1.d.registerContact(await Contact.fromQR(td1.cbc.bc, d2.contact.qrcodeIdentityStr()), Long.fromNumber(1e6));
 
             Log.lvl1("Making sure org2 is now registered");
             await d2.verifyRegistration();
@@ -149,4 +272,5 @@ describe("TestData tests", ()=> {
             Log.lvl1("d2 coins:", d2.coinInstance.coin.value.toNumber());
         });
     });
-});
+})
+;

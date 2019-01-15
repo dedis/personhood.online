@@ -1,5 +1,4 @@
 require("nativescript-nodeify");
-import {Rule} from "~/lib/cothority/darc/Darc";
 
 const topl = require("topl");
 const UUID = require("pure-uuid");
@@ -121,7 +120,7 @@ export class ServerIdentity {
             if (array.length === 1) {
                 const port = parseInt(array[0]);
 
-                // Port equal to PORT_MAX is not allowed since the port will be increased by one for the websocket urlCred.
+                // Port equal to PORT_MAX is not allowed since the port will be increased by one for the websocket urlRegistered.
                 return PORT_MIN <= port && port < PORT_MAX;
             }
         }
@@ -144,9 +143,9 @@ export class ServerIdentity {
 
     /**
      * Converts a TLS URL to a Wesocket URL and builds a complete URL with the path given as parameter.
-     * @param {ServerIdentity|string} serverIdentity - the server identity to take the urlCred from
-     * @param {string} path - the path after the base urlCred
-     * @returns {string} - the builded websocket urlCred
+     * @param {ServerIdentity|string} serverIdentity - the server identity to take the urlRegistered from
+     * @param {string} path - the path after the base urlRegistered
+     * @returns {string} - the builded websocket urlRegistered
      */
     static addressToWebsocket(address: string, path: string): string {
         const URL_PORT_SPLITTER = ":";

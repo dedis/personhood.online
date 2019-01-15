@@ -8,7 +8,10 @@ import {fromFile, ImageSource} from "tns-core-modules/image-source";
 import {elements} from "~/pages/manage/personhood/personhood-page";
 import {Folder, knownFolders, path} from "tns-core-modules/file-system";
 import {sprintf} from "sprintf-js";
-import {msgOK} from "~/lib/ui/messages";
+import {msgFailed, msgOK} from "~/lib/ui/messages";
+import {PopDesc, PopPartyStruct} from "~/lib/cothority/byzcoin/contracts/PopPartyInstance";
+import * as dialogs from "tns-core-modules/ui/dialogs";
+import {getFrameById, topmost} from "tns-core-modules/ui/frame";
 
 export class PersonhoodView extends Observable {
     parties: PartyView[] = [];
@@ -29,7 +32,12 @@ export class PersonhoodView extends Observable {
 
     async updateAddParty() {
         try {
+            Log.print(gData.spawnerInstance);
+            Log.print(gData.personhoodPublished);
+            Log.print(gData.spawnerInstance.spawner.costParty.value);
+            Log.print(await gData.canPay(gData.spawnerInstance.spawner.costParty.value));
             this.canAddParty = gData.spawnerInstance &&
+                gData.personhoodPublished &&
                 await gData.canPay(gData.spawnerInstance.spawner.costParty.value);
         } catch (e) {
             Log.catch(e);
@@ -37,19 +45,28 @@ export class PersonhoodView extends Observable {
         }
     }
 
-    updateBadges(badges: Badge[]) {
-        this.badges = badges.map(b => new BadgeView(b));
+    async updateBadges() {
+        let badges = await gData.getBadges();
+        this.badges = badges.map(b => new BadgeView(b))
+            .sort((a, b) => a.desc.dateTime.sub(b.desc.dateTime).toNumber());
         this.notifyPropertyChange("elements", this.elements);
     }
 
-    updateParties(parties: Party[]) {
-        this.parties = parties.map(p => new PartyView(p));
+    async updateParties() {
+        await gData.updateParties();
+        this.parties = gData.parties.map(p => new PartyView(p))
+            .sort((a, b) => a.party.partyInstance.popPartyStruct.description.dateTime.sub(
+                b.party.partyInstance.popPartyStruct.description.dateTime).toNumber());
+
+        if (this.parties.length > 0) {
+            this.parties[0].setChosen(true);
+        }
         this.notifyPropertyChange("elements", this.elements);
     }
 }
 
 interface ViewElement {
-    party: Party;
+    desc: PopDesc;
     qrcode: ImageSource;
     icon: ImageSource;
     bgcolor: string;
@@ -67,12 +84,12 @@ function getImage(name: string): ImageSource {
 }
 
 export class BadgeView extends Observable {
-    party: Party;
+    desc: PopDesc;
     showDetails = false;
 
     constructor(public badge: Badge) {
         super();
-        this.party = badge.party;
+        this.desc = badge.party.partyInstance.popPartyStruct.description;
     }
 
     get qrcode(): ImageSource {
@@ -88,31 +105,60 @@ export class BadgeView extends Observable {
     }
 
     get nextStep(): string {
-        return null;
+        if (this.badge.mined) {
+            return null;
+        }
+        if (gData.contact.isRegistered()) {
+            return "Mine Coins";
+        } else {
+            return "Register on byzcoin";
+        }
     }
 
     get stepWidth(): string {
         return null;
     }
 
-    onTap(arg: GestureEventData) {
-        Log.print("Tapped badge")
+    async onTap(arg: GestureEventData) {
         let p = this.badge.party.partyInstance.popPartyStruct.description;
-        return msgOK([p.name, p.purpose, p.dateTime, p.location].join("\n"), "Details for badge");
+        let details = [p.name, p.purpose, p.dateString, p.location].join("\n");
+        if (this.badge.mined) {
+            return msgOK(details, "Details for badge");
+        }
+        try {
+            let registered = gData.contact.isRegistered();
+            await this.badge.mine(gData);
+            await msgOK("Successfully mined\n" + details, "Details for badge");
+            if (!registered){
+                return getFrameById("app-root").navigate({
+                    moduleName: "main-page",
+                    // Page navigation, without saving navigation history.
+                    backstackVisible: false
+                });
+            }
+        } catch (e){
+            await msgFailed("Couldn't mine:\n" + e.toString());
+            this.badge.mined = true;
+        }
+        await this.notifyPropertyChange("nextStep", this.nextStep);
     }
 }
 
 export class PartyView extends Observable {
+    desc: PopDesc;
     chosen: boolean;
     showDetails = true;
     qrCache: ImageSource = undefined;
 
     constructor(public party: Party) {
         super();
+        this.desc = party.partyInstance.popPartyStruct.description;
     }
 
     get qrcode(): ImageSource {
-        if (this.chosen && this.party.state == 2) {
+        if (this.chosen &&
+            this.party.state == Party.Scanning &&
+            !this.party.isOrganizer) {
             if (!this.qrCache) {
                 this.qrCache = this.party.qrcode(gData.keyPersonhood._public);
             }
@@ -138,14 +184,14 @@ export class PartyView extends Observable {
         if (this.party.isOrganizer) {
             return ["Waiting for barrier point",
                 "Scan attendees' public keys",
-                "Finalize the party"][this.party.state -1];
+                "Finalize the party"][this.party.state - 1];
         }
         if (!this.chosen) {
             return null;
         }
         return ["Go to party",
             "Get your qrcode scanned",
-            "Mining coins"][this.party.state -1];
+            "Mining coins"][this.party.state - 1];
     }
 
     get stepWidth(): string {
@@ -156,22 +202,78 @@ export class PartyView extends Observable {
     }
 
     setChosen(c: boolean) {
+        if (c) {
+            elements.parties.forEach(p => p.setChosen(false));
+        }
         this.chosen = c;
         ["bgcolor", "qrcode", "nextStep", "stepWidth"].forEach(
             key => this.notifyPropertyChange(key, this[key]));
     }
 
     async onTap(arg: GestureEventData) {
+        let DELETE = "Delete Party";
+        let BARRIER = "Activate Barrier Point";
+        let SCAN = "Scan attendees";
+        let FINALIZE = "Finalize Party";
+        let actions = [];
         if (this.party.isOrganizer) {
-            this.party.state = (this.party.state + 1) % 4 + 1;
-            await msgOK(["Activating barrier point",
-                "Scan attendees' public keys",
-                "Finalizing party"][this.party.state]);
-            this.setChosen(this.chosen);
+            switch (this.party.state) {
+                case 1:
+                    actions.push(BARRIER);
+                    break;
+                case 2:
+                    actions.push(SCAN);
+                    actions.push(FINALIZE);
+                    break;
+                case 3:
+                    break;
+            }
+        } else if (!this.chosen) {
+            this.setChosen(true);
             return;
         }
-        let c = !this.chosen;
-        elements.parties.forEach(p => p.setChosen(false));
-        this.setChosen(c);
+        actions.push(DELETE);
+        try {
+            switch (await dialogs.action({
+                title: "Action for " + this.party.partyInstance.popPartyStruct.description.name,
+                cancelButtonText: "Don't do anything",
+                actions: actions,
+            })) {
+                case DELETE:
+                    if (await dialogs.confirm({
+                        title: "Delete " + this.party.partyInstance.popPartyStruct.description.name,
+                        message: "Are you sure to delete that party? There is no way back.",
+                        okButtonText: "Delete Party",
+                        cancelButtonText: "Cancel",
+                    })) {
+                        let index = gData.parties.findIndex(p => this.party == p);
+                        gData.parties.splice(index, 1);
+                        await elements.updateParties();
+                        await gData.save();
+                    }
+                    break;
+                case BARRIER:
+                    await this.party.partyInstance.activateBarrier(gData.keyIdentitySigner);
+                    await msgOK("Successfully activated barrier", "Barrier");
+                    break;
+                case SCAN:
+                    return topmost().navigate({
+                        moduleName: "pages/manage/personhood/scan-atts/scan-atts-page",
+                        context: this.party,
+                    });
+                    break;
+                case FINALIZE:
+                    await this.party.partyInstance.finalize(gData.keyIdentitySigner);
+                    if (this.party.partyInstance.popPartyStruct.state == Party.Finalized) {
+                        await msgOK("Finalized the party");
+                    } else {
+                        await msgOK("Waiting for other organizers to finalize");
+                    }
+            }
+
+            this.setChosen(true);
+        } catch (e) {
+            await msgFailed("Error occured: " + e.toString());
+        }
     }
 }

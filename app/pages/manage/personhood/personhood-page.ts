@@ -10,12 +10,13 @@ import {Page} from "tns-core-modules/ui/page";
 import {Log} from "~/lib/Log";
 import * as dialogs from "tns-core-modules/ui/dialogs";
 import {GestureEventData} from "tns-core-modules/ui/gestures";
-import {User} from "~/lib/User";
+import {Contact} from "~/lib/Contact";
 import * as Long from "long";
 import {scanNewUser} from "~/lib/ui/users";
 import {ObservableArray} from "tns-core-modules/data/observable-array";
 import {PersonhoodView} from "~/pages/manage/personhood/personhood-view";
 import {msgOK} from "~/lib/ui/messages";
+import {topmost} from "tns-core-modules/ui/frame";
 
 export let elements: PersonhoodView;
 let page: Page;
@@ -25,20 +26,23 @@ export async function navigatingTo(args: EventData) {
     page = <Page>args.object;
     elements = new PersonhoodView();
     page.bindingContext = elements;
-    await updateList();
+    await updateParties();
 }
 
-async function updateList() {
+export async function updateParties() {
     try {
         await elements.updateAddParty();
-        elements.updateParties(await gData.getParties());
-        elements.updateBadges(await gData.getBadges());
+        await gData.reloadParties();
+        await gData.save();
+        await elements.updateParties();
+        await elements.updateBadges();
     } catch(e){
         Log.catch(e);
     }
 }
 
 export async function addParty(args: GestureEventData) {
-    return msgOK("Adding a new party");
-    await gData.save();
+    return topmost().navigate({
+        moduleName: "pages/manage/personhood/add-party/add-party-page",
+    });
 }

@@ -34,8 +34,19 @@ export class KeyPair {
         this.setPrivate(Private.fromRand());
     }
 
+    toObject(): any{
+        return {
+            pub: this._public.toBuffer(),
+            priv: this._private.toBuffer(),
+        }
+    }
+
     static fromBuffer(priv: any): KeyPair {
         return new KeyPair(Buffer.from(priv).toString('hex'));
+    }
+
+    static fromObject(obj: any){
+        return new KeyPair(Private.fromBuffer(obj.priv).toHex());
     }
 }
 

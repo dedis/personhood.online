@@ -2,6 +2,7 @@ import {Signer} from "~/lib/cothority/darc/Signer";
 import {IdentityEd25519} from "~/lib/cothority/darc/IdentityEd25519";
 import {Signature} from "~/lib/cothority/darc/Signature";
 import {Identity} from "~/lib/cothority/darc/Identity";
+import {Log} from "~/lib/Log";
 
 const curve = require("@dedis/kyber-js").curve.newCurve("edwards25519");
 const Schnorr = require("@dedis/kyber-js").sign.schnorr;
