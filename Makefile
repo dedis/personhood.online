@@ -1,5 +1,8 @@
-apply-patches:
+apply-patches: npm-install
 	patch -p0 < nodeify_temporary_patch.patch
+
+npm-install:
+	npm i
 
 release-android:
 	if [ ! "$$PERSONHOOD_ANDROID_PASS" ]; then echo "Please set PERSONHOOD_ANDROID_PASS"; exit 1; fi
@@ -10,3 +13,6 @@ release-android:
 release-key:
 	if [ -e dedis-development.jks ]; then echo "Please remove dedis-development.jks first"; exit 1; fi
 	keytool -genkey -v -storetype pkcs12 -keystore dedis-development.jks -keyalg RSA -keysize 4096 -validity 10000 -alias personhood
+
+ios: apply-patches
+	tns prepare ios
