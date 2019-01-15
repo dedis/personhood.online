@@ -65,6 +65,8 @@ export var Defaults = {
     // NetRedirect: ["pop.dedis.ch", "192.168.0.1"],
     // Show Party- and Badges examples
     PartyBadgeExamples: false,
+    // Alias can be set to a non-"" value to have a default alias
+    Alias: "test",
 };
 
 Defaults.Roster = Roster.fromTOML(Defaults.RosterTOMLDEDIS);

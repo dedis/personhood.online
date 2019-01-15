@@ -12,6 +12,7 @@ import {TestStore} from "~/lib/network/TestStore";
 import {Defaults} from "~/lib/Defaults";
 import {gData, TestData} from "~/lib/Data";
 import {Label} from "tns-core-modules/ui/label";
+import {mainView} from "~/main-page";
 
 let view: Observable = fromObjectRecursive({
     networkStatus: undefined
@@ -19,9 +20,11 @@ let view: Observable = fromObjectRecursive({
 let page: Page;
 
 export async function navigatingTo(args: EventData) {
+    Log.lvl2("navigatingTo: 1-present");
     page = <Page>args.object;
     page.bindingContext = view;
     setProgress();
+    return gData.connectByzcoin();
 }
 
 export async function goInitTest(args: EventData) {
@@ -44,7 +47,7 @@ export async function goInitTest(args: EventData) {
 
                 setProgress("saving", 100);
                 await gData.save();
-                return getFrameById("app-root").navigate("main-page");
+                mainView.set("showGroup", 2);
         }
     } catch (e) {
         Log.rcatch(e);
@@ -66,14 +69,17 @@ export async function goReloadBC(args: EventData) {
 }
 
 export function goAlias(args: EventData) {
-    return getFrameById("app-root").navigate("pages/setup/2-alias");
+    return getFrameById("setup").navigate("pages/setup/2-alias");
 }
 
 function setProgress(text: string = "", width: number = 0) {
     if (width == 0) {
         view.set("networkStatus", undefined);
     } else {
-        page.getViewById("progress_bar").setInlineStyle("width:" + width + "%;");
-        (<Label>page.getViewById("progress_text")).text = text;
+        let pb = page.getViewById("progress_bar");
+        if (pb) {
+            pb.setInlineStyle("width:" + width + "%;");
+            (<Label>page.getViewById("progress_text")).text = text;
+        }
     }
 }

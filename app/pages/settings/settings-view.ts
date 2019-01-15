@@ -46,7 +46,6 @@ export class Node {
         this.status = "unknown";
 
         let s = new WebSocket(si.toWebsocket(""), RequestPath.STATUS);
-        Log.print("getting status of", si.address);
         s.send(RequestPath.STATUS_REQUEST, DecodeType.STATUS_RESPONSE, {})
             .then(response =>{
                 this.status = response.serveridentity.description + ": OK";

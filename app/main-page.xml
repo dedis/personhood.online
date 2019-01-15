@@ -5,27 +5,34 @@ Learn more about the TabView component in this documentation article:
 http://docs.nativescript.org/cookbook/ui/tab-view
 -->
 <Page actionBarHidden="true" navigatingTo="navigatingTo">
-    <Label text="Loading" class="h1" style="vertical-align: center;"
-    visibility="{{ loaded ? 'visible' : 'collapse' }}"/>
-    <TabView androidTabsPosition="bottom" androidOffscreenTabLimit="0" selectedIndex="0"
-             selectedIndexChanged="onChangeTab" visibility="{{ loaded ? 'collapse' : 'visible' }}">
-        <TabViewItem title="Home" ios:iconSource="res://tabIcons/home" android:iconSource="res://home">
-            <Frame defaultPage="pages/home/home-page"/>
-        </TabViewItem>
+    <StackLayout>
+        <Frame defaultPage="pages/loading/loading-page"
+               visibility="{{ showGroup ? 'collapse' : 'visible' }}"
+               id="loading"/>
+        <Frame defaultPage="pages/loading/loading-page"
+               visibility="{{ showGroup == 1 ? 'visible' : 'collapse' }}"
+               id="setup"/>
+        <TabView androidTabsPosition="bottom" androidOffscreenTabLimit="0" selectedIndex="0"
+                 selectedIndexChanged="onChangeTab" id="mainTabView"
+                 visibility="{{ showGroup == 2 ? 'visible' : 'collapse' }}">
+            <TabViewItem title="Home" ios:iconSource="res://tabIcons/home" android:iconSource="res://home">
+                <Frame defaultPage="pages/home/home-page"/>
+            </TabViewItem>
 
-        <TabViewItem title="Manage" ios:iconSource="res://tabIcons/browse" android:iconSource="res://browse">
-            <Frame defaultPage="pages/manage/manage-page"/>
-        </TabViewItem>
+            <TabViewItem title="Manage" ios:iconSource="res://tabIcons/browse" android:iconSource="res://browse">
+                <Frame defaultPage="pages/manage/manage-page"/>
+            </TabViewItem>
 
-        <!--<TabViewItem title="Lab" ios:iconSource="res://tabIcons/home" android:iconSource="res://search">-->
+            <!--<TabViewItem title="Lab" ios:iconSource="res://tabIcons/home" android:iconSource="res://search">-->
             <!--<Frame defaultPage="pages/lab/lab-page"/>-->
             <!--&lt;!&ndash;<Frame defaultPage="pages/lab/posts/posts-page"></Frame>&ndash;&gt;-->
             <!--&lt;!&ndash;<Frame defaultPage="pages/lab/coins/coins-page"></Frame>&ndash;&gt;-->
             <!--&lt;!&ndash;<Frame defaultPage="pages/lab/coupons/coupons-page"></Frame>&ndash;&gt;-->
-        <!--</TabViewItem>-->
+            <!--</TabViewItem>-->
 
-        <TabViewItem title="Settings" ios:iconSource="res://tabIcons/admin" android:iconSource="res://admin">
-            <Frame defaultPage="pages/settings/settings-page"/>
-        </TabViewItem>
-    </TabView>
+            <TabViewItem title="Settings" ios:iconSource="res://tabIcons/admin" android:iconSource="res://admin">
+                <Frame defaultPage="pages/settings/settings-page"/>
+            </TabViewItem>
+        </TabView>
+    </StackLayout>
 </Page>

@@ -133,7 +133,6 @@ export class Data {
                 }
             }
             if (!this.spawnerInstance){
-                Log.print("loading spawner instance", Defaults.SpawnerIID);
                 this.spawnerInstance = SpawnerInstance.fromProof(this.bc, await this.bc.getProof(Defaults.SpawnerIID));
             }
             if (obj.parties) {
@@ -305,11 +304,9 @@ export class Data {
         if (this.darcInstance) {
             Log.lvl2("Using existing darc instance:", this.darcInstance.iid.iid);
             darcIID = this.darcInstance.iid;
-            Log.print(this.darcInstance.darc);
         } else {
             let d = SpawnerInstance.prepareUserDarc(this.keyIdentity._public, this.alias);
             darcIID = new InstanceID(d.getBaseId());
-            Log.print(d);
             Log.lvl2("Searching for darcID:", darcIID.iid);
             let p = await this.bc.getProof(darcIID);
             if (!p.matchContract(DarcInstance.contractID)) {

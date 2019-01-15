@@ -10,9 +10,10 @@ import {Log} from "~/lib/Log";
 import {gData} from "~/lib/Data";
 import * as dialogs from "tns-core-modules/ui/dialogs";
 import {msgFailed} from "~/lib/ui/messages";
+import {Defaults} from "~/lib/Defaults";
 
 let input = fromObject({
-    input: {alias: ""}
+    input: {alias: Defaults.Alias}
 });
 
 let page: Page;
@@ -35,6 +36,5 @@ export async function goActivate(args: EventData) {
     } catch(e){
         Log.catch(e);
     }
-    Log.print("going to 3-activate");
-    getFrameById("app-root").navigate("pages/setup/3-activate");
+    getFrameById("setup").navigate("pages/setup/3-activate");
 }

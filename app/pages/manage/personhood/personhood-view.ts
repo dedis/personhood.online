@@ -13,6 +13,7 @@ import {PopDesc, PopPartyStruct} from "~/lib/cothority/byzcoin/contracts/PopPart
 import * as dialogs from "tns-core-modules/ui/dialogs";
 import {getFrameById, topmost} from "tns-core-modules/ui/frame";
 import {Label} from "tns-core-modules/ui/label";
+import {mainViewRegistered} from "~/main-page";
 
 export class PersonhoodView extends Observable {
     parties: PartyView[] = [];
@@ -66,7 +67,7 @@ export class PersonhoodView extends Observable {
     }
 
     setProgress(text: string = "", width: number = 0) {
-        Log.print("setting progress to", text, width, this, elements);
+        Log.lvl2("setting progress to", text, width, this, elements);
         if (width == 0) {
             elements.set("networkStatusShow", false);
         } else {
@@ -75,8 +76,10 @@ export class PersonhoodView extends Observable {
             if (width < 0) {
                 color = "#a04040";
             }
-            topmost().getViewById("progress_bar").setInlineStyle("width:" + Math.abs(width) + "%; background-color: " + color);
-            Log.print("updating networkStatus");
+            let pb = topmost().getViewById("progress_bar");
+            if (pb) {
+                pb.setInlineStyle("width:" + Math.abs(width) + "%; background-color: " + color);
+            }
             elements.notifyPropertyChange("networkStatus", text);
         }
     }
@@ -148,11 +151,7 @@ export class BadgeView extends Observable {
             await msgOK("Successfully mined\n" + details, "Details for badge");
             elements.setProgress();
             if (!registered){
-                return getFrameById("app-root").navigate({
-                    moduleName: "main-page",
-                    // Page navigation, without saving navigation history.
-                    backstackVisible: false
-                });
+                return mainViewRegistered(arg);
             }
         } catch (e){
             Log.catch(e);

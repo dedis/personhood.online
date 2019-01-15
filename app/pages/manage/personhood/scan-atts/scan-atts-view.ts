@@ -66,7 +66,7 @@ class Attendee extends Observable{
     }
 
     async onTap(){
-        Log.print("tapped", this.hex);
+        Log.lvl2("tapped attendee", this.hex);
     }
 
     get hex(): string{

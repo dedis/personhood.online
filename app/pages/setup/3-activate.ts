@@ -11,6 +11,7 @@ import {gData} from "~/lib/Data";
 import {Log} from "~/lib/Log";
 import {Contact} from "~/lib/Contact";
 import {msgFailed, msgOK} from "~/lib/ui/messages";
+import {mainView, mainViewRegister, mainViewRegistered} from "~/main-page";
 
 export function navigatingTo(args: EventData) {
     let page = <Page>args.object;
@@ -18,7 +19,7 @@ export function navigatingTo(args: EventData) {
         alias: gData.alias,
         qrcode: gData.contact.qrcodeIdentity(),
     });
-    Log.print(gData.contact.qrcodeIdentityStr());
+    Log.lvl1("Waiting to activate:\n", gData.contact.qrcodeIdentityStr());
 }
 
 export async function verifyActivation(args: EventData){
@@ -26,7 +27,7 @@ export async function verifyActivation(args: EventData){
         await gData.verifyRegistration();
         if (gData.credentialInstance) {
             await gData.save();
-            return gotoMain("Congratulations - you've been registered!");
+            return gotoMain("Congratulations - you've been registered!", args);
         } else {
             return msgFailed("Sorry - your account hasn't been registered yet.")
         }
@@ -38,36 +39,37 @@ export async function verifyActivation(args: EventData){
 
 // Start when included in a party.
 export async function activateParty(args: EventData) {
-    return getFrameById("app-root").navigate({
+    return getFrameById("setup").navigate({
         moduleName: "pages/manage/personhood/personhood-page",
     });
 }
 
 // Start by using a Tequila login.
 export function activateEPFL(args: EventData) {
-    return gotoMain("Do a Tequila login!")
+    return gotoMain("Do a Tequila login!", args)
 }
 
 // Start by activating through email.
 export function activateEmail(args: EventData) {
-    return gotoMain("Give away your email for activation!")
+    return gotoMain("Give away your email for activation!", args)
 }
 
-export async function deleteAll() {
+export async function deleteAll(args: any) {
     try {
-        await gData.setValues({});
+        await gData.delete();
         await gData.save();
     } catch (e) {
         Log.catch(e, "while resetting values");
     }
-    return gotoMain("Deleted all data");
-}
-
-async function gotoMain(msg: string) {
-    await msgOK(msg);
-    return getFrameById("app-root").navigate({
-        moduleName: "main-page",
+    return getFrameById("setup").navigate({
+        moduleName: "pages/setup/1-present",
         // Page navigation, without saving navigation history.
         backstackVisible: false
     });
+    // return gotoMain("Deleted all data");
+}
+
+async function gotoMain(msg: string, args: any) {
+    await msgOK(msg);
+    mainViewRegistered(args);
 }

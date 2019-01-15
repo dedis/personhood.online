@@ -52,6 +52,12 @@ export class SpawnerInstance {
                          alias: string):
         Promise<DarcInstance> {
         let d = SpawnerInstance.prepareUserDarc(pubKey, alias);
+        let pr = await this.bc.getProof(new InstanceID(d.getBaseId()));
+        if (pr.matches) {
+            Log.lvl2("this darc is already registerd");
+            return DarcInstance.fromProof(this.bc, pr);
+        }
+
         let ctx = new ClientTransaction([
             Instruction.createInvoke(coin.iid,
                 "fetch", [
@@ -69,6 +75,12 @@ export class SpawnerInstance {
     async createCoin(coin: CoinInstance, signers: Signer[], darcID: Buffer,
                      balance: Long = Long.fromNumber(0)):
         Promise<CoinInstance> {
+        let pr = await this.bc.getProof(SpawnerInstance.coinIID(darcID));
+        if (pr.matches) {
+            Log.lvl2("this coin is already registerd");
+            return CoinInstance.fromProof(this.bc, pr);
+        }
+
         let valueBuf = this.spawner.costCoin.value.add(balance).toBytesLE();
         let ctx = new ClientTransaction([
             Instruction.createInvoke(coin.iid,
@@ -88,6 +100,12 @@ export class SpawnerInstance {
     async createCredential(coin: CoinInstance, signers: Signer[], darcID: Buffer,
                            cred: CredentialStruct):
         Promise<CredentialInstance> {
+        let pr = await this.bc.getProof(SpawnerInstance.credentialIID(darcID));
+        if (pr.matches) {
+            Log.lvl2("this credential is already registerd");
+            return CredentialInstance.fromProof(this.bc, pr);
+        }
+
         let valueBuf = this.spawner.costCred.value.toBytesLE();
         let ctx = new ClientTransaction([
             Instruction.createInvoke(coin.iid,
@@ -110,12 +128,10 @@ export class SpawnerInstance {
         Promise<PopPartyInstance> {
 
         // Verify that all organizers have published their personhood public key
-        Log.print(orgs[0]);
         let creds = await Promise.all(orgs.map(org => CredentialInstance.fromByzcoin(this.bc, org.credentialIID)));
-        Log.print(creds[0]);
-        await Promise.all(creds.map(async (cred: CredentialInstance, i: number) =>{
+        await Promise.all(creds.map(async (cred: CredentialInstance, i: number) => {
             let pop = cred.getAttribute("personhood", "ed25519");
-            if (!pop){
+            if (!pop) {
                 return Promise.reject("Org " + orgs[i].alias + " didn't publish his personhood key");
             }
         }));

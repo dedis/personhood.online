@@ -13,6 +13,7 @@ import * as dialogs from "tns-core-modules/ui/dialogs";
 import {Defaults} from "~/lib/Defaults";
 import {SelectedIndexChangedEventData} from "tns-core-modules/ui/tab-view";
 import {msgFailed, msgOK} from "~/lib/ui/messages";
+import {mainView, mainViewRegister} from "~/main-page";
 
 let page: Page;
 export let adminView: AdminViewModel;
@@ -29,20 +30,16 @@ export async function tapClear(args: EventData) {
     if (!Defaults.Confirm) {
         gData.delete();
         await gData.save();
-        return topmost().navigate("main-page");
-        // return getFrameById("app-root").navigate({
-        //     moduleName: "main-page",
-        //     // Page navigation, without saving navigation history.
-        //     backstackVisible: false
-        // });
+        mainViewRegister(args);
     } else {
         if (await dialogs.confirm("Do you really want to delete everything? There is no way back!") &&
             await dialogs.confirm("You will lose all your data! No way back!")) {
             await gData.delete();
             await gData.save();
             await msgOK("ALL YOUR DATA HAS BEEN DELETED!");
-            return getFrameById("app-root").navigate({
-                moduleName: "main-page",
+            mainView.set("showGroup", 1);
+            return getFrameById("setup").navigate({
+                moduleName: "pages/setup/1-present",
                 // Page navigation, without saving navigation history.
                 backstackVisible: false
             });
@@ -61,6 +58,6 @@ export async function tapSave(args: EventData) {
 }
 
 export async function switchSettings(args: SelectedIndexChangedEventData) {
-    Log.print("switchSettings", args);
+    Log.lvl3("switchSettings", args);
 }
 

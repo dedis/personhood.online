@@ -25,7 +25,7 @@ let page: Page;
 
 // Event handler for Page "navigatingTo" event attached in identity.xml
 export async function navigatingToHome(args: EventData) {
-    Log.print("setting page in home");
+    Log.lvl2("navigatingTo: home");
     page = <Page>args.object;
     try {
         page.bindingContext = identity;
@@ -83,7 +83,6 @@ export async function switchHome(args: SelectedIndexChangedEventData) {
 }
 
 export function setProgress(text: string = "", width: number = 0) {
-    Log.print("home page is", page);
     if (width == 0) {
         identity.set("networkStatus", undefined);
     } else {

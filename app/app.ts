@@ -10,7 +10,7 @@ import {Defaults} from "~/lib/Defaults";
 import {Log} from "~/lib/Log";
 
 application.on("orientationChanged", (evt) => {
-    Log.print("Orientation-change:", evt);
+    Log.lvl3("Orientation-change:", evt);
 });
 
 application.run({moduleName: "app-root"});
