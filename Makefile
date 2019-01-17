@@ -5,7 +5,10 @@ npm-install:
 	rm -rf node_modules/nativescript-nodeify
 	npm i
 
-release-android: apply-patches
+android-dev: apply-patches
+	tns prepare android
+
+android-release: apply-patches
 	if [ ! "$$PERSONHOOD_ANDROID_PASS" ]; then echo "Please set PERSONHOOD_ANDROID_PASS"; exit 1; fi
 	tns build android --key-store-path dedis-development.jks --key-store-password $$PERSONHOOD_ANDROID_PASS \
 	    --key-store-alias personhood --key-store-alias-password $$PERSONHOOD_ANDROID_PASS --release
