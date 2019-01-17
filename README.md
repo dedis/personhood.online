@@ -8,27 +8,13 @@ This is the new personhood.online application which will bring the following:
 - integration with ByzCoin
 - Peace on earth
 
-It is written in NativeScript and should work on iOS and Android.
+It is written in NativeScript works on iOS and Android.
 
-Home:
-- Login
-- Coins
 
-Personhood:
-- Badges
-- Posts
-- Coupons
+## Where to get it
 
-Identity:
-- Gestion
-    - Devices
-    - Friends
-- Link
-    - Gaspar
-    - Google
-- Backup/Restore
+You can either get it on AppLivery (only possibility for iOS): https://applivery.com/personhood
 
-Settings:
-- Alias
-- Options
-- Create Party
+Or you can get it in the google-play store: https://play.google.com/store/apps/details?id=online.personhood
+
+Comments, suggestions are welcome either in the issues, PRs or via mail: <mailto:linus.gasser@epfl.ch>
