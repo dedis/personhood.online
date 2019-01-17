@@ -14,7 +14,7 @@ Here the user can enter his alias
         <Image src="{{ qrcode }}"
                visibility="visible"
                width="30%"/>
-        <Label text="Once your identity got activated, verify it:" class="h3 text-center"
+        <Label text="Once your identity is activated, verify it:" class="h3 text-center"
                textWrap="true"/>
         <Button text="Verify activation" tap="verifyActivation" class="btn btn-primary"/>
         <Button text="Delete all" tap="deleteAll" class="btn btn-primary btn-test"/>

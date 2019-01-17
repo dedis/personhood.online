@@ -13,6 +13,7 @@ import {Defaults} from "~/lib/Defaults";
 import {gData, TestData} from "~/lib/Data";
 import {Label} from "tns-core-modules/ui/label";
 import {mainView} from "~/main-page";
+import {openUrl} from "tns-core-modules/utils/utils";
 
 let view: Observable = fromObjectRecursive({
     networkStatus: undefined
@@ -70,6 +71,10 @@ export async function goReloadBC(args: EventData) {
 
 export function goAlias(args: EventData) {
     return getFrameById("setup").navigate("pages/setup/2-alias");
+}
+
+export function goPersonhood(){
+    openUrl("https://personhood.online");
 }
 
 function setProgress(text: string = "", width: number = 0) {

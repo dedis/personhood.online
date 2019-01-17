@@ -11,9 +11,9 @@ This is the presentation screen when the user is not signed up yet.
             <Label text="Personhood is a new kind of identity management app that helps you aggregating all your identities in one place. Furthermore it allows you to use a password-less login on all enabled services, freely deciding which need 2-factor or more-factor authentication."
                    class="h3" textWrap="true"/>
             <StackLayout orientation="horizontal" style="horizontal-align: center;">
-                <Label text="Personhood is brought to you by https://personhood.online :" class="h3" textWrap="true"
-                width="60%" style="vertical-align: center;"/>
-                <Image src="~/images/icon-personhood-64.png" width="20%"/>
+                <HtmlView html="Personhood is brought to you by <u>https://personhood.online</u>:" class="h3" textWrap="true"
+                width="60%" style="vertical-align: center;" tap="goPersonhood"/>
+                <Image src="~/images/icon-personhood-64.png" width="20%" tap="goPersonhood"/>
             </StackLayout>
             <!--<Button text="Init Test" tap="goInitTest" class="btn btn-primary btn-active btn-test"/>-->
             <!--<Button text="Reload BC Config" tap="goReloadBC" class="btn btn-primary btn-active btn-test"/>-->
