@@ -15,8 +15,12 @@ release-key:
 	if [ -e dedis-development.jks ]; then echo "Please remove dedis-development.jks first"; exit 1; fi
 	keytool -genkey -v -storetype pkcs12 -keystore dedis-development.jks -keyalg RSA -keysize 4096 -validity 10000 -alias personhood
 
-ios: apply-patches
+dev-ios: apply-patches
 	tns prepare ios
+
+release-ios: apply-patches
+	tns prepare ios --release
+	open platforms/ios/personhoodonline.xcworkspace
 
 xcode: ios
 	open platforms/ios/personhoodonline.xcworkspace/
