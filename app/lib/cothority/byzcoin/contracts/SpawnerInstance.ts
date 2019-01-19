@@ -19,6 +19,7 @@ import {PopDesc, PopPartyInstance, PopPartyStruct} from "~/lib/cothority/byzcoin
 import {IdentityDarc} from "~/lib/cothority/darc/IdentityDarc";
 import {Contact} from "~/lib/Contact";
 import {Log} from "~/lib/Log";
+import {RoPaSciInstance, RoPaSciStruct} from "~/lib/cothority/byzcoin/contracts/RoPaSciInstance";
 
 let coinName = new Buffer(32);
 coinName.write("SpawnerCoin");
@@ -160,6 +161,36 @@ export class SpawnerInstance {
         return ppi;
     }
 
+    async createRoPaSci(coin: CoinInstance, signer: Signer,
+                        stake: Long, choice: number, fillup: Buffer):
+        Promise<RoPaSciInstance> {
+        if (fillup.length != 31){
+            return Promise.reject("need exactly 31 bytes for fillup");
+        }
+        let c = new Coin({name: coin.coin.name.iid, value: stake.add(this.spawner.costRoPaSci.value) });
+        if (coin.coin.value.lessThan(c.value)){
+            return Promise.reject("account balance not high enough for that stake");
+        }
+        let fph = crypto.createHash("sha256");
+        fph.update(Buffer.from([choice % 3]));
+        fph.update(fillup);
+        let rps = new RoPaSciStruct(c, fph.digest(), -1, -1, null);
+        Log.print("Getting", c.value);
+
+        let ctx = new ClientTransaction([
+            Instruction.createInvoke(coin.iid,
+                "fetch", [
+                    new Argument("coins", Buffer.from(this.spawner.costDarc.value.toBytesLE()))
+                ]),
+            Instruction.createSpawn(this.iid,
+                RoPaSciInstance.contractID, [
+                    new Argument("struct", rps.toProto())
+                ])]);
+        await ctx.signBy([[signer], []], this.bc);
+        await this.bc.sendTransactionAndWait(ctx);
+        return RoPaSciInstance.fromByzcoin(this.bc, new InstanceID(ctx.instructions[1].deriveId()));
+    }
+
     get signupCost(): Long {
         return this.spawner.costCoin.value.add(this.spawner.costDarc.value).add(this.spawner.costCred.value);
     }
@@ -238,6 +269,8 @@ export class Spawner {
     costCoin: Coin;
     costCred: Coin;
     costParty: Coin;
+    costRoPaSci: Coin;
+    costPoll: Coin;
     beneficiary: InstanceID;
 
     constructor(obj: any) {
@@ -245,6 +278,8 @@ export class Spawner {
         this.costCoin = obj.costcoin;
         this.costCred = obj.costcredential;
         this.costParty = obj.costparty;
+        this.costRoPaSci = obj.costropasci;
+        this.costPoll = obj.costpoll;
         this.beneficiary = obj.beneficiary;
     }
 
@@ -252,8 +287,10 @@ export class Spawner {
         return {
             costdarc: this.costDarc,
             costcoin: this.costCoin,
-            costcred: this.costCred,
+            costcredential: this.costCred,
             costparty: this.costParty,
+            costropasci: this.costRoPaSci,
+            costpoll: this.costPoll,
             beneficiary: this.beneficiary ? this.beneficiary.iid : Buffer.alloc(32),
         }
     }

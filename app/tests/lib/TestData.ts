@@ -20,7 +20,7 @@ import {
 import {PersonhoodRPC} from "~/lib/PersonhoodRPC";
 import {RosterSocket} from "~/lib/network/NSNet";
 
-fdescribe("TestData tests", () => {
+describe("TestData tests", () => {
     afterEach(() => {
         Log.print("Buffer print that will be overwritten in case of error");
     });
@@ -121,7 +121,7 @@ fdescribe("TestData tests", () => {
         })
     });
 
-    fdescribe("correctly handles parties and badges", async () => {
+    describe("correctly handles parties and badges", async () => {
         let td: testData = null;
         let pdesc: PopDesc = null;
 

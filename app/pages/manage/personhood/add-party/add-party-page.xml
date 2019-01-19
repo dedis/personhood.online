@@ -13,70 +13,69 @@
                     visibility="{{ readOnly ? 'collapsed' : 'visible' }}"/>
     </ActionBar>
 
-    <GridLayout class="page-content" rows="auto, auto, auto,*"
-                columns="*,auto,*">
-        <Label class="label-title" text="Description" row="0" col="0" colSpan="3"/>
+    <ScrollView>
+        <GridLayout class="page-content" rows="auto, auto, auto,*"
+                    columns="*,auto,*">
+            <Label class="label-title" text="Description" row="0" col="0" colSpan="3"/>
+            <nsDataForm:RadDataForm
+                    id="data-form"
+                    source="{{ dataForm }}"
+                    row="1" colSpan="3"
+                    isReadOnly="{{ readOnly }}">
+                <nsDataForm:RadaForm.properties>
+                    <nsDataForm:EntityProperty name="name" index="0"/>
+                    <nsDataForm:EntityProperty name="date" index="1">
+                        <!--<nsDataForm:PropertyEditor.editor>-->
+                        <!--<nsDataForm:PropertyEditor type="DatePicker"/>-->
+                        <!--</nsDataForm:PropertyEditor.editor>-->
+                    </nsDataForm:EntityProperty>
+                    <nsDataForm:EntityProperty name="time" index="2">
+                        <!--<nsDataForm:PropertyEditor.editor>-->
+                        <!--<nsDataForm:PropertyEditor type="TimePicker"/>-->
+                        <!--</nsDataForm:PropertyEditor.editor>-->
+                    </nsDataForm:EntityProperty>
+                    <nsDataForm:EntityProperty name="purpose" index="3"/>
+                    <nsDataForm:EntityProperty name="location" index="4"/>
+                    <nsDataForm:EntityProperty name="reward" index="5"/>
 
+                    <!-- For some reason the 'hidden="true"' doesn't work with an EntityProperty -->
+                    <nsDataForm:RadDataForm.groups>
+                        <nsDataForm:PropertyGroup collapsible="true" name="Hidden" hidden="true">
+                            <nsDataForm:PropertyGroup.properties>
+                                <nsDataForm:EntityProperty name="_observers"/>
+                                <nsDataForm:EntityProperty name="_map"/>
+                            </nsDataForm:PropertyGroup.properties>
+                        </nsDataForm:PropertyGroup>
+                    </nsDataForm:RadDataForm.groups>
+                </nsDataForm:RadaForm.properties>
+            </nsDataForm:RadDataForm>
 
-        <nsDataForm:RadDataForm
-                id="data-form"
-                source="{{ dataForm }}"
-                row="1" colSpan="3"
-                isReadOnly="{{ readOnly }}">
-            <nsDataForm:RadaForm.properties>
-                <nsDataForm:EntityProperty name="name" index="0"/>
-                <nsDataForm:EntityProperty name="date" index="1">
-                    <!--<nsDataForm:PropertyEditor.editor>-->
-                    <!--<nsDataForm:PropertyEditor type="DatePicker"/>-->
-                    <!--</nsDataForm:PropertyEditor.editor>-->
-                </nsDataForm:EntityProperty>
-                <nsDataForm:EntityProperty name="time" index="2">
-                    <!--<nsDataForm:PropertyEditor.editor>-->
-                    <!--<nsDataForm:PropertyEditor type="TimePicker"/>-->
-                    <!--</nsDataForm:PropertyEditor.editor>-->
-                </nsDataForm:EntityProperty>
-                <nsDataForm:EntityProperty name="purpose" index="3"/>
-                <nsDataForm:EntityProperty name="location" index="4"/>
-                <nsDataForm:EntityProperty name="reward" index="5"/>
+            <GridLayout id="org-list-header" rows="auto" columns="auto, *" row="2" colSpan="3">
+                <Label class="label-title" text="Organizers" row="0" col="0" colSpan="2"/>
+                <Label class="label-title" id="addOrg"
+                       text="+"
+                       tap="addOrg"
+                       row="0" col="1"
+                       visibility="{{ readOnly ? 'collapse' : 'visible' }}"/>
+            </GridLayout>
 
-                <!-- For some reason the 'hidden="true"' doesn't work with an EntityProperty -->
-                <nsDataForm:RadDataForm.groups>
-                    <nsDataForm:PropertyGroup collapsible="true" name="Hidden" hidden="true">
-                        <nsDataForm:PropertyGroup.properties>
-                            <nsDataForm:EntityProperty name="_observers"/>
-                            <nsDataForm:EntityProperty name="_map"/>
-                        </nsDataForm:PropertyGroup.properties>
-                    </nsDataForm:PropertyGroup>
-                </nsDataForm:RadDataForm.groups>
-            </nsDataForm:RadaForm.properties>
-        </nsDataForm:RadDataForm>
+            <nsListView:RadListView items="{{ orgList }}" id="list-view-orgs"
+                                    itemTap="{{ readOnly ? '' : 'orgTapped' }}"
+                                    row="3"
+                                    col="0"
+                                    colSpan="3">
+                <nsListView:RadListView.listViewLayout>
+                    <nsListView:ListViewGridLayout scrollDirection="vertical" spanCount="3"/>
+                </nsListView:RadListView.listViewLayout>
 
-        <GridLayout id="org-list-header" rows="auto" columns="auto, *" row="2" colSpan="3">
-            <Label class="label-title" text="Organizers" row="0" col="0" colSpan="2"/>
-            <Label class="label-title" id="addOrg"
-                   text="+"
-                   tap="addOrg"
-                   row="0" col="1"
-                   visibility="{{ readOnly ? 'collapse' : 'visible' }}"/>
+                <nsListView:RadListView.itemTemplate>
+                    <StackLayout class="grid-list">
+                        <Label class="grid-list-text" text="{{ alias }}" textWrap="false"/>
+                    </StackLayout>
+                </nsListView:RadListView.itemTemplate>
+
+            </nsListView:RadListView>
+
         </GridLayout>
-
-        <nsListView:RadListView items="{{ orgList }}" id="list-view-orgs"
-                                itemTap="{{ readOnly ? '' : 'orgTapped' }}"
-                                row="3"
-                                col="0"
-                                colSpan="3">
-            <nsListView:RadListView.listViewLayout>
-                <nsListView:ListViewGridLayout scrollDirection="vertical" spanCount="3"/>
-            </nsListView:RadListView.listViewLayout>
-
-            <nsListView:RadListView.itemTemplate>
-                <StackLayout class="grid-list">
-                    <Label class="grid-list-text" text="{{ alias }}" textWrap="false"/>
-                </StackLayout>
-            </nsListView:RadListView.itemTemplate>
-
-        </nsListView:RadListView>
-
-    </GridLayout>
-
+    </ScrollView>
 </Page>

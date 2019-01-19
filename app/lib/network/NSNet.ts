@@ -1,4 +1,4 @@
-// import {Defaults} from "~/lib/Defaults";
+import {Defaults} from "~/lib/Defaults";
 
 const Timer = require("tns-core-modules/timer");
 const co = require("co");
@@ -15,12 +15,6 @@ export interface Socket {
     addresses: string[];
     service: string;
 }
-
-var Defaults = {
-    // NetRedirect: ["pop.dedis.ch", "192.168.0.1"],
-    NetRedirect: null,
-    Testing: false,
-};
 
 /**
  * Socket is a WebSocket object instance through which protobuf messages are
