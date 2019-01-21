@@ -13,7 +13,7 @@
         <Label backgroundColor="#ffffff" row="1" colSpan="2" height="3%"/>
 
         <Label text="&#xf0c0; " fontSize="100%" class="fas"
-               row="2" col="0" style="vertical-align: center;" tap="goPosts"/>
+               row="2" col="0" style="vertical-align: center;" tap="goFriends"/>
         <StackLayout padding="10%" row="2" col="2" style="vertical-align: center;" tap="goFriends">
             <Label text="Contacts" class="h1" textWrap="true"
                    textTransform="uppercase"/>

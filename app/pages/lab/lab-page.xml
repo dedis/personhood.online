@@ -1,42 +1,34 @@
-<!--
-This is the page that is presented in the 'Search' tab.
-Feel free to customize layouts and components to change how the tab view looks.
--->
-<Page
-        class="page"
-        loaded="onNavigatingTo"
-        unloaded="onNavigatedFrom"
-        xmlns="http://schemas.nativescript.org/tns.xsd">
-
+<Page xmlns="http://schemas.nativescript.org/tns.xsd"
+      class="page">
     <ActionBar class="action-bar">
-        <Label class="action-bar-title" text="Applications"></Label>
+        <Label class="action-bar-title" text="Manage Identity"></Label>
     </ActionBar>
     <GridLayout rows="*, auto, *, auto, *" columns="auto, *" margin="2%" backgroundColor="#eeeeee">
 
         <StackLayout padding="10%" row="0" colSpan="3" style="vertical-align: top;">
-            <Label text="The lab part of this app is an experimental part with ideas that might or might not be used in the future. Any feedback is very welcome." textWrap="true" height="100%"/>
+            <Label text="In the lab you can test our latest ideas for applications."
+                   class="h2" textWrap="true" height="100%"/>
         </StackLayout>
 
         <Label backgroundColor="#ffffff" row="1" colSpan="2" height="3%"/>
 
-        <Label text="&#xff0e0;" fontSize="100%" class="fa btn-stub"
-               row="2" col="0" style="vertical-align: center;" tap="goPosts"/>
-        <StackLayout padding="10%" row="2" col="2" style="vertical-align: center;" tap="goPosts"
-                     class="btn-stub">
-            <Label text="Posts" class="h1" textWrap="true"
-                   textTransform="uppercase"/>
-            <Label text="Unread Posts" textWrap="true" fontSize="15%"/>
+        <StackLayout row="2" col="0" style="vertical-align: center;" tap="goRoPaSci">
+        <Label text="&#xf255;" fontSize="30%" class="fas" style="horizontal-align: left;"/>
+        <Label text="&#xf256;" fontSize="30%" class="fas" style="horizontal-align: center;"/>
+        <Label text="&#xf257;" fontSize="30%" class="fas" style="horizontal-align: right;"/>
+        </StackLayout>
+        <StackLayout padding="10%" row="2" col="1" style="vertical-align: center;" tap="goRoPaSci">
+            <Label text="Rock Paper Scissors" class="h2" textWrap="true"
+                   textTransform="uppercase" style="padding:5%;" />
         </StackLayout>
 
         <Label backgroundColor="#ffffff" row="3" colSpan="2" height="3%"/>
 
-        <Label text="&#xf3ff;" fontSize="100%" class="fas btn-stub"
-               row="4" col="0" style="vertical-align: center;" tap="goCoupons"/>
-        <StackLayout padding="10%" row="4" col="1" style="vertical-align: center;" tap="goCoupons"
-                     class="btn-stub">
-            <Label text="Coupons" class="h1" textWrap="true"
-                   textTransform="uppercase"/>
-            <Label text="Total Coupons" textWrap="true" fontSize="15%"/>
+        <Label text="&#xf681; " fontSize="100%" class="fas"
+               row="4" col="0" style="vertical-align: center; horizontal-align: center" tap="goPoll"/>
+        <StackLayout padding="10%" row="4" col="1" style="vertical-align: center;" tap="goPoll">
+            <Label text="Troll-resistant Poll" class="h2" textWrap="true"
+                   textTransform="uppercase" style="padding:5%;"/>
         </StackLayout>
     </GridLayout>
 </Page>

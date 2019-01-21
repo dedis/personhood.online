@@ -34,6 +34,8 @@ import {Contact} from "~/lib/Contact";
 import {Badge} from "~/lib/Badge";
 import {Party} from "~/lib/Party";
 import {PopPartyInstance} from "~/lib/cothority/byzcoin/contracts/PopPartyInstance";
+import {RoPaSciInstance} from "~/lib/cothority/byzcoin/contracts/RoPaSciInstance";
+import {elRoPaSci} from "~/pages/lab/ropasci/ropasci-page";
 
 /**
  * Data holds the data of the app.
@@ -56,6 +58,7 @@ export class Data {
     friends: Contact[] = [];
     parties: Party[] = [];
     badges: Badge[] = [];
+    ropascis: RoPaSciInstance[] = [];
 
     /**
      * Constructs a new Data, optionally initialized with an object containing
@@ -92,6 +95,7 @@ export class Data {
         this.constructorObj = {};
         this.parties = [];
         this.badges = [];
+        this.ropascis = [];
     }
 
     async connectByzcoin(): Promise<ByzCoinRPC> {
@@ -105,7 +109,7 @@ export class Data {
                 Log.lvl1("Loading data from TestStore");
                 let ts = await TestStore.load(Defaults.Roster);
                 Defaults.ByzCoinID = ts.bcID;
-                Defaults.SpawnerIID = ts.spawnerIID;
+                Defaults.SpawnerIID = ts.spawnerIID.iid;
                 Log.lvl1("Stored new bcID:", ts.bcID);
             }
             let bcID = obj.bcID ? Buffer.from(obj.bcID) : Defaults.ByzCoinID;
@@ -125,21 +129,25 @@ export class Data {
             }
             if (obj.spawnerInstance) {
                 let ci = new InstanceID(Buffer.from(obj.spawnerInstance));
-                this.spawnerInstance = SpawnerInstance.fromProof(this.bc, await this.bc.getProof(ci));
+                this.spawnerInstance = await SpawnerInstance.fromProof(this.bc, await this.bc.getProof(ci));
             } else {
                 if (Defaults.Testing) {
                     let ts = await TestStore.load(Defaults.Roster);
-                    Defaults.SpawnerIID = ts.spawnerIID;
+                    Defaults.SpawnerIID = ts.spawnerIID.iid;
                 }
             }
             if (!this.spawnerInstance){
-                this.spawnerInstance = SpawnerInstance.fromProof(this.bc, await this.bc.getProof(Defaults.SpawnerIID));
+                this.spawnerInstance = await SpawnerInstance.fromProof(this.bc,
+                    await this.bc.getProof(new InstanceID(Defaults.SpawnerIID)));
             }
             if (obj.parties) {
                 this.parties = obj.parties.map(p => Party.fromObject(this.bc, p));
             }
             if (obj.badges) {
                 this.badges = obj.badges.map(b => Badge.fromObject(this.bc, b));
+            }
+            if (obj.ropascis){
+                this.ropascis = obj.ropascis.map(rps => RoPaSciInstance.fromObject(this.bc, rps));
             }
         } catch (e) {
             await Log.rcatch(e);
@@ -164,6 +172,7 @@ export class Data {
             spawnerInstance: null,
             parties: null,
             badges: null,
+            ropascis: null,
         };
         if (this.bc) {
             v.bcRoster = this.bc.config.roster.toObject();
@@ -174,6 +183,7 @@ export class Data {
             v.spawnerInstance = this.spawnerInstance ? this.spawnerInstance.iid.iid : null;
             v.parties = this.parties ? this.parties.map(p => p.toObject()) : null;
             v.badges = this.badges ? this.badges.map(b => b.toObject()) : null;
+            v.ropascis = this.ropascis ? this.ropascis.map(rps => rps.toObject()) : null;
         }
         return v;
     }
@@ -205,7 +215,7 @@ export class Data {
                 obj = JSON.parse(str);
             }
             await this.setValues(obj);
-            await this.connectByzcoin()
+            await this.connectByzcoin();
         } catch (e) {
             Log.catch(e);
         }
@@ -260,7 +270,7 @@ export class Data {
             }
             Log.lvl2("Registering credential");
 
-            progress("CreatingCredential", 80);
+            progress("Creating Credential", 80);
             let credentialInstance = await this.createUserCredentials(pub, darcInstance.iid.iid, coinInstance.iid.iid,
                 referral);
             await this.coinInstance.transfer(balance, coinInstance.iid, [this.keyIdentitySigner]);
@@ -348,17 +358,8 @@ export class Data {
         this.friends = this.friends.filter(u => !u.equals(nu));
     }
 
-    async getBadges(): Promise<Badge[]> {
-        if (Defaults.PartyBadgeExamples) {
-            let p = Party.fromDescription("party #16", "1st new Personhood party", "BC410",
-                Long.fromNumber(0));
-            return [new Badge(p, this.keyPersonhood)];
-        }
-        return this.badges;
-    }
-
     async reloadParties(): Promise<Party[]> {
-        let phrpc = new PersonhoodRPC(new RosterSocket(this.bc.config.roster, "Personhood"));
+        let phrpc = new PersonhoodRPC(this.bc);
         let phParties = await phrpc.listPartiesRPC();
         await Promise.all(phParties.map(async php => {
             if (this.parties.find(p => p.partyInstance.iid.equals(php.instanceID)) == null) {
@@ -372,6 +373,7 @@ export class Data {
             }
         }));
         Log.lvl2("finished with searching");
+        await this.save();
         return this.parties;
     }
 
@@ -391,38 +393,53 @@ export class Data {
             }
         });
         this.parties = parties;
+        await this.save();
         return this.parties;
     }
 
     async addParty(p: Party) {
         this.parties.push(p);
-        let phrpc = new PersonhoodRPC(new RosterSocket(this.bc.config.roster, "Personhood"));
-        let bid = new InstanceID(this.bc.bcID);
-        await phrpc.listPartiesRPC(new PersonhoodParty(this.bc.config.roster, bid, p.partyInstance.iid));
+        let phrpc = new PersonhoodRPC(this.bc);
+        await this.save();
+        await phrpc.listPartiesRPC(p.partyInstance.iid);
     }
 
-    async getParties(): Promise<Party[]> {
-        if (Defaults.PartyBadgeExamples) {
-            let parties = [
-                Party.fromDescription("party #17", "2nd new Personhood party", "BC410",
-                    Long.fromNumber(0)),
-                Party.fromDescription("party #18", "3rd new Personhood party", "BC410",
-                    Long.fromNumber(0)),
-                Party.fromDescription("party #19", "4th new Personhood party", "BC410",
-                    Long.fromNumber(0)),
-                Party.fromDescription("party #20", "5th new Personhood party", "BC410",
-                    Long.fromNumber(0)),
-            ];
-            parties[0].isOrganizer = true;
-            parties[1].partyInstance.popPartyStruct.state = Party.PreBarrier;
-            parties[2].partyInstance.popPartyStruct.state = Party.Scanning;
-            parties[3].partyInstance.popPartyStruct.state = Party.Finalized;
-            return parties;
+    async reloadRoPaScis(): Promise<RoPaSciInstance[]> {
+        let phrpc = new PersonhoodRPC(this.bc);
+        let phRoPaScis = await phrpc.listRPS();
+        await Promise.all(phRoPaScis.map(async rps => {
+            if (this.ropascis.find(r => r.iid.equals(rps.instanceID)) == null) {
+                Log.lvl2("Found new ropasci");
+                let rpsInst = await RoPaSciInstance.fromByzcoin(this.bc, rps.instanceID);
+                let rpss = rpsInst.roPaSciStruct;
+                Log.lvl2("RoPaSciInstance is:", rpss.description, rpss.firstPlayer, rpss.secondPlayer);
+                this.ropascis.push(rpsInst);
+            }
+        }));
+        Log.lvl2("finished with searching");
+        await this.save();
+        return this.ropascis;
+    }
+
+    async updateRoPaScis(): Promise<RoPaSciInstance[]> {
+        await Promise.all(this.ropascis.map(async rps => rps.update()));
+        await this.save();
+        return this.ropascis;
+    }
+
+    async addRoPaSci(rps: RoPaSciInstance){
+        this.ropascis.push(rps);
+        let phrpc = new PersonhoodRPC(this.bc);
+        await this.save();
+        await phrpc.listRPS(rps.iid)
+    }
+
+    async delRoPaSci(rps: RoPaSciInstance){
+        let i = this.ropascis.findIndex(r => r.iid.equals(rps.iid));
+        if ( i >= 0) {
+            this.ropascis.splice(i, 1);
         }
-        this.parties = this.parties.filter(p => {
-            return !!p.partyInstance && !!p.partyInstance.popPartyStruct;
-        });
-        return this.parties;
+        await this.save();
     }
 
     get contact(): Contact {

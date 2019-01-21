@@ -7,6 +7,7 @@ import {objToProto, Root} from "~/lib/cothority/protobuf/Root";
 import {Signer} from "~/lib/cothority/darc/Signer";
 import {Buffer} from "buffer";
 import {Log} from "~/lib/Log";
+import {Spawner} from "~/lib/cothority/byzcoin/contracts/SpawnerInstance";
 
 const crypto = require("crypto-browserify");
 
@@ -14,11 +15,16 @@ export class RoPaSciInstance extends BasicInstance {
     static readonly contractID = "ropasci";
 
     public roPaSciStruct: RoPaSciStruct;
+    public fillUp: Buffer = null;
+    public firstMove: number = -1;
 
     constructor(public bc: ByzCoinRPC, p: Proof | any = null) {
         super(bc, RoPaSciInstance.contractID, p);
         this.roPaSciStruct = RoPaSciStruct.fromProto(this.data);
-        Log.print(this.roPaSciStruct.stake.value);
+        if (p && !p.matchContract && p.fillup){
+            this.fillUp = Buffer.from(p.fillup);
+            this.firstMove = p.firstmove;
+        }
     }
 
     async second(coin: CoinInstance, signer: Signer, choice: number): Promise<any> {
@@ -28,7 +34,6 @@ export class RoPaSciInstance extends BasicInstance {
         if (coin.coin.value.lessThan(this.roPaSciStruct.stake.value)) {
             return Promise.reject("don't have enough coins to match stake");
         }
-        Log.print(this.roPaSciStruct.stake.value);
         let ctx = new ClientTransaction([
             Instruction.createInvoke(coin.iid,
                 "fetch", [
@@ -44,22 +49,13 @@ export class RoPaSciInstance extends BasicInstance {
         await this.bc.sendTransactionAndWait(ctx);
     }
 
-    async confirm(choice: number, fillup: Buffer, coin: CoinInstance) {
+    async confirm(coin: CoinInstance) {
         if (!coin.coin.name.equals(this.roPaSciStruct.stake.name)) {
             return Promise.reject("not correct coin-type for player 1");
         }
-        if (fillup.length != 31) {
-            return Promise.reject("need 31 bytes in the fillup")
-        }
         let preHash = Buffer.alloc(32);
-        preHash[0] = choice % 3;
-        fillup.copy(preHash, 1);
-        let fph = crypto.createHash("sha256");
-        fph.update(preHash);
-        let fphBuf = fph.digest();
-        if (!fphBuf.equals(this.roPaSciStruct.firstPlayerHash)) {
-            return Promise.reject("not correct pre-hash");
-        }
+        preHash[0] = this.firstMove % 3;
+        this.fillUp.copy(preHash, 1);
         let ctx = new ClientTransaction([
             Instruction.createInvoke(this.iid,
                 "confirm", [
@@ -68,6 +64,23 @@ export class RoPaSciInstance extends BasicInstance {
                 ])
         ]);
         await this.bc.sendTransactionAndWait(ctx);
+    }
+
+    async update(): Promise<RoPaSciInstance> {
+        let proof = await this.bc.getProof(this.iid);
+        this.roPaSciStruct = RoPaSciStruct.fromProto(proof.value);
+        return this;
+    }
+
+    isDone(): boolean {
+        return this.roPaSciStruct.secondPlayer >= 0;
+    }
+
+    toObject(): object {
+        let o = super.toObject();
+        o.fillup = this.fillUp;
+        o.firstmove = this.firstMove;
+        return o;
     }
 
     static fromObject(bc: ByzCoinRPC, obj: any): RoPaSciInstance {
@@ -82,12 +95,13 @@ export class RoPaSciInstance extends BasicInstance {
 export class RoPaSciStruct {
     static readonly protoName = "personhood.RoPaSciStruct";
 
-    constructor(public stake: Coin, public firstPlayerHash: Buffer, public firstPlayer: number,
+    constructor(public description, public stake: Coin, public firstPlayerHash: Buffer, public firstPlayer: number,
                 public secondPlayer: number, public secondPlayerAccount: InstanceID) {
     }
 
     toObject(): object {
         return {
+            description: this.description,
             stake: this.stake.toObject(),
             firstplayerhash: this.firstPlayerHash,
             firstplayer: this.firstPlayer,
@@ -102,7 +116,7 @@ export class RoPaSciStruct {
 
     static fromProto(buf: Buffer): RoPaSciStruct {
         let rps = Root.lookup(RoPaSciStruct.protoName).decode(buf);
-        return new RoPaSciStruct(new Coin(rps.stake), Buffer.from(rps.firstplayerhash),
+        return new RoPaSciStruct(rps.description, new Coin(rps.stake), Buffer.from(rps.firstplayerhash),
             rps.firstplayer, rps.secondplayer, InstanceID.fromObjectBuffer(rps.secondplayeraccount));
     }
 }

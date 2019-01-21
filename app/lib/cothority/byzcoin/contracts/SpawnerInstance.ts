@@ -161,11 +161,11 @@ export class SpawnerInstance {
         return ppi;
     }
 
-    async createRoPaSci(coin: CoinInstance, signer: Signer,
+    async createRoPaSci(desc: string, coin: CoinInstance, signer: Signer,
                         stake: Long, choice: number, fillup: Buffer):
         Promise<RoPaSciInstance> {
         if (fillup.length != 31){
-            return Promise.reject("need exactly 31 bytes for fillup");
+            return Promise.reject("need exactly 31 bytes for fillUp");
         }
         let c = new Coin({name: coin.coin.name.iid, value: stake.add(this.spawner.costRoPaSci.value) });
         if (coin.coin.value.lessThan(c.value)){
@@ -174,13 +174,12 @@ export class SpawnerInstance {
         let fph = crypto.createHash("sha256");
         fph.update(Buffer.from([choice % 3]));
         fph.update(fillup);
-        let rps = new RoPaSciStruct(c, fph.digest(), -1, -1, null);
-        Log.print("Getting", c.value);
+        let rps = new RoPaSciStruct(desc, c, fph.digest(), -1, -1, null);
 
         let ctx = new ClientTransaction([
             Instruction.createInvoke(coin.iid,
                 "fetch", [
-                    new Argument("coins", Buffer.from(this.spawner.costDarc.value.toBytesLE()))
+                    new Argument("coins", Buffer.from(c.value.toBytesLE()))
                 ]),
             Instruction.createSpawn(this.iid,
                 RoPaSciInstance.contractID, [
@@ -188,7 +187,10 @@ export class SpawnerInstance {
                 ])]);
         await ctx.signBy([[signer], []], this.bc);
         await this.bc.sendTransactionAndWait(ctx);
-        return RoPaSciInstance.fromByzcoin(this.bc, new InstanceID(ctx.instructions[1].deriveId()));
+        let rpsi = await RoPaSciInstance.fromByzcoin(this.bc, new InstanceID(ctx.instructions[1].deriveId()));
+        rpsi.fillUp = fillup;
+        rpsi.firstMove = choice;
+        return rpsi;
     }
 
     get signupCost(): Long {
@@ -214,8 +216,8 @@ export class SpawnerInstance {
         return this.fromByzcoin(bc, new InstanceID(inst.deriveId()));
     }
 
-    static fromProof(bc: ByzCoinRPC, p: Proof): SpawnerInstance {
-        p.matchOrFail(SpawnerInstance.contractID);
+    static async fromProof(bc: ByzCoinRPC, p: Proof): Promise<SpawnerInstance> {
+        await p.matchOrFail(SpawnerInstance.contractID);
         return new SpawnerInstance(bc, p.requestedIID,
             Spawner.fromProto(p.value));
     }
@@ -226,7 +228,7 @@ export class SpawnerInstance {
      * @param instID
      */
     static async fromByzcoin(bc: ByzCoinRPC, iid: InstanceID): Promise<SpawnerInstance> {
-        return this.fromProof(bc, await bc.getProof(iid));
+        return SpawnerInstance.fromProof(bc, await bc.getProof(iid));
     }
 
     static prepareUserDarc(pubKey: Public, alias: string): Darc {

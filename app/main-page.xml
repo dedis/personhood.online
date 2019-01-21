@@ -12,7 +12,7 @@ http://docs.nativescript.org/cookbook/ui/tab-view
         <Frame defaultPage="pages/loading/loading-page"
                visibility="{{ showGroup == 1 ? 'visible' : 'collapse' }}"
                id="setup"/>
-        <TabView androidTabsPosition="bottom" androidOffscreenTabLimit="0" selectedIndex="0"
+        <TabView androidTabsPosition="bottom" androidOffscreenTabLimit="0" selectedIndex="2"
                  selectedIndexChanged="onChangeTab" id="mainTabView"
                  visibility="{{ showGroup == 2 ? 'visible' : 'collapse' }}">
             <TabViewItem title="Home" ios:iconSource="res://tabIcons/home" android:iconSource="res://home">
@@ -23,12 +23,9 @@ http://docs.nativescript.org/cookbook/ui/tab-view
                 <Frame defaultPage="pages/manage/manage-page"/>
             </TabViewItem>
 
-            <!--<TabViewItem title="Lab" ios:iconSource="res://tabIcons/home" android:iconSource="res://search">-->
-            <!--<Frame defaultPage="pages/lab/lab-page"/>-->
-            <!--&lt;!&ndash;<Frame defaultPage="pages/lab/posts/posts-page"></Frame>&ndash;&gt;-->
-            <!--&lt;!&ndash;<Frame defaultPage="pages/lab/coins/coins-page"></Frame>&ndash;&gt;-->
-            <!--&lt;!&ndash;<Frame defaultPage="pages/lab/coupons/coupons-page"></Frame>&ndash;&gt;-->
-            <!--</TabViewItem>-->
+            <TabViewItem title="Lab" ios:iconSource="res://tabIcons/flask" android:iconSource="res://flask">
+                <Frame defaultPage="pages/lab/lab-page"/>
+            </TabViewItem>
 
             <TabViewItem title="Settings" ios:iconSource="res://tabIcons/admin" android:iconSource="res://admin">
                 <Frame defaultPage="pages/settings/settings-page"/>

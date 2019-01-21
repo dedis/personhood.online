@@ -54,11 +54,15 @@ export async function navigatingTo(args: EventData) {
         if (Defaults.Testing) {
                 let ts = await TestStore.load(Defaults.Roster);
                 Defaults.ByzCoinID = ts.bcID;
-                Defaults.SpawnerIID = ts.spawnerIID;
+                Defaults.SpawnerIID = ts.spawnerIID.iid;
         }
         Log.lvl1("loading");
         await gData.load();
-        Log.lvl1("Loaded", gData.alias, "::", gData.darcInstance);
+        let iid = null;
+        if (gData.darcInstance){
+            iid = gData.darcInstance.iid.iid;
+        }
+        Log.lvl1("Loaded", gData.alias, ":: darcIID is:", iid);
         if (!gData.darcInstance) {
             return mainViewRegister(args);
         }

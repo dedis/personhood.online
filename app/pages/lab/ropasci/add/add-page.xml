@@ -1,0 +1,57 @@
+<Page
+        class="page"
+        navigatingTo="onNavigatingTo"
+        xmlns:nsListView="nativescript-ui-listview"
+        xmlns:nsDataForm="nativescript-ui-dataform">
+
+    <ActionBar class="action-bar">
+        <NavigationButton text="Go Back" android:icon="res://ic_arrow_back" tap="goBack"/>
+        <Label class="action-bar-title" text="Configuration"/>
+        <ActionItem tap="save"
+                    ios.systemIcon="0" ios.position="right"
+                    android:icon="res://ic_done" android.position="actionBar"
+                    visibility="{{ readOnly ? 'collapsed' : 'visible' }}"/>
+    </ActionBar>
+
+    <GridLayout class="page-content" rows="auto, auto, auto, *, auto"
+                columns="*,auto,*">
+        <Label class="label-title" text="Description" row="0" col="0" colSpan="3"/>
+        <nsDataForm:RadDataForm
+                id="data-form"
+                source="{{ dataForm }}"
+                row="1" colSpan="3"
+                isReadOnly="{{ readOnly }}">
+            <nsDataForm:RadaForm.properties>
+                <nsDataForm:EntityProperty name="description" index="0"/>
+                <nsDataForm:EntityProperty name="stake" index="1"/>
+                <nsDataForm:EntityProperty name="choice" index="2" valuesProvider="Rock, Paper, Scissors">
+                    <nsDataForm:EntityProperty.editor>
+                        <nsDataForm:PropertyEditor type="SegmentedEditor"/>
+                    </nsDataForm:EntityProperty.editor>
+                </nsDataForm:EntityProperty>
+                <!-- For some reason the 'hidden="true"' doesn't work with an EntityProperty -->
+                <nsDataForm:RadDataForm.groups>
+                    <nsDataForm:PropertyGroup collapsible="true" name="Hidden" hidden="true">
+                        <nsDataForm:PropertyGroup.properties>
+                            <nsDataForm:EntityProperty name="_observers"/>
+                            <nsDataForm:EntityProperty name="_map"/>
+                        </nsDataForm:PropertyGroup.properties>
+                    </nsDataForm:PropertyGroup>
+                </nsDataForm:RadDataForm.groups>
+            </nsDataForm:RadaForm.properties>
+        </nsDataForm:RadDataForm>
+
+        <Button text="Send Game to ByzCoin" tap="save" class="btn btn-primary btn-active"
+                row="2" colSpan="3"/>
+
+        <Label text="" row="3"/>
+
+        <GridLayout rows="auto" row="4" colSpan="3" tap="cancelNetwork"
+                    visibility="{{ networkStatusShow ? 'visible' : 'collapse'}}">
+            <Label row="0" text="{{ networkStatus }}" class="label-title"
+                   id="progress_text"/>
+            <Label row="0" width="100%" style="horizontal-align:left; opacity:0.5;"
+                   id="progress_bar" tap="setProgress"/>
+        </GridLayout>
+    </GridLayout>
+</Page>

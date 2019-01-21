@@ -45,8 +45,7 @@ export class PersonhoodView extends Observable {
     }
 
     async updateBadges() {
-        let badges = await gData.getBadges();
-        this.badges = badges.map(b => new BadgeView(b))
+        this.badges = gData.badges.map(b => new BadgeView(b))
             .sort((a, b) => a.desc.dateTime.sub(b.desc.dateTime).toNumber());
         this.notifyPropertyChange("elements", this.elements);
     }

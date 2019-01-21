@@ -60,7 +60,7 @@ export async function goReloadBC(args: EventData) {
     try {
         let ts = await TestStore.load(Defaults.Roster);
         Defaults.ByzCoinID = ts.bcID;
-        Defaults.SpawnerIID = ts.spawnerIID;
+        Defaults.SpawnerIID = ts.spawnerIID.iid;
         gData.delete();
         await gData.connectByzcoin();
     } catch (e) {

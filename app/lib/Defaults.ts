@@ -52,8 +52,10 @@ export var Defaults = {
     Roster: null,
     // ByzCoinID
     ByzCoinID: Buffer.from("aaa5b2db9523c5c66eedac22d878bc3d718d19f60d944004a53a9b977ed88ba3", 'hex'),
-    // SpawnerIID: new InstanceID(Buffer.from("7dc459097579d6ce91f9a6c4ca3f4af6215036cc1e0e7d1dcf80e9c940b7e6a7", 'hex')),
-    SpawnerIID: null,
+    // SpawnerID is the instance the app can contact to create new instances. Because of circular dependencies, this
+    // cannot be an InstanceID.
+    SpawnerIID: Buffer.from("7dc459097579d6ce91f9a6c4ca3f4af6215036cc1e0e7d1dcf80e9c940b7e6a7", 'hex'),
+    // SpawnerIID: null,
 
     // - Testing settings
 
@@ -61,14 +63,16 @@ export var Defaults = {
     // easier UI testing.
     Confirm: true,
     // Testing
-    Testing: true,
+    Testing: false,
     // Redirect pop.dedis.ch to another (local) IP
     // NetRedirect: ["pop.dedis.ch", "192.168.0.1"],
     NetRedirect: null,
-    // Show Party- and Badges examples
-    PartyBadgeExamples: false,
     // Alias can be set to a non-"" value to have a default alias
-    Alias: "test",
+    Alias: "",
 };
 
-Defaults.Roster = Roster.fromTOML(Defaults.RosterTOMLLOCAL);
+if (Defaults.Testing) {
+    Defaults.Roster = Roster.fromTOML(Defaults.RosterTOMLLOCAL);
+} else {
+    Defaults.Roster = Roster.fromTOML(Defaults.RosterTOMLDEDIS);
+}
