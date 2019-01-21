@@ -22,8 +22,26 @@
                 row="1" colSpan="3"
                 isReadOnly="{{ readOnly }}">
             <nsDataForm:RadaForm.properties>
-                <nsDataForm:EntityProperty name="description" index="0"/>
-                <nsDataForm:EntityProperty name="stake" index="1"/>
+                <nsDataForm:EntityProperty name="description" index="0">
+                    <nsDataForm:EntityProperty.editor>
+                        <nsDataForm:PropertyEditor type="Text">
+                            <nsDataForm:PropertyEditor.propertyEditorStyle>
+                                <nsDataForm:PropertyEditorStyle labelPosition="Left" labelWidth="120"
+                                                        labelFontStyle="Italic" labelTextColor="#00695c"/>
+                            </nsDataForm:PropertyEditor.propertyEditorStyle>
+                        </nsDataForm:PropertyEditor>
+                    </nsDataForm:EntityProperty.editor>
+                </nsDataForm:EntityProperty>
+                <nsDataForm:EntityProperty name="stake" index="1">
+                    <nsDataForm:EntityProperty.editor>
+                        <nsDataForm:PropertyEditor type="Text">
+                            <nsDataForm:PropertyEditor.propertyEditorStyle>
+                                <nsDataForm:PropertyEditorStyle labelPosition="Left" labelWidth="120"
+                                                                labelFontStyle="Italic" labelTextColor="#00695c"/>
+                            </nsDataForm:PropertyEditor.propertyEditorStyle>
+                        </nsDataForm:PropertyEditor>
+                    </nsDataForm:EntityProperty.editor>
+                </nsDataForm:EntityProperty>
                 <nsDataForm:EntityProperty name="choice" index="2" valuesProvider="Rock, Paper, Scissors">
                     <nsDataForm:EntityProperty.editor>
                         <nsDataForm:PropertyEditor type="SegmentedEditor"/>
