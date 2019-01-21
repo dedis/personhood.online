@@ -69,7 +69,7 @@
                 </ListView>
             </StackLayout>
 
-            <Label text="Version 0.3.2" class="h5" row="2" style="text-align: right; margin-right: 5%;"/>
+            <Label text="Version 0.3.3" class="h5" row="2" style="text-align: right; margin-right: 5%;"/>
         </GridLayout>
     </ScrollView>
 </Page>

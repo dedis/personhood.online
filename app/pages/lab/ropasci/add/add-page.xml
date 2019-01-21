@@ -34,7 +34,7 @@
                 </nsDataForm:EntityProperty>
                 <nsDataForm:EntityProperty name="stake" index="1">
                     <nsDataForm:EntityProperty.editor>
-                        <nsDataForm:PropertyEditor type="Text">
+                        <nsDataForm:PropertyEditor type="Number">
                             <nsDataForm:PropertyEditor.propertyEditorStyle>
                                 <nsDataForm:PropertyEditorStyle labelPosition="Left" labelWidth="120"
                                                                 labelFontStyle="Italic" labelTextColor="#00695c"/>
