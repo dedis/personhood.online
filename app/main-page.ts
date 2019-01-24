@@ -21,11 +21,12 @@ import {msgFailed} from "~/lib/ui/messages";
 import {AdminViewModel} from "~/pages/settings/settings-view";
 import {ad} from "tns-core-modules/utils/utils";
 import getId = ad.resources.getId;
-declare const exit: (code: number)=>void;
 
-export let mainView = fromObject({showGroup:0});
+declare const exit: (code: number) => void;
 
-export function mainViewRegistered(args: any){
+export let mainView = fromObject({showGroup: 0});
+
+export function mainViewRegistered(args: any) {
     Log.lvl1("mainViewRegistered");
     mainView.set("showGroup", 2);
     let tv = <TabView>getFrameById("app-root").getViewById("mainTabView");
@@ -33,7 +34,7 @@ export function mainViewRegistered(args: any){
     return switchHome(args);
 }
 
-export function mainViewRegister(args: any){
+export function mainViewRegister(args: any) {
     Log.lvl1("mainViewRegister");
     mainView.set("showGroup", 1);
     if (gData.alias == "") {
@@ -52,14 +53,14 @@ export async function navigatingTo(args: EventData) {
         page.bindingContext = mainView;
 
         if (Defaults.Testing) {
-                let ts = await TestStore.load(Defaults.Roster);
-                Defaults.ByzCoinID = ts.bcID;
-                Defaults.SpawnerIID = ts.spawnerIID.iid;
+            let ts = await TestStore.load(Defaults.Roster);
+            Defaults.ByzCoinID = ts.bcID;
+            Defaults.SpawnerIID = ts.spawnerIID.iid;
         }
         Log.lvl1("loading");
         await gData.load();
         let iid = null;
-        if (gData.darcInstance){
+        if (gData.darcInstance) {
             iid = gData.darcInstance.iid.iid;
         }
         Log.lvl1("Loaded", gData.alias, ":: darcIID is:", iid);
@@ -76,10 +77,10 @@ export async function navigatingTo(args: EventData) {
             okButtonText: "Try again",
             cancelButtonText: "Quit",
         });
-        if (again){
+        if (again) {
             await navigatingTo(args);
         } else {
-            if (application.android){
+            if (application.android) {
                 application.android.foregroundActivity.finish();
             } else {
                 exit(0);
@@ -88,9 +89,9 @@ export async function navigatingTo(args: EventData) {
     }
 }
 
-export async function onChangeTab(args: SelectedIndexChangedEventData){
+export async function onChangeTab(args: SelectedIndexChangedEventData) {
     Log.lvl2("onchangetab", args.newIndex);
-    switch (args.newIndex){
+    switch (args.newIndex) {
         case 0:
             await switchHome(args);
             break;

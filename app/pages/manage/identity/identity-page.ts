@@ -7,7 +7,7 @@ logic, and to set up your page’s data binding.
 import {EventData} from "tns-core-modules/data/observable";
 import {getFrameById, Page, topmost} from "tns-core-modules/ui/frame";
 import {gData} from "~/lib/Data";
-import {Admin, AdminViewModel} from "./settings-view";
+import {Identity, IdentityViewModel} from "./identity-view";
 import {Log} from "~/lib/Log"
 import * as dialogs from "tns-core-modules/ui/dialogs";
 import {Defaults} from "~/lib/Defaults";
@@ -16,12 +16,12 @@ import {msgFailed, msgOK} from "~/lib/ui/messages";
 import {mainView, mainViewRegister} from "~/main-page";
 
 let page: Page;
-export let adminView: AdminViewModel;
+export let adminView: IdentityViewModel;
 
 // Event handler for Page "navigatingTo" event attached in identity.xml
 export function navigatingTo(args: EventData) {
     page = <Page>args.object;
-    adminView = new AdminViewModel(gData);
+    adminView = new IdentityViewModel(gData);
     page.bindingContext = adminView;
 }
 
@@ -49,11 +49,14 @@ export async function tapClear(args: EventData) {
 }
 
 export async function tapSave(args: EventData) {
-    let a: Admin = page.bindingContext.admin;
-    gData.continuousScan = a.continuousScan;
+    let a: Identity = page.bindingContext.admin;
+    gData.alias = a.alias;
+    gData.email = a.email;
+    await gData.publishPersonhood(a.publishPersonhood);
     await gData.save();
 }
 
 export async function switchSettings(args: SelectedIndexChangedEventData) {
     Log.lvl3("switchSettings", args);
 }
+

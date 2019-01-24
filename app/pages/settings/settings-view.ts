@@ -7,13 +7,15 @@ import {DecodeType} from "~/lib/network/DecodeType";
 import {Log} from "~/lib/Log";
 import {adminView} from "~/pages/settings/settings-page";
 import {ObservableArray} from "tns-core-modules/data/observable-array";
+import {Defaults} from "~/lib/Defaults";
 
 export class AdminViewModel extends Observable {
     nodes:ObservableArray<Node> = new ObservableArray();
+    testing:boolean = Defaults.Testing;
 
     constructor(d: Data) {
         super();
-        this.admin = new Admin(d.alias, d.email, d.continuousScan, d.personhoodPublished);
+        this.admin = new Admin(d.continuousScan);
         this.updateNodes();
     }
 
@@ -32,8 +34,7 @@ export class AdminViewModel extends Observable {
 }
 
 export class Admin {
-    constructor(public alias: string, public email:string,
-                public continuousScan: boolean, public publishPersonhood: boolean) {
+    constructor(public continuousScan: boolean) {
     }
 }
 

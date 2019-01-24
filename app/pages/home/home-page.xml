@@ -35,7 +35,7 @@
                        textWrap="true"
                        style="text-align: center;" row="1"/>
             </StackLayout>
-            <Button text="Login to service" tap="login" class="btn btn-primary btn-stub"/>
+            <!--<Button text="Login to service" tap="login" class="btn btn-primary btn-stub"/>-->
         </StackLayout>
         <StackLayout row="0" backgroundColor="gray"
                      style="opacity:0.0;"/>

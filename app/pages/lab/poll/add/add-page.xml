@@ -1,0 +1,85 @@
+<Page
+        class="page"
+        navigatingTo="onNavigatingTo"
+        xmlns:nsListView="nativescript-ui-listview"
+        xmlns:nsDataForm="nativescript-ui-dataform">
+
+    <ActionBar class="action-bar">
+        <NavigationButton text="Go Back" android:icon="res://ic_arrow_back" tap="goBack"/>
+        <Label class="action-bar-title" text="Add Poll"/>
+        <ActionItem tap="save"
+                    ios.systemIcon="0" ios.position="right"
+                    android:icon="res://ic_done" android.position="actionBar"/>
+    </ActionBar>
+
+    <GridLayout class="page-content" rows="auto, auto, *, auto">
+        <nsDataForm:RadDataForm
+                id="data-form"
+                source="{{ dataForm }}"
+                row="0">
+            <nsDataForm:RadaForm.properties>
+                <nsDataForm:EntityProperty name="party" index="0" valuesProvider="{{ partyList }}">
+                    <nsDataForm:EntityProperty.editor>
+                        <nsDataForm:PropertyEditor type="Picker">
+                            <nsDataForm:PropertyEditor.propertyEditorStyle>
+                                <nsDataForm:PropertyEditorStyle labelPosition="Left" labelWidth="120"
+                                                                labelFontStyle="Italic" labelTextColor="#00695c"/>
+                            </nsDataForm:PropertyEditor.propertyEditorStyle>
+                        </nsDataForm:PropertyEditor>
+                    </nsDataForm:EntityProperty.editor>
+                </nsDataForm:EntityProperty>
+                <nsDataForm:EntityProperty name="title" index="1" hintText="Title">
+                    <nsDataForm:EntityProperty.editor>
+                        <nsDataForm:PropertyEditor type="Text">
+                            <nsDataForm:PropertyEditor.propertyEditorStyle>
+                                <nsDataForm:PropertyEditorStyle labelPosition="Left" labelWidth="120"
+                                                                labelFontStyle="Italic" labelTextColor="#00695c"/>
+                            </nsDataForm:PropertyEditor.propertyEditorStyle>
+                        </nsDataForm:PropertyEditor>
+                    </nsDataForm:EntityProperty.editor>
+                </nsDataForm:EntityProperty>
+                <nsDataForm:EntityProperty name="description" index="2" hintText="Description">
+                    <nsDataForm:EntityProperty.editor>
+                        <nsDataForm:PropertyEditor type="Text">
+                            <nsDataForm:PropertyEditor.propertyEditorStyle>
+                                <nsDataForm:PropertyEditorStyle labelPosition="Left" labelWidth="120"
+                                                                labelFontStyle="Italic" labelTextColor="#00695c"/>
+                            </nsDataForm:PropertyEditor.propertyEditorStyle>
+                        </nsDataForm:PropertyEditor>
+                    </nsDataForm:EntityProperty.editor>
+                </nsDataForm:EntityProperty>
+                <nsDataForm:EntityProperty name="choices" index="3" hintText="One option per line">
+                    <nsDataForm:EntityProperty.editor>
+                        <nsDataForm:PropertyEditor type="MultilineText">
+                            <nsDataForm:PropertyEditor.propertyEditorStyle>
+                                <nsDataForm:PropertyEditorStyle labelPosition="Left" labelWidth="120"
+                                                                labelFontStyle="Italic" labelTextColor="#00695c"/>
+                            </nsDataForm:PropertyEditor.propertyEditorStyle>
+                        </nsDataForm:PropertyEditor>
+                    </nsDataForm:EntityProperty.editor>
+                </nsDataForm:EntityProperty>
+            </nsDataForm:RadaForm.properties>
+            <!-- For some reason the 'hidden="true"' doesn't work with an EntityProperty -->
+            <nsDataForm:RadDataForm.groups>
+                <nsDataForm:PropertyGroup collapsible="true" name="Hidden" hidden="true">
+                    <nsDataForm:PropertyGroup.properties>
+                        <nsDataForm:EntityProperty name="_observers"/>
+                        <nsDataForm:EntityProperty name="_map"/>
+                    </nsDataForm:PropertyGroup.properties>
+                </nsDataForm:PropertyGroup>
+            </nsDataForm:RadDataForm.groups>
+        </nsDataForm:RadDataForm>
+
+        <Button text="Save new poll" tap="save" class="btn btn-primary btn-active" row="1"/>
+
+        <Label text="" row="2"/>
+
+        <GridLayout rows="auto" row="3" tap="cancelNetwork"
+                    visibility="{{ networkStatusShow ? 'visible' : 'collapse'}}">
+            <Label row="0" text="{{ networkStatus }}" class="label-title"
+                   id="progress_text"/>
+            <Label row="0" width="100%" style="horizontal-align:left; opacity:0.5;"
+                   id="progress_bar" tap="setProgress"/>
+        </GridLayout>
+    </GridLayout>
+</Page>

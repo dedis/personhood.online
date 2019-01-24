@@ -14,10 +14,9 @@ export function goRoPaSci(args: GestureEventData) {
 }
 
 export function goPoll(args: GestureEventData) {
-    return msgFailed("Troll resistant polling is not yet available");
     frame = args.view.page.frame;
     return frame.navigate({
-        moduleName: "pages/lab/ropasci/ropasci-page",
+        moduleName: "pages/lab/poll/poll-page",
     })
 }
 

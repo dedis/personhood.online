@@ -34,7 +34,6 @@ export async function Sign(message: Buffer, anonymitySet: Public[],
 
     let linkBase;
     let linkTag: Public;
-
     if (hasLS) {
         let linkStream = new Blake(undefined, {key: linkScope});
         linkBase = Suite.point().pick(createStreamFromBlake(linkStream));

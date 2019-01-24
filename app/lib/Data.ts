@@ -2,7 +2,7 @@
  * This is the main library for storing and getting things from the phone's file
  * system.
  */
-import {PersonhoodParty, PersonhoodRPC} from "~/lib/PersonhoodRPC";
+import {PersonhoodParty, PersonhoodRPC, PollStruct} from "~/lib/PersonhoodRPC";
 
 require("nativescript-nodeify");
 
@@ -41,8 +41,7 @@ import {elRoPaSci} from "~/pages/lab/ropasci/ropasci-page";
  * Data holds the data of the app.
  */
 export class Data {
-    dataFileName: string = Defaults.DataDir + "/" + "data.json";
-
+    dataFileName: string;
     alias: string;
     email: string;
     continuousScan: boolean;
@@ -59,6 +58,7 @@ export class Data {
     parties: Party[] = [];
     badges: Badge[] = [];
     ropascis: RoPaSciInstance[] = [];
+    polls: PollStruct[] = [];
 
     /**
      * Constructs a new Data, optionally initialized with an object containing
@@ -68,6 +68,11 @@ export class Data {
     constructor(obj: any = {}) {
         this.constructorObj = obj;
         this.setValues(obj);
+        this.setFileName("data.json");
+    }
+
+    setFileName(n: string){
+        this.dataFileName = Defaults.DataDir + "/" + n;
     }
 
     setValues(obj: any) {
@@ -96,6 +101,7 @@ export class Data {
         this.parties = [];
         this.badges = [];
         this.ropascis = [];
+        this.polls = [];
     }
 
     async connectByzcoin(): Promise<ByzCoinRPC> {
@@ -136,7 +142,7 @@ export class Data {
                     Defaults.SpawnerIID = ts.spawnerIID.iid;
                 }
             }
-            if (!this.spawnerInstance){
+            if (!this.spawnerInstance) {
                 this.spawnerInstance = await SpawnerInstance.fromProof(this.bc,
                     await this.bc.getProof(new InstanceID(Defaults.SpawnerIID)));
             }
@@ -146,8 +152,11 @@ export class Data {
             if (obj.badges) {
                 this.badges = obj.badges.map(b => Badge.fromObject(this.bc, b));
             }
-            if (obj.ropascis){
+            if (obj.ropascis) {
                 this.ropascis = obj.ropascis.map(rps => RoPaSciInstance.fromObject(this.bc, rps));
+            }
+            if (obj.polls) {
+                this.polls = obj.polls.map(rps => PollStruct.fromObject(rps));
             }
         } catch (e) {
             await Log.rcatch(e);
@@ -173,6 +182,7 @@ export class Data {
             parties: null,
             badges: null,
             ropascis: null,
+            polls: null,
         };
         if (this.bc) {
             v.bcRoster = this.bc.config.roster.toObject();
@@ -184,6 +194,7 @@ export class Data {
             v.parties = this.parties ? this.parties.map(p => p.toObject()) : null;
             v.badges = this.badges ? this.badges.map(b => b.toObject()) : null;
             v.ropascis = this.ropascis ? this.ropascis.map(rps => rps.toObject()) : null;
+            v.polls = this.polls ? this.polls.map(rps => rps.toObject()) : null;
         }
         return v;
     }
@@ -197,7 +208,7 @@ export class Data {
                 await this.credentialInstance.setAttribute(this.keyIdentitySigner, "personhood",
                     "ed25519", this.keyPersonhood._public.toBuffer());
                 // }
-            } catch (e){
+            } catch (e) {
                 Log.catch(e);
             }
         }
@@ -427,19 +438,41 @@ export class Data {
         return this.ropascis;
     }
 
-    async addRoPaSci(rps: RoPaSciInstance){
+    async addRoPaSci(rps: RoPaSciInstance) {
         this.ropascis.push(rps);
         let phrpc = new PersonhoodRPC(this.bc);
         await this.save();
         await phrpc.listRPS(rps.iid)
     }
 
-    async delRoPaSci(rps: RoPaSciInstance){
+    async delRoPaSci(rps: RoPaSciInstance) {
         let i = this.ropascis.findIndex(r => r.iid.equals(rps.iid));
-        if ( i >= 0) {
+        if (i >= 0) {
             this.ropascis.splice(i, 1);
         }
         await this.save();
+    }
+
+    async reloadPolls(): Promise<PollStruct[]> {
+        let phrpc = new PersonhoodRPC(this.bc);
+        this.polls = await phrpc.pollList(gData.badges.map(b => b.party.partyInstance.iid));
+        return this.polls;
+    }
+
+    async addPoll(personhood: InstanceID, title: string, description: string, choices: string[]): Promise<PollStruct> {
+        let phrpc = new PersonhoodRPC(this.bc);
+        let rps = await phrpc.pollNew(personhood, title, description, choices);
+        this.polls.push(rps);
+        await this.save();
+        return rps;
+    }
+
+    async delPoll(rps: PollStruct) {
+        let i = this.polls.findIndex(r => r.pollID.equals(rps.pollID));
+        if (i >= 0) {
+            this.polls.splice(i, 1);
+            await this.save();
+        }
     }
 
     get contact(): Contact {
@@ -465,7 +498,7 @@ export class TestData {
     }
 
     static async init(d: Data): Promise<TestData> {
-        Log.lvl1("Creating ByzCoin");
+        Log.lvl1("Creating new ByzCoin");
         let td = new TestData(d, await CreateByzCoin.start());
         await TestStore.save(Defaults.Roster, td.cbc.bc.bcID, td.cbc.spawner.iid);
         await td.d.setValues({});
@@ -521,7 +554,6 @@ export class CreateByzCoin {
     }
 
     static async start(): Promise<CreateByzCoin> {
-        Log.lvl1("Creating Byzcoin");
         let bc = await ByzCoinRPC.newLedger(Defaults.Roster,
             ["spawn:spawner", "spawn:coin",
                 "invoke:mint", "invoke:transfer", "invoke:fetch"]);

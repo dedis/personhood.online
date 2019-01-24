@@ -12,12 +12,14 @@ import {Log} from "~/lib/Log";
 import {Contact} from "~/lib/Contact";
 import {msgFailed, msgOK} from "~/lib/ui/messages";
 import {mainView, mainViewRegister, mainViewRegistered} from "~/main-page";
+import {Defaults} from "~/lib/Defaults";
 
 export function navigatingTo(args: EventData) {
     let page = <Page>args.object;
     page.bindingContext = fromObject({
         alias: gData.alias,
         qrcode: gData.contact.qrcodeIdentity(),
+        testing: Defaults.Testing,
     });
     Log.lvl1("Waiting to activate:\n", gData.contact.qrcodeIdentityStr());
 }

@@ -15,8 +15,10 @@ This is the presentation screen when the user is not signed up yet.
                 width="60%" style="vertical-align: center;" tap="goPersonhood"/>
                 <Image src="~/images/icon-personhood-64.png" width="20%" tap="goPersonhood"/>
             </StackLayout>
-            <Button text="Init Test" tap="goInitTest" class="btn btn-primary btn-active btn-test"/>
-            <Button text="Reload BC Config" tap="goReloadBC" class="btn btn-primary btn-active btn-test"/>
+            <Button text="Create BC" tap="goInitTest" class="btn btn-primary btn-active btn-test"
+                    visibility="{{ testing ? 'visible' : 'collapse' }}"/>
+            <Button text="Reload BC Config" tap="goReloadBC" class="btn btn-primary btn-active btn-test"
+                    visibility="{{ testing ? 'visible' : 'collapse' }}"/>
             <Button text="Continue" tap="goAlias" class="btn btn-primary btn-active"/>
         </StackLayout>
         <StackLayout row="0" backgroundColor="gray"

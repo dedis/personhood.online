@@ -5,6 +5,13 @@ import {SelectedIndexChangedEventData} from "tns-core-modules/ui/tab-view";
 
 export let frame: Frame;
 
+export function goIdentity(args: GestureEventData) {
+    frame = args.view.page.frame;
+    return frame.navigate({
+        moduleName: "pages/manage/identity/identity-page",
+    })
+}
+
 export function goFriends(args: GestureEventData) {
     frame = args.view.page.frame;
     return frame.navigate({

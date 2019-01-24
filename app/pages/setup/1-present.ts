@@ -16,7 +16,8 @@ import {mainView} from "~/main-page";
 import {openUrl} from "tns-core-modules/utils/utils";
 
 let view: Observable = fromObjectRecursive({
-    networkStatus: undefined
+    networkStatus: undefined,
+    testing: Defaults.Testing,
 });
 let page: Page;
 
@@ -30,26 +31,21 @@ export async function navigatingTo(args: EventData) {
 
 export async function goInitTest(args: EventData) {
     try {
-        let createBC = "Create ByzCoin";
-        switch (await dialogs.action("Please chose initialisation to do",
-            "Don't initialize", [createBC])) {
-            case createBC:
-                setProgress("creating ByzCoin", 20);
-                let td = await TestData.init(gData);
+        setProgress("creating ByzCoin", 20);
+        let td = await TestData.init(gData);
 
-                setProgress("creating darc", 40);
-                await td.createUserDarc('org1');
+        setProgress("creating darc", 40);
+        await td.createUserDarc('org1');
 
-                setProgress("creating credentials", 60);
-                await td.createUserCoin();
+        setProgress("creating credentials", 60);
+        await td.createUserCoin();
 
-                setProgress("creating credentials", 80);
-                await td.createUserCredentials();
+        setProgress("creating credentials", 80);
+        await td.createUserCredentials();
 
-                setProgress("saving", 100);
-                await gData.save();
-                mainView.set("showGroup", 2);
-        }
+        setProgress("saving", 100);
+        await gData.save();
+        mainView.set("showGroup", 2);
     } catch (e) {
         Log.rcatch(e);
     }
@@ -73,7 +69,7 @@ export function goAlias(args: EventData) {
     return getFrameById("setup").navigate("pages/setup/2-alias");
 }
 
-export function goPersonhood(){
+export function goPersonhood() {
     openUrl("https://personhood.online");
 }
 

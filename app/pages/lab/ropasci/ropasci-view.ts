@@ -23,7 +23,12 @@ export class RopasciView extends Observable {
     async updateRoPaScis() {
         this.ropascis.splice(0);
         gData.ropascis.map(r => r).reverse().forEach(rps => {
-            this.ropascis.push(new RopasciViewElement(rps));
+            // Decide if this ropasci needs to be displayed:
+            if (rps.firstMove >= 0 || // it's our game
+                rps.roPaSciStruct.secondPlayer < 0 || // the second player has not played yet
+                rps.roPaSciStruct.secondPlayerAccount.equals(gData.coinInstance.iid)) {  // we are the 2nd player
+                this.ropascis.push(new RopasciViewElement(rps));
+            }
         });
     }
 

@@ -274,7 +274,6 @@ export class PartyView extends Observable {
                     break;
                 case BARRIER:
                     await this.party.partyInstance.activateBarrier(gData.keyIdentitySigner);
-                    await msgOK("Successfully activated barrier", "Barrier");
                     break;
                 case SCAN:
                     return topmost().navigate({

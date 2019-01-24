@@ -10,37 +10,7 @@
             <StackLayout class="p-20" row="0">
                 <df:RadDataForm id="myDataForm" source="{{ admin }}">
                     <df:RadaForm.properties>
-                        <df:EntityProperty name="alias" index="0">
-                            <df:EntityProperty.editor>
-                                <df:PropertyEditor type="Text">
-                                    <df:PropertyEditor.propertyEditorStyle>
-                                        <df:PropertyEditorStyle labelPosition="Left" labelWidth="160"
-                                                                labelFontStyle="Italic" labelTextColor="#00695c"/>
-                                    </df:PropertyEditor.propertyEditorStyle>
-                                </df:PropertyEditor>
-                            </df:EntityProperty.editor>
-                        </df:EntityProperty>
-                        <df:EntityProperty name="email" index="1" hintText="Enter email">
-                            <df:EntityProperty.editor>
-                                <df:PropertyEditor type="Text">
-                                    <df:PropertyEditor.propertyEditorStyle>
-                                        <df:PropertyEditorStyle labelPosition="Left" labelWidth="160"
-                                                                labelFontStyle="Italic" labelTextColor="#00695c"/>
-                                    </df:PropertyEditor.propertyEditorStyle>
-                                </df:PropertyEditor>
-                            </df:EntityProperty.editor>
-                        </df:EntityProperty>
                         <df:EntityProperty name="continuousScan" index="2">
-                            <df:EntityProperty.editor>
-                                <df:PropertyEditor type="Switch">
-                                    <df:PropertyEditor.propertyEditorStyle>
-                                        <df:PropertyEditorStyle labelPosition="Left" labelWidth="160"
-                                                                labelFontStyle="Italic" labelTextColor="#00695c"/>
-                                    </df:PropertyEditor.propertyEditorStyle>
-                                </df:PropertyEditor>
-                            </df:EntityProperty.editor>
-                        </df:EntityProperty>
-                        <df:EntityProperty name="publishPersonhood" index="3">
                             <df:EntityProperty.editor>
                                 <df:PropertyEditor type="Switch">
                                     <df:PropertyEditor.propertyEditorStyle>
@@ -52,8 +22,8 @@
                         </df:EntityProperty>
                     </df:RadaForm.properties>
                 </df:RadDataForm>
-                <Button text="Clear all data" tap="tapClear" class="btn btn-test"/>
-                <Button text="Create Party" tap="tapCreateParty" class="btn btn-stub"/>
+                <Button text="Clear all data" tap="tapClear" class="btn btn-test"
+                visibility="{{ testing ? 'visible' : 'collapse' }}"/>
                 <Button text="Save" tap="tapSave" class="btn btn-primary btn-active"/>
             </StackLayout>
             <StackLayout row="1">
@@ -69,7 +39,7 @@
                 </ListView>
             </StackLayout>
 
-            <Label text="Version 0.3.3" class="h5" row="2" style="text-align: right; margin-right: 5%;"/>
+            <Label text="Version 0.3.5" class="h5" row="2" style="text-align: right; margin-right: 5%;"/>
         </GridLayout>
     </ScrollView>
 </Page>

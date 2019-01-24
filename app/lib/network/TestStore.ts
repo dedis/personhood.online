@@ -22,7 +22,7 @@ export class TestStore{
             let ts = await s.send(RequestPath.PERSONHOOD_TESTSTORE, RequestPath.PERSONHOOD_TESTSTORE, {});
             return new TestStore(Buffer.from(ts.byzcoinid), new InstanceID(ts.spawneriid));
         } catch (e){
-            Log.rcatch(e);
+            await Log.rcatch(e);
         }
     }
 }
