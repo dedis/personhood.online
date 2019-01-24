@@ -10,6 +10,7 @@ import {getFrameById, topmost} from "tns-core-modules/ui/frame";
 import {elPoll, updatePoll} from "~/pages/lab/poll/poll-page";
 import {ObservableArray} from "tns-core-modules/data/observable-array";
 import {PersonhoodRPC, PollChoice, PollStruct} from "~/lib/PersonhoodRPC";
+import {Defaults} from "~/lib/Defaults";
 
 export class PollView extends Observable {
     polls = new ObservableArray();
@@ -51,11 +52,13 @@ export class PollViewElement extends Observable {
 
     constructor(public poll: PollStruct) {
         super();
-        poll.choices.forEach((_, c) => {
-            for (let i = 0; i < c; i++) {
-                poll.chosen.push(new PollChoice(c, Buffer.alloc(0)));
-            }
-        });
+        // if (Defaults.Testing) {
+        //     poll.choices.forEach((_, c) => {
+        //         for (let i = 0; i < c; i++) {
+        //             poll.chosen.push(new PollChoice(c, Buffer.alloc(0)));
+        //         }
+        //     });
+        // }
         poll.choices.forEach((_, c) => {
             this.choices.push(new PollChoiceElement(poll, c));
         });
