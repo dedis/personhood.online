@@ -63,7 +63,7 @@ export var Defaults = {
     // easier UI testing.
     Confirm: true,
     // Testing
-    Testing: true,
+    Testing: false,
     // pre-loads polling stats for UI testing
     PollPrechoice: false,
     // Redirect pop.dedis.ch to another (local) IP
