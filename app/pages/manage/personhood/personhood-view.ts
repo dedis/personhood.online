@@ -24,13 +24,17 @@ export class PersonhoodView extends Observable {
 
     constructor() {
         super();
+        this.updateBadges();
     }
 
     get elements(): ViewElement[] {
-        let ret: ViewElement[] = [];
-        this.parties.forEach(p => ret.push(p));
-        this.badges.forEach(b => ret.push(b));
-        return ret;
+        return this.sortUnique(this.parties).concat(this.sortUnique(this.badges));
+    }
+
+    sortUnique(input: ViewElement[]): ViewElement[] {
+        let c = input.map(i => i).sort((a, b) => a.desc.dateTime.compare(b.desc.dateTime) * -1);
+        return c.filter((re, i) =>
+            c.findIndex(r => r.desc.uniqueName == re.desc.uniqueName) == i);
     }
 
     async updateAddParty() {
@@ -44,7 +48,7 @@ export class PersonhoodView extends Observable {
         }
     }
 
-    async updateBadges() {
+    updateBadges() {
         this.badges = gData.badges.map(b => new BadgeView(b))
             .sort((a, b) => a.desc.dateTime.sub(b.desc.dateTime).toNumber());
         this.notifyPropertyChange("elements", this.elements);
@@ -148,15 +152,16 @@ export class BadgeView extends Observable {
             let registered = gData.contact.isRegistered();
             await this.badge.mine(gData, elements.setProgress);
             await msgOK("Successfully mined\n" + details, "Details for badge");
-            elements.setProgress();
-            if (!registered){
+            if (!registered) {
                 return mainViewRegistered(arg);
             }
-        } catch (e){
+        } catch (e) {
             Log.catch(e);
             await msgFailed("Couldn't mine:\n" + e.toString());
             this.badge.mined = true;
         }
+        await gData.save();
+        elements.setProgress();
         await this.notifyPropertyChange("nextStep", this.nextStep);
     }
 }

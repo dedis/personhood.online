@@ -71,7 +71,7 @@ export class Data {
         this.setFileName("data.json");
     }
 
-    setFileName(n: string){
+    setFileName(n: string) {
         this.dataFileName = Defaults.DataDir + "/" + n;
     }
 
@@ -151,6 +151,8 @@ export class Data {
             }
             if (obj.badges) {
                 this.badges = obj.badges.map(b => Badge.fromObject(this.bc, b));
+                this.badges = this.badges.filter((badge, i) =>
+                    this.badges.findIndex(b => b.party.uniqueName == badge.party.uniqueName) == i);
             }
             if (obj.ropascis) {
                 this.ropascis = obj.ropascis.map(rps => RoPaSciInstance.fromObject(this.bc, rps));

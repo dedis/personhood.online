@@ -22,18 +22,24 @@ export function onNavigatingTo(args) {
     Log.lvl1("new poll");
     page = <Page>args.object;
 
-    // Create a map of string to party-name, because the iid cannot be the key of the map.
-    let m = new Map();
-    gData.badges.forEach(b => m.set(b.party.partyInstance.iid.iid.toString('hex'),
-        b.party.partyInstance.popPartyStruct.description.name));
-    viewModel.set("partyList", m);
+    // Create a key-array of string to party-name, because the iid cannot be the key of the array.
+    let labels = gData.badges.map(a => a)
+        .sort((a, b) => a.party.uniqueName
+            .localeCompare(b.party.uniqueName) * -1)
+        .map(b => {
+        return {
+            key: b.party.partyInstance.iid.iid.toString('hex'),
+            label: b.party.partyInstance.popPartyStruct.description.name
+        }
+    });
+    viewModel.set("partyList", labels);
 
     // Add the object but so we can access it from within this module.
     df = fromObject({
         title: "",
         description: "",
         choices: "",
-        party: m.keys().next().value,
+        party: labels[0].key,
     });
     viewModel.set("dataForm", df);
     page.bindingContext = viewModel;
@@ -48,7 +54,7 @@ export async function save() {
         let pid = InstanceID.fromHex(df.get("party"));
         let choices = (<string>df.get("choices")).split("\n");
         choices = choices.filter(c => c.trim().length > 0);
-        if (choices.length < 2){
+        if (choices.length < 2) {
             return msgFailed("Please give at least two choices");
         }
         await gData.addPoll(pid, df.get("title"), df.get("description"), choices);

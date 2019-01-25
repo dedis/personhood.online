@@ -52,13 +52,13 @@ export class PollViewElement extends Observable {
 
     constructor(public poll: PollStruct) {
         super();
-        // if (Defaults.Testing) {
-        //     poll.choices.forEach((_, c) => {
-        //         for (let i = 0; i < c; i++) {
-        //             poll.chosen.push(new PollChoice(c, Buffer.alloc(0)));
-        //         }
-        //     });
-        // }
+        if (Defaults.PollPrechoice) {
+            poll.choices.forEach((_, c) => {
+                for (let i = 0; i < c; i++) {
+                    poll.chosen.push(new PollChoice(c, Buffer.alloc(0)));
+                }
+            });
+        }
         poll.choices.forEach((_, c) => {
             this.choices.push(new PollChoiceElement(poll, c));
         });
@@ -69,7 +69,7 @@ export class PollViewElement extends Observable {
         let del = "Delete";
         let cancel = "Cancel";
         let choices = this.poll.choices.map(c => "Send vote for " + c);
-        choices.push(del);
+        // choices.push(del);
         try {
             let action = await dialogs.action({
                 message: "Chose action",

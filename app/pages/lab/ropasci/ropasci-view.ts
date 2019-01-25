@@ -22,13 +22,18 @@ export class RopasciView extends Observable {
 
     async updateRoPaScis() {
         this.ropascis.splice(0);
-        gData.ropascis.map(r => r).reverse().forEach(rps => {
+        gData.ropascis.map(r => r).reverse().forEach((rps, index) => {
             // Decide if this ropasci needs to be displayed:
             if (rps.firstMove >= 0 || // it's our game
                 rps.roPaSciStruct.secondPlayer < 0 || // the second player has not played yet
                 rps.roPaSciStruct.secondPlayerAccount.equals(gData.coinInstance.iid)) {  // we are the 2nd player
-                this.ropascis.push(new RopasciViewElement(rps));
+                this.ropascis.push(new RopasciViewElement(rps, index));
             }
+        });
+        elRoPaSci.notifyPropertyChange("ropascis", this.ropascis);
+        this.ropascis.forEach((rps: RopasciViewElement) => {
+            Log.print("updating");
+            rps.updateColor();
         });
     }
 
@@ -53,10 +58,36 @@ export class RopasciView extends Observable {
 export class RopasciViewElement extends Observable {
     public rps: RoPaSciStruct;
 
-    constructor(public ropasci: RoPaSciInstance) {
+    constructor(public ropasci: RoPaSciInstance, public index: number) {
         super();
         this.rps = ropasci.roPaSciStruct;
         this.set("description", this.rps.description);
+    }
+
+    updateColor() {
+        // let pb = topmost().getViewById("progress_bar_" + this.index);
+        // if (pb) {
+        //     pb.setInlineStyle(this.style);
+        // }
+        this.notifyPropertyChange("style", this.style);
+    }
+
+    get style(): string {
+        let color = "00caab";
+        if (this.step == 2) {
+            switch (this.result) {
+                case 0:
+                    color = "eeeecc";
+                    break;
+                case 1:
+                    color = this.ourGame ? "cceecc" : "eecccc";
+                    break
+                case 2:
+                    color = this.ourGame ? "eecccc" : "cceecc";
+                    break
+            }
+        }
+        return "horizontal-align:left; opacity:0.5; background-color: #" + color;
     }
 
     get stake(): string {
@@ -102,7 +133,7 @@ export class RopasciViewElement extends Observable {
                 case 0:
                     return "Waiting for 2nd player";
                 case 1:
-                    return "Click to Finalize";
+                    return "Click to reveal";
                 case 2:
                     return this.result == 1 ? "You won" : "You lost";
             }
@@ -111,7 +142,7 @@ export class RopasciViewElement extends Observable {
                 case 0:
                     return "Click to join game";
                 case 1:
-                    return "Waiting to Finalize";
+                    return "Waiting for Reveal";
                 case 2:
                     return this.result == 2 ? "You won" : "You lost";
             }
@@ -129,7 +160,7 @@ export class RopasciViewElement extends Observable {
     /**
      * Get the current step of the game:
      * - 0: waiting for second player
-     * - 1: waiting for first player to confirm
+     * - 1: waiting for first player to reveal
      * - 2: game finished
      */
     get step(): number {
@@ -158,7 +189,7 @@ export class RopasciViewElement extends Observable {
 
     async onTap(arg: GestureEventData) {
         let del = "Delete";
-        let confirm = "Confirm choice";
+        let reveal = "Reveal choice";
         let cancel = "Cancel";
         let playRock = "Play Rock";
         let playPaper = "Play Paper";
@@ -172,7 +203,7 @@ export class RopasciViewElement extends Observable {
                 break;
             case 1:
                 if (this.ourGame) {
-                    choices.unshift(confirm);
+                    choices.unshift(reveal);
                 }
                 break;
         }
@@ -197,16 +228,17 @@ export class RopasciViewElement extends Observable {
                     elRoPaSci.setProgress("Sending move", 50);
                     await this.ropasci.second(gData.coinInstance, gData.keyIdentitySigner, 2);
                     break;
-                case confirm:
-                    elRoPaSci.setProgress("Confirming", 50);
-                    await this.ropasci.confirm(gData.coinInstance);
+                case reveal:
+                    elRoPaSci.setProgress("Revealing", 50);
+                    await this.ropasci.reveal(gData.coinInstance);
                     break;
                 case cancel:
                     break;
             }
-        } catch (e){
+        } catch (e) {
             await msgFailed(e.toString(), "Error");
         }
+        this.updateColor();
         await updateRoPaSci();
         elRoPaSci.setProgress();
     }

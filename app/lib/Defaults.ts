@@ -64,6 +64,8 @@ export var Defaults = {
     Confirm: true,
     // Testing
     Testing: false,
+    // pre-loads polling stats for UI testing
+    PollPrechoice: false,
     // Redirect pop.dedis.ch to another (local) IP
     // NetRedirect: ["pop.dedis.ch", "192.168.0.1"],
     NetRedirect: null,
@@ -75,4 +77,8 @@ if (Defaults.Testing) {
     Defaults.Roster = Roster.fromTOML(Defaults.RosterTOMLLOCAL);
 } else {
     Defaults.Roster = Roster.fromTOML(Defaults.RosterTOMLDEDIS);
+    Defaults.PollPrechoice = false;
+    Defaults.Confirm = true;
+    Defaults.NetRedirect = null;
+    Defaults.Alias = "";
 }

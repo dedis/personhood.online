@@ -17,10 +17,10 @@ export class FileIO {
         let str = "";
         try {
             str = await Documents.getFile(filePath).readText();
-            Log.lvl2("read file", filePath, str);
+            Log.lvl2("read file", filePath);
         } catch (error) {
             // await this.lslr("");
-            Log.rcatch(error, "Reading error");
+            return Log.rcatch(error, "Reading error");
         }
         return str;
     }
@@ -37,7 +37,7 @@ export class FileIO {
             await Documents.getFile(filePath).writeText(content);
         } catch (error) {
             // await this.lslr(filePath);
-            Log.rcatch("WRITING ERROR:", error);
+            Log.catch("WRITING ERROR:", error);
         }
     }
 
@@ -64,7 +64,7 @@ export class FileIO {
         try {
             await Documents.getFolder(folder).remove();
         } catch (error) {
-            Log.rcatch(error, "REMOVING ERROR :");
+            Log.catch(error, "REMOVING ERROR :");
         }
     }
 

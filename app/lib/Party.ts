@@ -54,6 +54,10 @@ export class Party{
         return p;
     }
 
+    get uniqueName(): string {
+        return this.partyInstance.popPartyStruct.description.uniqueName;
+    }
+
     static fromDescription(name: string, purpose: string, location: string, date: Long): Party{
         let pd = new PopDesc(name, purpose, date, location);
         let pps = new PopPartyStruct(1, 1, null, pd, null, [],

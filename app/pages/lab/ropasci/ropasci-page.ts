@@ -20,8 +20,8 @@ export async function navigatingTo(args: EventData) {
     page = <Page>args.object;
     elRoPaSci = new RopasciView();
     page.bindingContext = elRoPaSci;
-    await updateRoPaSci();
-    // setTimeout(()=>updateRoPaSci(), 1);
+    await elRoPaSci.updateRoPaScis();
+    setTimeout(()=>updateRoPaSci(), 1);
 }
 
 export async function updateRoPaSci() {

@@ -48,9 +48,9 @@ describe("Rock Paper Scissors Test", () => {
 
             Log.lvl2("1st player plays again with wrong hash, then with correct hash");
             rps1.firstMove = 1;
-            await expectAsync(rps1.confirm(player1.coinInstance)).toBeRejected();
+            await expectAsync(rps1.reveal(player1.coinInstance)).toBeRejected();
             rps1.firstMove = 0;
-            await rps1.confirm(player1.coinInstance);
+            await rps1.reveal(player1.coinInstance);
 
             Log.lvl2("Verifying coins - player 1 lost");
             expect((await player1.coinInstance.update()).coin.value.toNumber()).toBe(coins1);
@@ -77,9 +77,9 @@ describe("Rock Paper Scissors Test", () => {
 
             Log.lvl2("1st player plays again with wrong hash, then with correct hash");
             rps1.firstMove = 0;
-            await expectAsync(rps1.confirm(player1.coinInstance)).toBeRejected();
+            await expectAsync(rps1.reveal(player1.coinInstance)).toBeRejected();
             rps1.firstMove = 2;
-            await rps1.confirm(player1.coinInstance);
+            await rps1.reveal(player1.coinInstance);
 
             Log.lvl2("Verifying coins - player 2 lost");
             coins1 += 200;
@@ -106,9 +106,9 @@ describe("Rock Paper Scissors Test", () => {
 
             Log.lvl2("1st player plays again with wrong hash, then with correct hash");
             rps1.firstMove = 2;
-            await expectAsync(rps1.confirm(player1.coinInstance)).toBeRejected();
+            await expectAsync(rps1.reveal(player1.coinInstance)).toBeRejected();
             rps1.firstMove = 1;
-            await rps1.confirm(player1.coinInstance);
+            await rps1.reveal(player1.coinInstance);
 
             Log.lvl2("Verifying coins - draw");
             expect((await player1.coinInstance.update()).coin.value.toNumber()).toBe(coins1);
@@ -131,7 +131,7 @@ describe("Rock Paper Scissors Test", () => {
             Log.lvl2("1st player updates and then plays");
             await player1.updateRoPaScis();
             expect(rps1.roPaSciStruct.secondPlayer).toBe(1);
-            await rps1.confirm(player1.coinInstance);
+            await rps1.reveal(player1.coinInstance);
 
             Log.lvl2("Verifying updated games");
             await player1.updateRoPaScis();

@@ -20,8 +20,7 @@ export async function navigatingTo(args: EventData) {
     page = <Page>args.object;
     elPoll = new PollView();
     page.bindingContext = elPoll;
-    await updatePoll();
-    // setTimeout(()=>updatePoll(), 1);
+    setTimeout(()=>updatePoll(), 1);
 }
 
 export async function updatePoll() {

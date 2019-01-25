@@ -84,7 +84,7 @@ export class PersonhoodRPC {
         contextHash.update(context);
         let lrs = await Sign(msg, personhood.partyInstance.popPartyStruct.attendees.keys, contextHash.digest(), priv);
         let pa = new PollAnswer(pollId, choice, lrs.encode());
-        let ps = this.callPoll(new Poll(this.bc.bcID, null, null, pa));
+        let ps = await this.callPoll(new Poll(this.bc.bcID, null, null, pa));
         return ps[0];
     }
 

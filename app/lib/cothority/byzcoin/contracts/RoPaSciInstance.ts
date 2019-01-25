@@ -49,7 +49,7 @@ export class RoPaSciInstance extends BasicInstance {
         await this.bc.sendTransactionAndWait(ctx);
     }
 
-    async confirm(coin: CoinInstance) {
+    async reveal(coin: CoinInstance) {
         if (!coin.coin.name.equals(this.roPaSciStruct.stake.name)) {
             return Promise.reject("not correct coin-type for player 1");
         }

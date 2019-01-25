@@ -75,7 +75,7 @@ async function addScan() {
         let qrcode = parseQRCode(result.text, 2);
         if (qrcode.url == Party.url) {
             if (qrcode.public.length == 64) {
-                viewModel.addAttendee(qrcode.public);
+                await viewModel.addAttendee(qrcode.public);
             } else {
                 await msgFailed("Got wrong public key");
             }
@@ -96,7 +96,7 @@ async function addManual() {
         inputType: dialogs.inputType.text
     });
     if (args.result && args.text !== undefined && args.text.length == 64) {
-        viewModel.addAttendee(args.text);
+        await viewModel.addAttendee(args.text);
     }
 }
 
