@@ -9,10 +9,11 @@ android-dev: apply-patches
 	tns prepare android
 
 android-release: apply-patches
-	if [ ! "$$PERSONHOOD_ANDROID_PASS" ]; then echo "Please set PERSONHOOD_ANDROID_PASS"; exit 1; fi
-	tns build android --key-store-path dedis-development.jks --key-store-password $$PERSONHOOD_ANDROID_PASS \
+	@if [ ! "$$PERSONHOOD_ANDROID_PASS" ]; then echo "Please set PERSONHOOD_ANDROID_PASS"; exit 1; fi
+	@if ! grep -q "Testing: false" app/lib/Defaults.ts; then echo "\nPUT TESTING TO FALSE IN Defaults.ts !!\n"; exit 1; fi
+	@tns build android --key-store-path dedis-development.jks --key-store-password $$PERSONHOOD_ANDROID_PASS \
 	    --key-store-alias personhood --key-store-alias-password $$PERSONHOOD_ANDROID_PASS --release
-	echo "Build successful - apk is at platforms/android/app/build/outputs/apk/release/app-release.ap"
+	@echo "Build successful - apk is at platforms/android/app/build/outputs/apk/release/app-release.ap"
 
 release-key:
 	if [ -e dedis-development.jks ]; then echo "Please remove dedis-development.jks first"; exit 1; fi
