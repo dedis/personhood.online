@@ -52,6 +52,7 @@ export async function tapSave(args: EventData) {
     let a: Admin = page.bindingContext.admin;
     gData.continuousScan = a.continuousScan;
     await gData.save();
+    await msgOK("Saved your data");
 }
 
 export async function switchSettings(args: SelectedIndexChangedEventData) {

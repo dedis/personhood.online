@@ -11,7 +11,7 @@
         <!--android.position="actionBar" android:icon="res://ic_share_white">-->
         <!--</ActionItem>-->
         <ActionItem tap="addNewKey"
-                    ios.systemIcon="4" ios.position="left"
+                    ios.systemIcon="4" ios.position="right"
                     android.position="actionBar" android:icon="res://ic_add_white">
         </ActionItem>
     </ActionBar>

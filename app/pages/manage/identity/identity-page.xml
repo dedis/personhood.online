@@ -8,7 +8,7 @@
     <ScrollView>
         <GridLayout rows="auto, auto, auto">
             <StackLayout class="p-20" row="0">
-                <df:RadDataForm id="myDataForm" source="{{ admin }}">
+                <df:RadDataForm id="myDataForm" source="{{ userId }}">
                     <df:RadaForm.properties>
                         <df:EntityProperty name="alias" index="0">
                             <df:EntityProperty.editor>

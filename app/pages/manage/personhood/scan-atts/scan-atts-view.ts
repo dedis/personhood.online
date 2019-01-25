@@ -1,9 +1,13 @@
+import {viewScanModel} from "~/pages/manage/personhood/scan-atts/scan-atts-page";
+
 const crypto = require("crypto-browserify");
 import {Observable} from "tns-core-modules/data/observable";
 import {Log} from "~/lib/Log";
 import {gData} from "~/lib/Data";
 import {Party} from "~/lib/Party";
 import {Public} from "~/lib/KeyPair";
+import * as dialogs from "tns-core-modules/ui/dialogs";
+import {topmost} from "tns-core-modules/ui/frame";
 
 export class ScanAttsView extends Observable {
     networkStatus: string;
@@ -38,14 +42,25 @@ export class ScanAttsView extends Observable {
         return this.keys.length;
     }
 
+    updateAll(){
+        this.notifyPropertyChange("attendees", this.attendees);
+        this.notifyPropertyChange("hash", this.hash);
+    }
+
+    async delete(key: Public){
+        await this.party.partyInstance.delAttendee(key);
+        await gData.save();
+        this.updateAll();
+    }
+
     async addAttendee(att: string) {
         let attPub = Public.fromHex(att);
         if (this.keys.find(k => k.equal(attPub))) {
             return;
         }
-        this.keys.push(attPub);
-        this.notifyPropertyChange("attendees", this.attendees);
+        await this.party.partyInstance.addAttendee(attPub);
         await gData.save();
+        this.updateAll();
     }
 
     async delAttendee(att: string) {
@@ -55,8 +70,8 @@ export class ScanAttsView extends Observable {
             return;
         }
         this.keys.splice(pos, 1);
-        this.notifyPropertyChange("attendees", this.attendees);
         await gData.save();
+        this.updateAll();
     }
 }
 
@@ -67,6 +82,23 @@ class Attendee extends Observable{
 
     async onTap(){
         Log.lvl2("tapped attendee", this.hex);
+        let del = "Delete";
+        let show = "Show Key";
+        let cancel = "Cancel";
+        let actions = [del, show]
+        switch(await dialogs.action({
+            title: "Work Key",
+            cancelButtonText: cancel,
+            actions: actions,
+        })){
+            case del:
+                viewScanModel.delete(this.att);
+                break;
+            case show:
+                topmost().showModal("pages/modal/modal-key", viewScanModel.party.qrcode(this.att),
+                    ()=>{}, false, false, false);
+                break;
+        }
     }
 
     get hex(): string{

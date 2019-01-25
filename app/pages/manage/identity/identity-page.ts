@@ -49,11 +49,12 @@ export async function tapClear(args: EventData) {
 }
 
 export async function tapSave(args: EventData) {
-    let a: Identity = page.bindingContext.admin;
-    gData.alias = a.alias;
-    gData.email = a.email;
-    await gData.publishPersonhood(a.publishPersonhood);
+    let uid: Identity = page.bindingContext.userId;
+    gData.alias = uid.alias;
+    gData.email = uid.email;
+    await gData.publishPersonhood(uid.publishPersonhood);
     await gData.save();
+    await msgOK("Saved your data");
 }
 
 export async function switchSettings(args: SelectedIndexChangedEventData) {

@@ -17,11 +17,11 @@
                        textTransform="uppercase"
                        tap="{{ credUser }}"
                        flexGrow="1"/>
-                <Label text="&#xf158;  " class="fas h2"
+                <Label text="&#xf158;  " class="fas h1"
                        tap="{{ payUser }}"/>
-                <Label text="&#xf029;  " class="fas h2"
+                <Label text="&#xf029;  " class="fas h1"
                        tap="{{ showUser }}"/>
-                <Label text="&#xf2ed;" class="fas h2"
+                <Label text="&#xf2ed;" class="fas h1"
                        tap="{{ deleteUser }}"/>
             </FlexboxLayout>
         </ListView.itemTemplate>

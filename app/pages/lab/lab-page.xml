@@ -1,7 +1,7 @@
 <Page xmlns="http://schemas.nativescript.org/tns.xsd"
       class="page">
     <ActionBar class="action-bar">
-        <Label class="action-bar-title" text="Manage Identity"></Label>
+        <Label class="action-bar-title" text="Lab of great ideas"></Label>
     </ActionBar>
     <GridLayout rows="*, auto, *, auto, *" columns="auto, *" margin="2%" backgroundColor="#eeeeee">
 

@@ -12,14 +12,14 @@ export class IdentityViewModel extends Observable {
 
     constructor(d: Data) {
         super();
-        this.admin = new Identity(d.alias, d.email, d.personhoodPublished);
+        this.userId = new Identity(d.alias, d.email, d.personhoodPublished);
     }
 
-    set admin(value: Identity) {
+    set userId(value: Identity) {
         this.set("_admin", value);
     }
 
-    get admin(): Identity {
+    get userId(): Identity {
         return this.get("_admin");
     }
 }

@@ -14,6 +14,7 @@ import * as dialogs from "tns-core-modules/ui/dialogs";
 import {getFrameById, topmost} from "tns-core-modules/ui/frame";
 import {Label} from "tns-core-modules/ui/label";
 import {mainViewRegistered} from "~/main-page";
+import {viewScanModel} from "~/pages/manage/personhood/scan-atts/scan-atts-page";
 
 export class PersonhoodView extends Observable {
     parties: PartyView[] = [];
@@ -70,7 +71,7 @@ export class PersonhoodView extends Observable {
     }
 
     setProgress(text: string = "", width: number = 0) {
-        Log.lvl2("setting progress to", text, width, this, elements);
+        Log.lvl2("setting progress to", text, width);
         if (width == 0) {
             elements.set("networkStatusShow", false);
         } else {
@@ -223,6 +224,11 @@ export class PartyView extends Observable {
         return sprintf("%d%%", (this.party.state * 25));
     }
 
+    showQrcode(){
+        topmost().showModal("pages/modal/modal-key", this.party.qrcode(gData.keyPersonhood._public),
+            ()=>{}, false, false, false);
+    }
+
     setChosen(c: boolean) {
         if (c) {
             elements.parties.forEach(p => p.setChosen(false));
@@ -287,12 +293,14 @@ export class PartyView extends Observable {
                     });
                     break;
                 case FINALIZE:
-                    elements.setProgress("Finalizing party", 50);
+                    elements.setProgress("Finalizing party", 40);
                     await this.party.partyInstance.finalize(gData.keyIdentitySigner);
-                    elements.setProgress("Party finalized", 100);
                     if (this.party.partyInstance.popPartyStruct.state == Party.Finalized) {
+                        elements.setProgress("Updating parties", 70);
+                        await elements.updateParties();
                         await msgOK("Finalized the party");
                     } else {
+                        elements.setProgress("Party finalized", 100);
                         await msgOK("Waiting for other organizers to finalize");
                     }
                     elements.setProgress();

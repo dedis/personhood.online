@@ -63,7 +63,7 @@ export var Defaults = {
     // easier UI testing.
     Confirm: true,
     // Testing
-    Testing: false,
+    Testing: true,
     // pre-loads polling stats for UI testing
     PollPrechoice: false,
     // Redirect pop.dedis.ch to another (local) IP
@@ -75,6 +75,7 @@ export var Defaults = {
 
 if (Defaults.Testing) {
     Defaults.Roster = Roster.fromTOML(Defaults.RosterTOMLLOCAL);
+    Defaults.Confirm = false;
 } else {
     Defaults.Roster = Roster.fromTOML(Defaults.RosterTOMLDEDIS);
     Defaults.PollPrechoice = false;

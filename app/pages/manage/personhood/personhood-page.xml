@@ -18,15 +18,15 @@
     <GridLayout rows="*, auto" tap="cancelNetwork">
         <ListView items="{{ elements }}" class="list-group" row="0">
             <ListView.itemTemplate>
-                <StackLayout tap="{{ onTap }}" class="{{ 'basic-list-decorated ' + bgcolor }}">
+                <StackLayout class="{{ 'basic-list-decorated ' + bgcolor }}">
                     <StackLayout orientation="horizontal">
                         <Image src="{{ qrcode }}"
                                visibility="{{ qrcode ? 'visible' : 'collapse' }}"
-                               width="30%"/>
+                               width="30%" tap="{{ showQrcode }}"/>
                         <Image src="{{ icon }}"
                                visibility="{{ icon ? 'visible' : 'collapse' }}"
                                width="10%"/>
-                        <StackLayout style="margin-left:5%;">
+                        <StackLayout style="margin-left:5%;" tap="{{ onTap }}">
                             <Label text="{{ desc.name }}" class="h2" textTransform="uppercase"/>
                             <StackLayout visibility="{{ showDetails ? 'visible' : 'collapse' }}">
                                 <Label text="{{ desc.purpose }}" class="h3"/>

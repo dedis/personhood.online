@@ -9,19 +9,19 @@ import {parseQRCode, scan} from "~/lib/Scan";
 import {msgFailed, msgOK} from "~/lib/ui/messages";
 import {topmost} from "tns-core-modules/ui/frame";
 
-let viewModel: ScanAttsView;
+export let viewScanModel: ScanAttsView;
 let party: Party = undefined;
 
 export async function onLoaded(args) {
     const page = <Page>args.object;
     party = page.navigationContext;
-    viewModel = new ScanAttsView(party);
-    page.bindingContext = viewModel;
+    viewScanModel = new ScanAttsView(party);
+    page.bindingContext = viewScanModel;
 }
 
 export async function addNewKey() {
     try {
-        let keys = viewModel.size;
+        let keys = viewScanModel.size;
         while (true) {
             await addScan();
             if (!gData.continuousScan) {
@@ -34,7 +34,7 @@ export async function addNewKey() {
                     return;
                 }
             } else {
-                if (keys != viewModel.size) {
+                if (keys != viewScanModel.size) {
                     keys++;
                 } else {
                     return;
@@ -75,7 +75,7 @@ async function addScan() {
         let qrcode = parseQRCode(result.text, 2);
         if (qrcode.url == Party.url) {
             if (qrcode.public.length == 64) {
-                await viewModel.addAttendee(qrcode.public);
+                await viewScanModel.addAttendee(qrcode.public);
             } else {
                 await msgFailed("Got wrong public key");
             }
@@ -96,7 +96,7 @@ async function addManual() {
         inputType: dialogs.inputType.text
     });
     if (args.result && args.text !== undefined && args.text.length == 64) {
-        await viewModel.addAttendee(args.text);
+        await viewScanModel.addAttendee(args.text);
     }
 }
 
