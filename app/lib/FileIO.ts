@@ -3,7 +3,7 @@
  */
 
 const FileSystem = require("tns-core-modules/file-system");
-const Documents = FileSystem.knownFolders.documents();
+export const Documents = FileSystem.knownFolders.documents();
 import {Log} from "~/lib/Log";
 
 export class FileIO {

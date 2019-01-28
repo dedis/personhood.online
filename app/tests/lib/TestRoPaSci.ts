@@ -145,6 +145,7 @@ describe("Rock Paper Scissors Test", () => {
             let spw = tdAdmin.d.spawnerInstance;
             await new PersonhoodRPC(spw.bc).wipeRPS();
 
+            Log.lvl2("handling fresh ropasci");
             let rps1 = await spw.createRoPaSci("service", player1.coinInstance, player1.keyIdentitySigner,
                 Long.fromNumber(100), 0, Buffer.alloc(31));
             await player1.addRoPaSci(rps1);
@@ -171,6 +172,18 @@ describe("Rock Paper Scissors Test", () => {
             await player2.reloadRoPaScis();
             expect(player2.ropascis.length).toBe(1);
             expect(player2.ropascis[0].toObject()).toEqual(obj1);
+
+            Log.lvl2("handling played ropasci");
+            await player2.ropascis[0].second(player2.coinInstance, player2.keyIdentitySigner, 2);
+            Log.print(player2.ropascis[0].data);
+            await player2.save();
+            await player2.load();
+            Log.print(player2.ropascis[0].data);
+            Log.print(rps1.data);
+            expect(player2.ropascis.length).toBe(1);
+            rps2 = player2.ropascis[0];
+            expect(rps2.roPaSciStruct.secondPlayer).toBe(2);
+            expect(rps2.toObject()).not.toEqual(obj1);
         });
     });
 });

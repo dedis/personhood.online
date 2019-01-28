@@ -47,6 +47,7 @@ export class RoPaSciInstance extends BasicInstance {
         ]);
         await ctx.signBy([[signer], []], this.bc);
         await this.bc.sendTransactionAndWait(ctx);
+        await this.update();
     }
 
     async reveal(coin: CoinInstance) {
@@ -64,11 +65,13 @@ export class RoPaSciInstance extends BasicInstance {
                 ])
         ]);
         await this.bc.sendTransactionAndWait(ctx);
+        await this.update();
     }
 
     async update(): Promise<RoPaSciInstance> {
-        let proof = await this.bc.getProof(this.iid);
-        this.roPaSciStruct = RoPaSciStruct.fromProto(proof.value);
+        Log.print("updating", this.roPaSciStruct.description);
+        await super.updateInstance(this.contractID);
+        this.roPaSciStruct = RoPaSciStruct.fromProto(this.data);
         return this;
     }
 

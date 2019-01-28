@@ -2,6 +2,7 @@ import {InstanceID} from "~/lib/cothority/byzcoin/ClientTransaction";
 import {Proof} from "~/lib/cothority/byzcoin/Proof";
 import {ByzCoinRPC} from "~/lib/cothority/byzcoin/ByzCoinRPC";
 import {Coin, CoinInstance} from "~/lib/cothority/byzcoin/contracts/CoinInstance";
+import {PopPartyStruct} from "~/lib/cothority/byzcoin/contracts/PopPartyInstance";
 
 export interface Instance {
     // These fields are available for every instance.
@@ -43,5 +44,11 @@ export class BasicInstance implements Instance {
             data: this.data,
             contractID: this.contractID,
         }
+    }
+
+    async updateInstance(contractID: string){
+        let proof = await this.bc.getProof(this.iid);
+        await proof.matchOrFail(contractID);
+        this.data = proof.value;
     }
 }

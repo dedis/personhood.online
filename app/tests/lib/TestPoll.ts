@@ -6,8 +6,8 @@ import {PersonhoodRPC} from "~/lib/PersonhoodRPC";
 import {PopDesc, PopPartyInstance} from "~/lib/cothority/byzcoin/contracts/PopPartyInstance";
 import {Party} from "~/lib/Party";
 
-fdescribe("Rock Paper Scissors Test", () => {
-    fdescribe("Rock Paper Scissors", async () => {
+describe("Rock Paper Scissors Test", () => {
+    describe("Rock Paper Scissors", async () => {
         let tdAdmin: TestData;
         let player1: Data;
         let player2: Data;

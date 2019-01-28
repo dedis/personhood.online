@@ -5,8 +5,6 @@ purpose of the file is to pass control to the app’s first module.
 */
 
 import * as application from "tns-core-modules/application";
-import {gData} from "~/lib/Data";
-import {Defaults} from "~/lib/Defaults";
 import {Log} from "~/lib/Log";
 
 application.on("orientationChanged", (evt) => {

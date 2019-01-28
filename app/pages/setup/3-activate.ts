@@ -19,7 +19,7 @@ export function navigatingTo(args: EventData) {
     page.bindingContext = fromObject({
         alias: gData.alias,
         qrcode: gData.contact.qrcodeIdentity(),
-        testing: Defaults.Testing,
+        testing: Defaults.TestButtons,
     });
     Log.lvl1("Waiting to activate:\n", gData.contact.qrcodeIdentityStr());
 }

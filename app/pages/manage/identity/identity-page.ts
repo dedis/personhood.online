@@ -49,12 +49,16 @@ export async function tapClear(args: EventData) {
 }
 
 export async function tapSave(args: EventData) {
-    let uid: Identity = page.bindingContext.userId;
-    gData.alias = uid.alias;
-    gData.email = uid.email;
-    await gData.publishPersonhood(uid.publishPersonhood);
-    await gData.save();
-    await msgOK("Saved your data");
+    try {
+        let uid: Identity = page.bindingContext.userId;
+        gData.alias = uid.alias;
+        gData.email = uid.email;
+        await gData.publishPersonhood(uid.publishPersonhood);
+        await gData.save();
+        await msgOK("Saved your data");
+    } catch (e){
+        await msgFailed("Something went wrong: " + e.toString());
+    }
 }
 
 export async function switchSettings(args: SelectedIndexChangedEventData) {

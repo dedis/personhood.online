@@ -11,7 +11,7 @@ import {Defaults} from "~/lib/Defaults";
 
 export class AdminViewModel extends Observable {
     nodes:ObservableArray<Node> = new ObservableArray();
-    testing:boolean = Defaults.Testing;
+    testing:boolean = Defaults.TestButtons;
 
     constructor(d: Data) {
         super();

@@ -14,6 +14,8 @@ import {Defaults} from "~/lib/Defaults";
 import {SelectedIndexChangedEventData} from "tns-core-modules/ui/tab-view";
 import {msgFailed, msgOK} from "~/lib/ui/messages";
 import {mainView, mainViewRegister} from "~/main-page";
+import {ShareFile} from "nativescript-share-file";
+import {Documents} from "~/lib/FileIO";
 
 let page: Page;
 export let adminView: AdminViewModel;
@@ -46,6 +48,25 @@ export async function tapClear(args: EventData) {
 
         }
     }
+}
+
+export async function shareData(args: EventData){
+    let shareFile = new ShareFile();
+    await gData.save();
+    Log.print("file is saved at", Documents.getFile(gData.dataFileName));
+    await shareFile.open(
+        {
+            path: "/data/user/0/online.personhood/files/storage/data.json",
+            intentTitle: 'Open text file with:', // optional Android
+            rect: { // optional iPad
+                x: 110,
+                y: 110,
+                width: 0,
+                height: 0
+            },
+            options: false, // optional iOS
+            animated: true // optional iOS
+        });
 }
 
 export async function tapSave(args: EventData) {

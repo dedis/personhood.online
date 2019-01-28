@@ -117,10 +117,8 @@ export class PopPartyInstance extends BasicInstance {
     }
 
     async update(): Promise<PopPartyInstance> {
-        let proof = await this.bc.getProof(this.iid);
-        await proof.matchOrFail(PopPartyInstance.contractID);
-        this.popPartyStruct = PopPartyStruct.fromProto(proof.value);
-        this.data = proof.value;
+        await super.updateInstance(this.contractID);
+        this.popPartyStruct = PopPartyStruct.fromProto(this.data);
         if (this.popPartyStruct.state == Party.Scanning &&
             this.tmpAttendees.length == 0) {
             this.tmpAttendees = await this.fetchOrgKeys();

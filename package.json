@@ -24,6 +24,7 @@
     "nativescript-barcodescanner": "^2.7.9",
     "nativescript-nodeify": "^0.8.0",
     "nativescript-orientation": "^2.2.1",
+    "nativescript-share-file": "^1.0.4",
     "nativescript-theme-core": "~1.0.4",
     "nativescript-ui-dataform": "^3.9.0",
     "nativescript-ui-listview": "^5.0.0",

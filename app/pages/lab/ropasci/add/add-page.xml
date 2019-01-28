@@ -2,7 +2,7 @@
         class="page"
         navigatingTo="onNavigatingTo"
         xmlns:nsListView="nativescript-ui-listview"
-        xmlns:nsDataForm="nativescript-ui-dataform">
+        xmlns:df="nativescript-ui-dataform">
 
     <ActionBar class="action-bar">
         <NavigationButton text="Go Back" android:icon="res://ic_arrow_back" tap="goBack"/>
@@ -16,48 +16,48 @@
     <GridLayout class="page-content" rows="auto, auto, auto, *, auto"
                 columns="*,auto,*">
         <Label class="label-title" text="Description" row="0" col="0" colSpan="3"/>
-        <nsDataForm:RadDataForm
+        <df:RadDataForm
                 id="data-form"
                 source="{{ dataForm }}"
                 row="1" colSpan="3"
                 isReadOnly="{{ readOnly }}">
-            <nsDataForm:RadaForm.properties>
-                <nsDataForm:EntityProperty name="description" index="0">
-                    <nsDataForm:EntityProperty.editor>
-                        <nsDataForm:PropertyEditor type="Text">
-                            <nsDataForm:PropertyEditor.propertyEditorStyle>
-                                <nsDataForm:PropertyEditorStyle labelPosition="Left" labelWidth="120"
+            <df:RadaForm.properties>
+                <df:EntityProperty name="description" index="0">
+                    <df:EntityProperty.editor>
+                        <df:PropertyEditor type="Text">
+                            <df:PropertyEditor.propertyEditorStyle>
+                                <df:PropertyEditorStyle labelPosition="Left" labelWidth="120"
                                                         labelFontStyle="Italic" labelTextColor="#00695c"/>
-                            </nsDataForm:PropertyEditor.propertyEditorStyle>
-                        </nsDataForm:PropertyEditor>
-                    </nsDataForm:EntityProperty.editor>
-                </nsDataForm:EntityProperty>
-                <nsDataForm:EntityProperty name="stake" index="1">
-                    <nsDataForm:EntityProperty.editor>
-                        <nsDataForm:PropertyEditor type="Number">
-                            <nsDataForm:PropertyEditor.propertyEditorStyle>
-                                <nsDataForm:PropertyEditorStyle labelPosition="Left" labelWidth="120"
+                            </df:PropertyEditor.propertyEditorStyle>
+                        </df:PropertyEditor>
+                    </df:EntityProperty.editor>
+                </df:EntityProperty>
+                <df:EntityProperty name="stake" index="1">
+                    <df:EntityProperty.editor>
+                        <df:PropertyEditor type="Number">
+                            <df:PropertyEditor.propertyEditorStyle>
+                                <df:PropertyEditorStyle labelPosition="Left" labelWidth="120"
                                                                 labelFontStyle="Italic" labelTextColor="#00695c"/>
-                            </nsDataForm:PropertyEditor.propertyEditorStyle>
-                        </nsDataForm:PropertyEditor>
-                    </nsDataForm:EntityProperty.editor>
-                </nsDataForm:EntityProperty>
-                <nsDataForm:EntityProperty name="choice" index="2" valuesProvider="Rock, Paper, Scissors">
-                    <nsDataForm:EntityProperty.editor>
-                        <nsDataForm:PropertyEditor type="SegmentedEditor"/>
-                    </nsDataForm:EntityProperty.editor>
-                </nsDataForm:EntityProperty>
+                            </df:PropertyEditor.propertyEditorStyle>
+                        </df:PropertyEditor>
+                    </df:EntityProperty.editor>
+                </df:EntityProperty>
+                <df:EntityProperty name="choice" index="2" valuesProvider="Rock, Paper, Scissors">
+                    <df:EntityProperty.editor>
+                        <df:PropertyEditor type="SegmentedEditor"/>
+                    </df:EntityProperty.editor>
+                </df:EntityProperty>
                 <!-- For some reason the 'hidden="true"' doesn't work with an EntityProperty -->
-                <nsDataForm:RadDataForm.groups>
-                    <nsDataForm:PropertyGroup collapsible="true" name="Hidden" hidden="true">
-                        <nsDataForm:PropertyGroup.properties>
-                            <nsDataForm:EntityProperty name="_observers"/>
-                            <nsDataForm:EntityProperty name="_map"/>
-                        </nsDataForm:PropertyGroup.properties>
-                    </nsDataForm:PropertyGroup>
-                </nsDataForm:RadDataForm.groups>
-            </nsDataForm:RadaForm.properties>
-        </nsDataForm:RadDataForm>
+                <df:RadDataForm.groups>
+                    <df:PropertyGroup collapsible="true" name="Hidden" hidden="true">
+                        <df:PropertyGroup.properties>
+                            <df:EntityProperty name="_observers"/>
+                            <df:EntityProperty name="_map"/>
+                        </df:PropertyGroup.properties>
+                    </df:PropertyGroup>
+                </df:RadDataForm.groups>
+            </df:RadaForm.properties>
+        </df:RadDataForm>
 
         <Button text="Send Game to ByzCoin" tap="save" class="btn btn-primary btn-active"
                 row="2" colSpan="3"/>

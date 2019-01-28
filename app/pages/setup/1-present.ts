@@ -17,7 +17,7 @@ import {openUrl} from "tns-core-modules/utils/utils";
 
 let view: Observable = fromObjectRecursive({
     networkStatus: undefined,
-    testing: Defaults.Testing,
+    testing: Defaults.TestButtons,
 });
 let page: Page;
 

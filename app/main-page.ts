@@ -21,6 +21,7 @@ import {msgFailed} from "~/lib/ui/messages";
 import {AdminViewModel} from "~/pages/settings/settings-view";
 import {ad} from "tns-core-modules/utils/utils";
 import getId = ad.resources.getId;
+import {FileIO} from "~/lib/FileIO";
 
 declare const exit: (code: number) => void;
 
@@ -52,10 +53,13 @@ export async function navigatingTo(args: EventData) {
         let page = <Page>args.object;
         page.bindingContext = mainView;
 
-        if (Defaults.Testing) {
+        if (Defaults.LoadTestStore) {
             let ts = await TestStore.load(Defaults.Roster);
             Defaults.ByzCoinID = ts.bcID;
             Defaults.SpawnerIID = ts.spawnerIID.iid;
+        }
+        if (Defaults.DataFile){
+            await FileIO.writeFile(Defaults.DataDir + "/data.json", Defaults.DataFile);
         }
         Log.lvl1("loading");
         await gData.load();

@@ -435,7 +435,9 @@ export class Data {
     }
 
     async updateRoPaScis(): Promise<RoPaSciInstance[]> {
-        await Promise.all(this.ropascis.map(async rps => rps.update()));
+        await Promise.all(this.ropascis
+            .filter(rps => rps.roPaSciStruct.firstPlayer < 0)
+            .map(async rps => rps.update()));
         await this.save();
         return this.ropascis;
     }

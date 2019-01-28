@@ -17,7 +17,7 @@
             <ListView.itemTemplate>
                 <GridLayout tap="{{ onTap }}" class="{{ 'basic-list-decorated ' + bgcolor }}" rows="auto, auto">
                     <GridLayout style="padding-right: 15%;" columns="*" rows="auto, auto" row="0">
-                        <Label text="{{ 'Title: ' + poll.title }}" class="h2" textTransform="uppercase"
+                        <Label text="{{ 'Title: ' + poll.title }}" class="h2"
                                row="0" col="0"/>
                         <Label text="{{ 'Desc: ' + poll.description }}" class="h3"
                                row="1" col="0" textWrap="true"/>
