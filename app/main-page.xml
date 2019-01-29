@@ -12,7 +12,7 @@ http://docs.nativescript.org/cookbook/ui/tab-view
         <Frame defaultPage="pages/loading/loading-page"
                visibility="{{ showGroup == 1 ? 'visible' : 'collapse' }}"
                id="setup"/>
-        <TabView androidTabsPosition="bottom" androidOffscreenTabLimit="0" selectedIndex="2"
+        <TabView androidTabsPosition="bottom" androidOffscreenTabLimit="0" selectedIndex="0"
                  selectedIndexChanged="onChangeTab" id="mainTabView"
                  visibility="{{ showGroup == 2 ? 'visible' : 'collapse' }}">
             <TabViewItem title="Home" ios:iconSource="res://tabIcons/home" android:iconSource="res://home">

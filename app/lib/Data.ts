@@ -111,7 +111,7 @@ export class Data {
                 return this.bc;
             }
             let obj = this.constructorObj;
-            if (Defaults.Testing && this.bc == null) {
+            if (Defaults.LoadTestStore && this.bc == null) {
                 Log.lvl1("Loading data from TestStore");
                 let ts = await TestStore.load(Defaults.Roster);
                 Defaults.ByzCoinID = ts.bcID;
@@ -228,10 +228,10 @@ export class Data {
                 obj = JSON.parse(str);
             }
             await this.setValues(obj);
-            await this.connectByzcoin();
         } catch (e) {
             Log.catch(e);
         }
+        await this.connectByzcoin();
         return this;
     }
 

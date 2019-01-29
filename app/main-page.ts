@@ -27,24 +27,6 @@ declare const exit: (code: number) => void;
 
 export let mainView = fromObject({showGroup: 0});
 
-export function mainViewRegistered(args: any) {
-    Log.lvl1("mainViewRegistered");
-    mainView.set("showGroup", 2);
-    let tv = <TabView>getFrameById("app-root").getViewById("mainTabView");
-    tv.selectedIndex = 0;
-    return switchHome(args);
-}
-
-export function mainViewRegister(args: any) {
-    Log.lvl1("mainViewRegister");
-    mainView.set("showGroup", 1);
-    if (gData.alias == "") {
-        return getFrameById("setup").navigate("pages/setup/1-present");
-    } else if (!gData.darcInstance) {
-        return getFrameById("setup").navigate("pages/setup/3-activate");
-    }
-}
-
 // Verify if we already have data or not. If it's a new installation, present the project
 // and ask for an alias, and set up keys.
 export async function navigatingTo(args: EventData) {
@@ -90,6 +72,24 @@ export async function navigatingTo(args: EventData) {
                 exit(0);
             }
         }
+    }
+}
+
+export function mainViewRegistered(args: any) {
+    Log.lvl1("mainViewRegistered");
+    mainView.set("showGroup", 2);
+    let tv = <TabView>getFrameById("app-root").getViewById("mainTabView");
+    tv.selectedIndex = 0;
+    return switchHome(args);
+}
+
+export function mainViewRegister(args: any) {
+    Log.lvl1("mainViewRegister");
+    mainView.set("showGroup", 1);
+    if (gData.alias == "") {
+        return getFrameById("setup").navigate("pages/setup/1-present");
+    } else if (!gData.darcInstance) {
+        return getFrameById("setup").navigate("pages/setup/3-activate");
     }
 }
 

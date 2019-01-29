@@ -207,6 +207,7 @@ export class RopasciViewElement extends Observable {
                 }
                 break;
         }
+        let second = false;
         try {
             switch (await dialogs.action({
                 message: "Chose action",
@@ -217,14 +218,17 @@ export class RopasciViewElement extends Observable {
                     await gData.delRoPaSci(this.ropasci);
                     break;
                 case playRock:
+                    second = true;
                     elRoPaSci.setProgress("Sending move", 50);
                     await this.ropasci.second(gData.coinInstance, gData.keyIdentitySigner, 0);
                     break;
                 case playPaper:
+                    second = true;
                     elRoPaSci.setProgress("Sending move", 50);
                     await this.ropasci.second(gData.coinInstance, gData.keyIdentitySigner, 1);
                     break;
                 case playScissors:
+                    second = true;
                     elRoPaSci.setProgress("Sending move", 50);
                     await this.ropasci.second(gData.coinInstance, gData.keyIdentitySigner, 2);
                     break;
@@ -236,7 +240,11 @@ export class RopasciViewElement extends Observable {
                     break;
             }
         } catch (e) {
-            await msgFailed(e.toString(), "Error");
+            if (second){
+                await msgFailed("Somebody else joined the game before you.", "Missed your chance");
+            } else {
+                await msgFailed(e.toString(), "Error");
+            }
         }
         this.updateColor();
         await updateRoPaSci();
