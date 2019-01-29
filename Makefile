@@ -22,12 +22,15 @@ release-key:
 ios-dev: apply-patches
 	tns prepare ios
 
+# To be able to use ios-release you need to first run a manual
+# build once, which will use Xcode to download the signing profile.
 ios-release: apply-patches
 	tns prepare ios --release
-	open platforms/ios/personhoodonline.xcworkspace
+	rm -rf platforms/ios/build
+	xcodebuild -workspace platforms/ios/personhoodonline.xcworkspace -scheme personhoodonline -destination generic/platform=iOS archive -archivePath `pwd`/platforms/ios/build/personhood.xcarchive
+	xcodebuild -exportArchive -archivePath `pwd`/platforms/ios/build/personhood.xcarchive -exportOptionsPlist app/App_Resources/iOS/ExportOptions.plist -exportPath `pwd`/platforms/ios/build
+	ls -l `pwd`/platforms/ios/build/personhoodonline.ipa
 
 xcode-dev: ios-dev
 	open platforms/ios/personhoodonline.xcworkspace/
 
-xcode-release: ios-release
-	open platforms/ios/personhoodonline.xcworkspace/
