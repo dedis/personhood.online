@@ -32,7 +32,6 @@ export class RopasciView extends Observable {
         });
         elRoPaSci.notifyPropertyChange("ropascis", this.ropascis);
         this.ropascis.forEach((rps: RopasciViewElement) => {
-            Log.print("updating");
             rps.updateColor();
         });
     }

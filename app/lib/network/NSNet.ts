@@ -83,7 +83,7 @@ export class WebSocket {
 
             ws.on('message', (socket, message) => {
                 let buffer = new Uint8Array(message);
-                Log.lvl3("Getting message with length:", buffer.length);
+                Log.llvl3("Getting message with length:", buffer.length);
                 try {
                     protoMessage = responseModel.decode(buffer);
                     ws.close();
@@ -91,15 +91,20 @@ export class WebSocket {
                     Log.error("got message with length", buffer.length);
                     Log.error("unmarshalling into", responseModel);
                     ws.close();
-                    Log.rcatch(err, "error while decoding, buffer is:", Buffer.from(buffer).toString("hex"));
+                    Log.catch(err, "error while decoding, buffer is:", Buffer.from(buffer).toString("hex"));
+                    reject(new Error(err));
                 }
             });
 
             ws.on('close', (socket, code, reason) => {
                 Timer.clearInterval(timerId);
+                if (code == 1006){
+                    Log.lvl1("Closed connection at a bad time (1006)", reason);
+                    reject(new Error(reason));
+                }
                 if (!retry || Defaults.Testing) {
                     if (code === 4000) {
-                        Log.lvl1("Got close:", code, reason)
+                        Log.lvl1("Got close:", code, reason);
                         reject(new Error(reason));
                     }
                     resolve(protoMessage);
@@ -111,7 +116,8 @@ export class WebSocket {
             });
 
             ws.on('error', (socket, error) => {
-                return Log.rcatch(error, "error in websocket:");
+                Log.catch(error, "error in websocket:");
+                reject(error);
             });
 
             ws.open();
