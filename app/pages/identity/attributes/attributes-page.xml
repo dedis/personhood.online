@@ -1,0 +1,71 @@
+<Page xmlns="http://schemas.nativescript.org/tns.xsd"
+      xmlns:df="nativescript-ui-dataform"
+      navigatingTo="navigatingTo"
+      class="page">
+    <ActionBar class="action-bar">
+        <Label class="action-bar-title" text="Settings"></Label>
+    </ActionBar>
+    <ScrollView>
+        <StackLayout class="p-20" row="0">
+
+            <StackLayout width="50%" class="p-20"
+            visibility="{{ hasCoins ? 'collapse' : 'visible' }}">
+                <GridLayout rows="auto">
+                    <Image src="{{ qrcode }}"
+                           width="100%" row="0"/>
+                    <Image src="~/images/icon-personhood-64.png"
+                           width="20%" row="0"/>
+                </GridLayout>
+                <Label text="Get this QRCode scanned by somebody with popcoins in order to register."
+                       textWrap="true" class="h2"/>
+            </StackLayout>
+
+            <df:RadDataForm id="myDataForm" source="{{ userId }}">
+                <df:RadaForm.properties>
+                    <df:EntityProperty name="alias" index="0">
+                        <df:EntityProperty.editor>
+                            <df:PropertyEditor type="Text">
+                                <df:PropertyEditor.propertyEditorStyle>
+                                    <df:PropertyEditorStyle labelPosition="Left" labelWidth="60"
+                                                            labelFontStyle="Italic" labelTextColor="#00695c"/>
+                                </df:PropertyEditor.propertyEditorStyle>
+                            </df:PropertyEditor>
+                        </df:EntityProperty.editor>
+                    </df:EntityProperty>
+                    <df:EntityProperty name="email" index="1" hintText="Enter email">
+                        <df:EntityProperty.editor>
+                            <df:PropertyEditor type="Email">
+                                <df:PropertyEditor.propertyEditorStyle>
+                                    <df:PropertyEditorStyle labelPosition="Left" labelWidth="60"
+                                                            labelFontStyle="Italic" labelTextColor="#00695c"/>
+                                </df:PropertyEditor.propertyEditorStyle>
+                            </df:PropertyEditor>
+                        </df:EntityProperty.editor>
+                    </df:EntityProperty>
+                    <df:EntityProperty name="phone" index="2" hintText="Enter phone-#">
+                        <df:EntityProperty.editor>
+                            <df:PropertyEditor type="Phone">
+                                <df:PropertyEditor.propertyEditorStyle>
+                                    <df:PropertyEditorStyle labelPosition="Left" labelWidth="60"
+                                                            labelFontStyle="Italic" labelTextColor="#00695c"/>
+                                </df:PropertyEditor.propertyEditorStyle>
+                            </df:PropertyEditor>
+                        </df:EntityProperty.editor>
+                    </df:EntityProperty>
+                    <df:EntityProperty name="publishPersonhood" index="3">
+                        <df:EntityProperty.editor>
+                            <df:PropertyEditor type="Switch">
+                                <df:PropertyEditor.propertyEditorStyle>
+                                    <df:PropertyEditorStyle labelPosition="Left" labelWidth="160"
+                                                            labelFontStyle="Italic" labelTextColor="#00695c"/>
+                                </df:PropertyEditor.propertyEditorStyle>
+                            </df:PropertyEditor>
+                        </df:EntityProperty.editor>
+                    </df:EntityProperty>
+                </df:RadaForm.properties>
+            </df:RadDataForm>
+
+            <Button text="Save" tap="tapSave" class="btn btn-primary btn-active"/>
+        </StackLayout>
+    </ScrollView>
+</Page>

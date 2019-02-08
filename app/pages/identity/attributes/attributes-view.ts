@@ -7,12 +7,14 @@ import {DecodeType} from "~/lib/network/DecodeType";
 import {Log} from "~/lib/Log";
 import {adminView} from "~/pages/settings/settings-page";
 import {ObservableArray} from "tns-core-modules/data/observable-array";
+import {Image} from "tns-core-modules/ui/image";
+import {ImageSource} from "tns-core-modules/image-source";
 
-export class IdentityViewModel extends Observable {
+export class AttributesViewModel extends Observable {
 
     constructor(d: Data) {
         super();
-        this.userId = new Identity(d.alias, d.email, d.personhoodPublished);
+        this.userId = new Identity(d.alias, d.email, d.phone, d.personhoodPublished);
     }
 
     set userId(value: Identity) {
@@ -22,10 +24,18 @@ export class IdentityViewModel extends Observable {
     get userId(): Identity {
         return this.get("_admin");
     }
+
+    get qrcode(): ImageSource {
+        return gData.contact.qrcodeIdentity();
+    }
+
+    get hasCoins(): boolean {
+        return gData.coinInstance != null;
+    }
 }
 
 export class Identity {
-    constructor(public alias: string, public email:string,
+    constructor(public alias: string, public email: string, public phone: string,
                 public publishPersonhood: boolean) {
     }
 }

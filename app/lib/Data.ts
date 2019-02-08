@@ -44,6 +44,7 @@ export class Data {
     dataFileName: string;
     alias: string;
     email: string;
+    phone: string;
     continuousScan: boolean;
     personhoodPublished: boolean;
     keyPersonhood: KeyPair;
@@ -80,6 +81,7 @@ export class Data {
         try {
             this.alias = obj.alias ? obj.alias : "";
             this.email = obj.email ? obj.email : "";
+            this.phone = obj.phone ? obj.phone : "";
             this.continuousScan = obj.continuousScan ? obj.continuousScan : false;
             this.personhoodPublished = obj.personhoodPublished ? obj.personhoodPublished : false;
             this.keyPersonhood = obj.keyPersonhood ? new KeyPair(obj.keyPersonhood) : new KeyPair();
@@ -170,6 +172,7 @@ export class Data {
         let v = {
             alias: this.alias,
             email: this.email,
+            phone: this.phone,
             continuousScan: this.continuousScan,
             personhoodPublished: this.personhoodPublished,
             keyPersonhood: this.keyPersonhood._private.toHex(),
@@ -373,7 +376,7 @@ export class Data {
 
     async reloadParties(): Promise<Party[]> {
         let phrpc = new PersonhoodRPC(this.bc);
-        let phParties = await phrpc.listPartiesRPC();
+        let phParties = await phrpc.listParties();
         await Promise.all(phParties.map(async php => {
             if (this.parties.find(p => p.partyInstance.iid.equals(php.instanceID)) == null) {
                 Log.lvl2("Found new party id");
@@ -414,7 +417,7 @@ export class Data {
         this.parties.push(p);
         let phrpc = new PersonhoodRPC(this.bc);
         await this.save();
-        await phrpc.listPartiesRPC(p.partyInstance.iid);
+        await phrpc.listParties(p.partyInstance.iid);
     }
 
     async reloadRoPaScis(): Promise<RoPaSciInstance[]> {

@@ -1,4 +1,4 @@
-import {viewScanModel} from "~/pages/manage/personhood/scan-atts/scan-atts-page";
+import {viewScanModel} from "~/pages/lab/personhood/scan-atts/scan-atts-page";
 
 const crypto = require("crypto-browserify");
 import {Observable} from "tns-core-modules/data/observable";

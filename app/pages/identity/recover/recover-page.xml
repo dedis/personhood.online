@@ -1,0 +1,21 @@
+<Page xmlns="http://schemas.nativescript.org/tns.xsd"
+      navigatingTo="navigatingTo"
+      class="page">
+    <ActionBar class="action-bar">
+        <NavigationButton text="Go Back" tap="goBack"
+                          android:icon="res://ic_arrow_back" ios:iconSource="res://ic_reload_white"/>
+        <Label class="action-bar-title" text="Recover Account"/>
+    </ActionBar>
+    <ScrollView>
+        <StackLayout tap="goBack" style="margin:30px;">
+            <Label text="Here you will be able to define a set of contacts that can collectively recover your account."
+                   textWrap="true" class="h2"/>
+            <Label text="This will be protected by the blockchain, which will assure with a smart contract that only the authorized friends can come together and reset your account."
+                   textWrap="true" class="h2"/>
+            <Label text="Of course you can give this authority to any combination of contacts or groups of contacts."
+                   textWrap="true" class="h2"/>
+            <Label text="This will be the end of long lists of meaningless words that are lost."
+                   textWrap="true" class="h2"/>
+        </StackLayout>
+    </ScrollView>
+</Page>

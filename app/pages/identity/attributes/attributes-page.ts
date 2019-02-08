@@ -7,7 +7,7 @@ logic, and to set up your page’s data binding.
 import {EventData} from "tns-core-modules/data/observable";
 import {getFrameById, Page, topmost} from "tns-core-modules/ui/frame";
 import {gData} from "~/lib/Data";
-import {Identity, IdentityViewModel} from "./identity-view";
+import {Identity, AttributesViewModel} from "./attributes-view";
 import {Log} from "~/lib/Log"
 import * as dialogs from "tns-core-modules/ui/dialogs";
 import {Defaults} from "~/lib/Defaults";
@@ -16,12 +16,12 @@ import {msgFailed, msgOK} from "~/lib/ui/messages";
 import {mainView, mainViewRegister} from "~/main-page";
 
 let page: Page;
-export let adminView: IdentityViewModel;
+export let adminView: AttributesViewModel;
 
 // Event handler for Page "navigatingTo" event attached in identity.xml
 export function navigatingTo(args: EventData) {
     page = <Page>args.object;
-    adminView = new IdentityViewModel(gData);
+    adminView = new AttributesViewModel(gData);
     page.bindingContext = adminView;
 }
 
@@ -53,6 +53,7 @@ export async function tapSave(args: EventData) {
         let uid: Identity = page.bindingContext.userId;
         gData.alias = uid.alias;
         gData.email = uid.email;
+        gData.phone = uid.phone;
         await gData.publishPersonhood(uid.publishPersonhood);
         await gData.save();
         await msgOK("Saved your data");

@@ -8,28 +8,28 @@ export let frame: Frame;
 export function goIdentity(args: GestureEventData) {
     frame = args.view.page.frame;
     return frame.navigate({
-        moduleName: "pages/manage/identity/identity-page",
+        moduleName: "pages/identity/attributes/attributes-page",
     })
 }
 
 export function goFriends(args: GestureEventData) {
     frame = args.view.page.frame;
     return frame.navigate({
-        moduleName: "pages/manage/friends/friends-page",
+        moduleName: "pages/identity/contacts/contacts-page",
     })
 }
 
-export function goPersonhood(args: GestureEventData) {
+export function goRecover(args: GestureEventData) {
     frame = args.view.page.frame;
     return frame.navigate({
-        moduleName: "pages/manage/personhood/personhood-page",
+        moduleName: "pages/identity/recover/recover-page",
     })
 }
 
-export async function switchManage(args: SelectedIndexChangedEventData) {
+export async function switchIdentity(args: SelectedIndexChangedEventData) {
     try {
         if (frame) {
-            let ret = await frame.navigate("pages/manage/manage-page");
+            let ret = await frame.navigate("pages/identity/identity-page");
             frame = null;
             return ret;
         }

@@ -5,7 +5,7 @@ import {Contact} from "~/lib/Contact";
 import * as dialogs from "tns-core-modules/ui/dialogs";
 import * as Long from "long";
 import {msgFailed, msgOK} from "~/lib/ui/messages";
-import {setProgress} from "~/pages/manage/friends/friends-page";
+import {setProgress} from "~/pages/identity/contacts/contacts-page";
 
 export async function scanNewUser(d: Data): Promise<Contact> {
     let str = await scan("Scan Identity Code");

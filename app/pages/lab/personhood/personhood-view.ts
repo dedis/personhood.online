@@ -5,7 +5,7 @@ import {Badge} from "~/lib/Badge";
 import {Party} from "~/lib/Party";
 import {GestureEventData} from "tns-core-modules/ui/gestures";
 import {fromFile, ImageSource} from "tns-core-modules/image-source";
-import {elements} from "~/pages/manage/personhood/personhood-page";
+import {elements} from "~/pages/lab/personhood/personhood-page";
 import {Folder, knownFolders, path} from "tns-core-modules/file-system";
 import {sprintf} from "sprintf-js";
 import {msgFailed, msgOK} from "~/lib/ui/messages";
@@ -14,7 +14,7 @@ import * as dialogs from "tns-core-modules/ui/dialogs";
 import {getFrameById, topmost} from "tns-core-modules/ui/frame";
 import {Label} from "tns-core-modules/ui/label";
 import {mainViewRegistered} from "~/main-page";
-import {viewScanModel} from "~/pages/manage/personhood/scan-atts/scan-atts-page";
+import {viewScanModel} from "~/pages/lab/personhood/scan-atts/scan-atts-page";
 
 export class PersonhoodView extends Observable {
     parties: PartyView[] = [];
@@ -288,7 +288,7 @@ export class PartyView extends Observable {
                     break;
                 case SCAN:
                     return topmost().navigate({
-                        moduleName: "pages/manage/personhood/scan-atts/scan-atts-page",
+                        moduleName: "pages/lab/personhood/scan-atts/scan-atts-page",
                         context: this.party,
                     });
                     break;

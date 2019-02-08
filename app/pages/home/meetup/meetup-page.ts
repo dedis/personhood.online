@@ -15,29 +15,36 @@ import * as Long from "long";
 import {assertRegistered, scanNewUser} from "~/lib/ui/users";
 import {ObservableArray} from "tns-core-modules/data/observable-array";
 import {ItemEventData} from "tns-core-modules/ui/list-view";
-import {FriendsView} from "~/pages/manage/friends/friends-view";
+import {ContactsView} from "~/pages/identity/contacts/contacts-view";
 import {Label} from "tns-core-modules/ui/label";
+import {Meetup, PersonhoodRPC} from "~/lib/PersonhoodRPC";
+import {MeetupView} from "~/pages/home/meetup/meetup-view";
+import {topmost} from "tns-core-modules/ui/frame";
 
-let identity: FriendsView;
+let identity: MeetupView;
 let page: Page;
+let phrpc: PersonhoodRPC;
 
 // Event handler for Page "navigatingTo" event attached in identity.xml
-export function navigatingTo(args: EventData) {
-    identity = new FriendsView(gData.friends);
+export async function navigatingTo(args: EventData) {
+    identity = new MeetupView();
     page = <Page>args.object;
     page.bindingContext = identity;
-    friendsUpdateList();
+    phrpc = new PersonhoodRPC(gData.bc);
+    setProgress("Broadcasting position", 30);
+    await phrpc.meetups(new Meetup(gData.credentialInstance.credential, ""));
+    await meetupUpdate();
 }
 
-export function friendsUpdateList() {
-    identity.updateUsers(gData.friends);
+export async function meetupUpdate() {
+    setProgress("Listening for other broadcasts", 60);
+    let ms = await phrpc.listMeetups();
+    identity.updateUsers(ms);
+    setProgress();
 }
 
-export async function addFriend(args: GestureEventData) {
-    let u = await scanNewUser(gData);
-    await assertRegistered(u, setProgress);
-    friendsUpdateList();
-    await gData.save();
+export async function addContacts(){
+    topmost().goBack();
 }
 
 export function setProgress(text: string = "", width: number = 0) {

@@ -24,38 +24,6 @@ export function navigatingTo(args: EventData) {
     Log.lvl1("Waiting to activate:\n", gData.contact.qrcodeIdentityStr());
 }
 
-export async function verifyActivation(args: EventData){
-    try {
-        await gData.verifyRegistration();
-        if (gData.credentialInstance) {
-            await gData.save();
-            return gotoMain("Congratulations - you've been registered!", args);
-        } else {
-            return msgFailed("Sorry - your account hasn't been registered yet.")
-        }
-    } catch (e){
-        Log.catch(e);
-        await msgFailed("Couldn't contact server: " + e.toString());
-    }
-}
-
-// Start when included in a party.
-export async function activateParty(args: EventData) {
-    return getFrameById("setup").navigate({
-        moduleName: "pages/manage/personhood/personhood-page",
-    });
-}
-
-// Start by using a Tequila login.
-export function activateEPFL(args: EventData) {
-    return gotoMain("Do a Tequila login!", args)
-}
-
-// Start by activating through email.
-export function activateEmail(args: EventData) {
-    return gotoMain("Give away your email for activation!", args)
-}
-
 export async function deleteAll(args: any) {
     try {
         await gData.delete();
@@ -71,7 +39,7 @@ export async function deleteAll(args: any) {
     // return gotoMain("Deleted all data");
 }
 
-async function gotoMain(msg: string, args: any) {
+async function goMain(msg: string, args: any) {
     await msgOK(msg);
-    mainViewRegistered(args);
+    await mainViewRegistered(args);
 }

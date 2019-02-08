@@ -8,6 +8,7 @@ import {randomBytes} from "crypto-browserify";
 import {RingSig, Sign} from "~/lib/RingSig";
 import {Party} from "~/lib/Party";
 import {Private} from "~/lib/KeyPair";
+import {CredentialStruct} from "~/lib/cothority/byzcoin/contracts/CredentialInstance";
 const crypto = require("crypto-browserify");
 
 export class PersonhoodRPC {
@@ -19,7 +20,7 @@ export class PersonhoodRPC {
 
     /**
      */
-    async listPartiesRPC(id: InstanceID = null): Promise<PersonhoodParty[]> {
+    async listParties(id: InstanceID = null): Promise<PersonhoodParty[]> {
         let party = {newparty: null};
         if (id) {
             let p = new PersonhoodParty(this.bc.config.roster, new InstanceID(this.bc.bcID), id);
@@ -34,6 +35,36 @@ export class PersonhoodRPC {
         return parties.filter((party, i) => {
             return parties.findIndex(p => p.instanceID.equals(party.instanceID)) == i;
         });
+    }
+
+    // meetups interfaces the meetup endpoint from the personhood service. It will always return the
+    // currently stored meetups, but can either add a new meetup, or wipe all meetups.
+    async meetups(meetup: Meetup = null): Promise<Meetup[]> {
+        let data = {};
+        if (meetup != null){
+            data = meetup.toObject();
+        }
+        let meetups: Meetup[] = [];
+        await Promise.all(this.socket.addresses.map(async addr => {
+            let socket = new WebSocket(addr, this.socket.service);
+            let resp = await socket.send("Meetup", "MeetupResponse", data);
+            if (resp) {
+                meetups.push(resp.users);
+            }
+        }));
+        return meetups.filter(m => m.attributes != null).filter((meetup, i) => {
+            return meetups.findIndex(mu => mu.attributes.toProto().equals(meetup.attributes.toProto())) == i;
+        });
+    }
+
+    // listMeetups returns a list of all currently stored meetups.
+    async listMeetups(): Promise<Meetup[]>{
+        return this.meetups();
+    }
+
+    // wipeMeetups removes all meetups from the servers. This is mainly for tests.
+    async wipeMeetups(){
+        return this.meetups(new Meetup(null, "", true));
     }
 
     async listRPS(id: InstanceID = null): Promise<RoPaSci[]> {
@@ -94,7 +125,7 @@ export class PersonhoodRPC {
 
     async callPoll(p: Poll): Promise<PollStruct[]> {
         let resp: PollResponse[] = [];
-        await this.callAll("Poll", "PollResponse", p.toObject(), resp);
+        await this.callAllPoll("Poll", "PollResponse", p.toObject(), resp);
         let str: PollStruct[] = [];
         resp.forEach(r => {
             if (r) {
@@ -108,7 +139,7 @@ export class PersonhoodRPC {
         return str;
     }
 
-    async callAll(req: string, resp: string, query: any, response: PollResponse[]): Promise<any> {
+    async callAllPoll(req: string, resp: string, query: any, response: PollResponse[]): Promise<any> {
         return await Promise.all(this.socket.addresses.map(async addr => {
             let socket = new WebSocket(addr, this.socket.service);
             response.push(PollResponse.fromObject(await socket.send(req, resp, query)));
@@ -279,5 +310,24 @@ export class PollResponse {
     static fromObject(obj: any): PollResponse {
         return new PollResponse(obj.polls.map(p =>
             PollStruct.fromObject(p)));
+    }
+}
+
+// Meetup contains one user that wants to meet others.
+export class Meetup{
+    constructor(public attributes: CredentialStruct, public location: string, public wipe: boolean = false){}
+
+    toObject(): any{
+        let obj = {
+            attributes: null, location: this.location,
+        };
+        if (this.attributes != null){
+            obj.attributes = this.attributes.toObject();
+        }
+        return obj;
+    }
+
+    static fromObject(obj: any): Meetup{
+        return new Meetup(CredentialStruct.fromObject(obj.attributes), obj.location);
     }
 }

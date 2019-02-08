@@ -1,0 +1,30 @@
+<Page xmlns="http://schemas.nativescript.org/tns.xsd"
+      navigatingTo="navigatingTo"
+      class="page">
+    <ActionBar class="action-bar">
+        <Label class="action-bar-title" text="Meetup"/>
+    </ActionBar>
+    <GridLayout rows="*, auto, auto" row="1">
+        <ListView items="{{ users }}" class="list-group" row="0">
+            <ListView.itemTemplate>
+                <FlexboxLayout orientation="horizontal" flexDirection="row"
+                               class="basic-list-decorated"
+                               alignItems="center">
+                    <Label text="{{ alias }}" class="h3"
+                           textTransform="uppercase"
+                           tap="{{ credUser }}"
+                           flexGrow="1"/>
+                </FlexboxLayout>
+            </ListView.itemTemplate>
+        </ListView>
+        <Button row="1" text="Add all contacts" class="btn btn-primary" tap="addContacts"/>
+        <GridLayout rows="auto"
+                    row="2"
+                    visibility="{{ networkStatus ? 'visible' : 'collapse'}}">
+            <Label row="0" text="{{ networkStatus }}" class="label-title"
+                   id="progress_text"/>
+            <Label row="0" width="100%" style="horizontal-align:left; opacity:0.5;"
+                   id="progress_bar" tap="setProgress"/>
+        </GridLayout>
+    </GridLayout>
+</Page>

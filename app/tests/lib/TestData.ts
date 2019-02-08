@@ -155,7 +155,7 @@ describe("TestData tests", () => {
             expect(td.orgs[0].parties[0].partyInstance.tmpAttendees.length).toBe(1);
             Log.lvl2("finished activating barrier");
             let phrpc = new PersonhoodRPC(td.orgs[0].bc);
-            let phParties = await phrpc.listPartiesRPC();
+            let phParties = await phrpc.listParties();
             expect(phParties.length).toBe(0);
             for (let i = 0; i < others.length; i++) {
                 let d = others[i];

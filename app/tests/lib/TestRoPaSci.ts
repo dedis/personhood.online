@@ -140,7 +140,7 @@ describe("Rock Paper Scissors Test", () => {
             expect(rps2.isDone).toBeTruthy();
         });
 
-        fit("stores on disk", async () => {
+        it("stores on disk", async () => {
             Log.lvl1("Save and retrieve rps from disk");
             let spw = tdAdmin.d.spawnerInstance;
             await new PersonhoodRPC(spw.bc).wipeRPS();

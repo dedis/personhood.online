@@ -14,7 +14,7 @@ import {Contact} from "~/lib/Contact";
 import * as Long from "long";
 import {scanNewUser} from "~/lib/ui/users";
 import {ObservableArray} from "tns-core-modules/data/observable-array";
-import {PersonhoodView} from "~/pages/manage/personhood/personhood-view";
+import {PersonhoodView} from "~/pages/lab/personhood/personhood-view";
 import {msgOK} from "~/lib/ui/messages";
 import {topmost} from "tns-core-modules/ui/frame";
 
@@ -43,6 +43,6 @@ export async function updateParties() {
 
 export async function addParty(args: GestureEventData) {
     return topmost().navigate({
-        moduleName: "pages/manage/personhood/add-party/add-party-page",
+        moduleName: "pages/lab/personhood/add-party/add-party-page",
     });
 }

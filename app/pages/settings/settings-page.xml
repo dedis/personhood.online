@@ -6,7 +6,7 @@
         <Label class="action-bar-title" text="Settings"></Label>
     </ActionBar>
     <ScrollView>
-        <GridLayout rows="auto, auto, auto">
+        <GridLayout rows="auto, *, auto, auto">
             <StackLayout class="p-20" row="0">
                 <df:RadDataForm id="myDataForm" source="{{ admin }}">
                     <df:RadaForm.properties>
@@ -28,6 +28,7 @@
                 visibility="{{ testing ? 'visible' : 'collapse' }}"/>
                 <Button text="Save" tap="tapSave" class="btn btn-primary btn-active"/>
             </StackLayout>
+
             <StackLayout row="1">
                 <ListView items="{{ nodes }}" class="list-group"
                           height="200" tap="{{ updateNodes }}">
@@ -41,7 +42,13 @@
                 </ListView>
             </StackLayout>
 
-            <Label text="Version 0.4.0" class="h5" row="2" style="text-align: right; margin-right: 5%;"/>
+            <StackLayout orientation="horizontal" style="horizontal-align: center;" row="2">
+                <HtmlView html="Personhood is brought to you by <u>https://personhood.online</u>:" class="h3" textWrap="true"
+                          width="60%" style="vertical-align: center;" tap="goPersonhood"/>
+                <Image src="~/images/icon-personhood-64.png" width="20%" tap="goPersonhood"/>
+            </StackLayout>
+
+            <Label text="Version 0.4.0" class="h5" row="3" style="text-align: right; margin-right: 5%;"/>
         </GridLayout>
     </ScrollView>
 </Page>

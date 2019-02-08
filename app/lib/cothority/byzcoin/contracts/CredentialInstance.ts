@@ -97,7 +97,11 @@ export class CredentialStruct {
 
     static fromProto(buf: Buffer): CredentialStruct {
         let cs = Root.lookup(CredentialStruct.protoName).decode(buf);
-        return new CredentialStruct(cs.credentials.map(c => Credential.fromObject(c)));
+        return CredentialStruct.fromObject(cs);
+    }
+
+    static fromObject(o: any): CredentialStruct{
+        return new CredentialStruct(o.credentials.map(c => Credential.fromObject(c)));
     }
 
     static create(): CredentialStruct {

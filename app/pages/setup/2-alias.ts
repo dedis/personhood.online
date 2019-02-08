@@ -24,7 +24,7 @@ export function navigatingTo(args: EventData) {
 }
 
 // Event handler for Page "navigatingTo" event attached in main-page.xml
-export async function goActivate(args: EventData) {
+export async function goNext(args: EventData) {
     let a = page.bindingContext.get("input").alias;
     Log.lvl1("saving alias", a);
     if (a.length == 0) {
@@ -36,5 +36,5 @@ export async function goActivate(args: EventData) {
     } catch(e){
         Log.catch(e);
     }
-    getFrameById("setup").navigate("pages/setup/3-activate");
+    getFrameById("setup").navigate("pages/setup/3-next-steps");
 }

@@ -6,6 +6,13 @@ import {msgFailed} from "~/lib/ui/messages";
 
 export let frame: Frame;
 
+export function goPersonhood(args: GestureEventData) {
+    frame = args.view.page.frame;
+    return frame.navigate({
+        moduleName: "pages/lab/personhood/personhood-page",
+    })
+}
+
 export function goRoPaSci(args: GestureEventData) {
     frame = args.view.page.frame;
     return frame.navigate({

@@ -19,8 +19,8 @@ http://docs.nativescript.org/cookbook/ui/tab-view
                 <Frame defaultPage="pages/home/home-page"/>
             </TabViewItem>
 
-            <TabViewItem title="Manage" ios:iconSource="res://tabIcons/browse" android:iconSource="res://browse">
-                <Frame defaultPage="pages/manage/manage-page"/>
+            <TabViewItem title="Identity" ios:iconSource="res://tabIcons/browse" android:iconSource="res://browse">
+                <Frame defaultPage="pages/identity/identity-page"/>
             </TabViewItem>
 
             <TabViewItem title="Lab" ios:iconSource="res://tabIcons/flask" android:iconSource="res://flask">

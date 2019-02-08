@@ -47,7 +47,7 @@ export async function goInitTest(args: EventData) {
         await gData.save();
         mainView.set("showGroup", 2);
     } catch (e) {
-        Log.rcatch(e);
+        await Log.rcatch(e);
     }
     return goAlias(args);
 }

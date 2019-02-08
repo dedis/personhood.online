@@ -2,7 +2,7 @@ import {Observable} from "tns-core-modules/data/observable";
 import {Contact} from "~/lib/Contact";
 import {Log} from "~/lib/Log";
 import {gData} from "~/lib/Data";
-import {friendsUpdateList, setProgress} from "~/pages/manage/friends/friends-page";
+import {friendsUpdateList, setProgress} from "~/pages/identity/contacts/contacts-page";
 import {topmost} from "tns-core-modules/ui/frame";
 import {ItemEventData} from "tns-core-modules/ui/list-view";
 import * as dialogs from "tns-core-modules/ui/dialogs";
@@ -10,7 +10,7 @@ import * as Long from "long";
 import {assertRegistered, sendCoins} from "~/lib/ui/users";
 import {msgFailed, msgOK} from "~/lib/ui/messages";
 
-export class FriendsView extends Observable {
+export class ContactsView extends Observable {
     private _users: UserView[];
     private _networkStatus: string;
 

@@ -16,7 +16,7 @@ import * as application from "application";
 import {SelectedIndexChangedEventData, TabView} from "tns-core-modules/ui/tab-view";
 import {adminView, switchSettings} from "~/pages/settings/settings-page";
 import {switchLab} from "~/pages/lab/lab-page";
-import {switchManage} from "~/pages/manage/manage-page";
+import {switchIdentity} from "~/pages/identity/identity-page";
 import {msgFailed} from "~/lib/ui/messages";
 import {AdminViewModel} from "~/pages/settings/settings-view";
 import {ad} from "tns-core-modules/utils/utils";
@@ -40,17 +40,12 @@ export async function navigatingTo(args: EventData) {
             Defaults.ByzCoinID = ts.bcID;
             Defaults.SpawnerIID = ts.spawnerIID.iid;
         }
-        if (Defaults.DataFile){
+        if (Defaults.DataFile) {
             await FileIO.writeFile(Defaults.DataDir + "/data.json", Defaults.DataFile);
         }
         Log.lvl1("loading");
         await gData.load();
-        let iid = null;
-        if (gData.darcInstance) {
-            iid = gData.darcInstance.iid.iid;
-        }
-        Log.lvl1("Loaded", gData.alias, ":: darcIID is:", iid);
-        if (!gData.darcInstance) {
+        if (!gData.alias || gData.alias == "") {
             return mainViewRegister(args);
         }
         return mainViewRegistered(args);
@@ -86,11 +81,7 @@ export function mainViewRegistered(args: any) {
 export function mainViewRegister(args: any) {
     Log.lvl1("mainViewRegister");
     mainView.set("showGroup", 1);
-    if (gData.alias == "") {
-        return getFrameById("setup").navigate("pages/setup/1-present");
-    } else if (!gData.darcInstance) {
-        return getFrameById("setup").navigate("pages/setup/3-activate");
-    }
+    return getFrameById("setup").navigate("pages/setup/1-present");
 }
 
 export async function onChangeTab(args: SelectedIndexChangedEventData) {
@@ -100,7 +91,7 @@ export async function onChangeTab(args: SelectedIndexChangedEventData) {
             await switchHome(args);
             break;
         case 1:
-            await switchManage(args);
+            await switchIdentity(args);
             break;
         case 2:
             await switchLab(args);

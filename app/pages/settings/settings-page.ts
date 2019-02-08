@@ -16,6 +16,7 @@ import {msgFailed, msgOK} from "~/lib/ui/messages";
 import {mainView, mainViewRegister} from "~/main-page";
 import {ShareFile} from "nativescript-share-file";
 import {Documents} from "~/lib/FileIO";
+import {openUrl} from "tns-core-modules/utils/utils";
 
 let page: Page;
 export let adminView: AdminViewModel;
@@ -79,3 +80,8 @@ export async function tapSave(args: EventData) {
 export async function switchSettings(args: SelectedIndexChangedEventData) {
     Log.lvl3("switchSettings", args);
 }
+
+export function goPersonhood() {
+    openUrl("https://personhood.online");
+}
+

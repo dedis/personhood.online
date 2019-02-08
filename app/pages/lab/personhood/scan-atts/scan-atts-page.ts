@@ -1,4 +1,4 @@
-import {ScanAttsView} from "~/pages/manage/personhood/scan-atts/scan-atts-view";
+import {ScanAttsView} from "~/pages/lab/personhood/scan-atts/scan-atts-view";
 
 import {Page} from "tns-core-modules/ui/page";
 import {Log} from "~/lib/Log";

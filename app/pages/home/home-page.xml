@@ -4,18 +4,33 @@
     <ActionBar class="action-bar">
         <Label class="action-bar-title" text="{{ 'Welcome ' + alias }}"
                textTransform="uppercase"/>
-        <ActionItem tap="updateCoins" ios.position="right" android.position="actionBar">
-            <ActionItem.actionView>
-                <Label text="&#xf2f1;  " class="fas" style="font-size: 25%;"/>
-            </ActionItem.actionView>
-        </ActionItem>
+        <!--<ActionItem tap="updateCoins" ios.position="right" android.position="actionBar">-->
+        <!--<ActionItem.actionView>-->
+        <!--<Label text="&#xf2f1;  " class="fas" style="font-size: 25%;"/>-->
+        <!--</ActionItem.actionView>-->
+        <!--</ActionItem>-->
 
     </ActionBar>
-    <Label text="Loading" class="h1"
-           visibility="{{ init ? 'visible' : 'collapse' }}"/>
-    <GridLayout rows="*, auto" row="1" tap="cancelNetwork"
-                visibility="{{ init ? 'collapse' : 'visible' }}">
-        <StackLayout class="p-20" row="0">
+    <GridLayout rows="auto, *, auto, auto" row="1">
+        <StackLayout row="0"
+                     visibility="{{ hasCoins ? 'collapse' : 'visible' }}">
+        <!--<Button text="{{ passport }}" ontap="changePass"/>-->
+            <Label text="Your attributes:" class="h2 text-center"/>
+            <ListView items="{{ attributes }}" class="list-group">
+                <ListView.itemTemplate>
+                    <StackLayout class="{{ 'basic-list-decorated ' + bgcolor }}">
+                        <StackLayout orientation="horizontal">
+                            <Label text="{{ name }}" class="h3"/>
+                            <Label text=": " class="h3"/>
+                            <Label text="{{ value }}" class="h3"/>
+                        </StackLayout>
+                    </StackLayout>
+                </ListView.itemTemplate>
+            </ListView>
+        </StackLayout>
+
+        <StackLayout class="p-20" row="1"
+                     visibility="{{ hasCoins ? 'visible' : 'collapse' }}">
             <FlexboxLayout justifyContent="center">
                 <StackLayout style="vertical-align: center">
                     <Label text="Popcoins" class="h2"/>
@@ -30,18 +45,45 @@
                     <Image src="~/images/icon-personhood-64.png"
                            width="20%" row="0"/>
                 </GridLayout>
-                <Label text="Get your QRCode scanned to receive coins to your account"
-                       class="h3"
-                       textWrap="true"
-                       style="text-align: center;" row="1"/>
             </StackLayout>
-            <!--<Button text="Login to service" tap="login" class="btn btn-primary btn-stub"/>-->
         </StackLayout>
-        <StackLayout row="0" backgroundColor="gray"
-                     style="opacity:0.0;"/>
-        <!--style="{{ networkStatus ? 'opacity:0.5;' : 'opacity:0;' }}"/>-->
+
+        <StackLayout row="2" style="margin:30px;" tap="personhoodDesc">
+            <Label text="{{ 'Your Personhood-score: ' + personhoodScore }}" class="h2"/>
+            <GridLayout columns="auto, auto, auto, auto, *" width="100%">
+                <Label width="{{ widthAttributes }}"
+                       style="horizontal-align:left; opacity:0.5; background-color: #dbffaa;"
+                       row="0" col="0"/>
+                <Label width="{{ widthRegistered }}"
+                       style="horizontal-align:left; opacity:0.5; background-color: #b6f5ff;"
+                       row="0" col="1"/>
+                <Label width="{{ widthMeetups }}"
+                       style="horizontal-align:left; opacity:0.5; background-color: #b0bcff;"
+                       row="0" col="2"/>
+                <Label width="{{ widthParty }}"
+                       style="horizontal-align:left; opacity:0.5; background-color: #ff9b9c;"
+                       row="0" col="3"/>
+                <Label width="100%"
+                       style="horizontal-align:left; opacity:0.5; background-color: #ffffff;"
+                       row="0" col="4"/>
+                <Label width="100%"
+                       style="border-color: black; border-width: 2px;"
+                       row="0" colSpan="5"/>
+            </GridLayout>
+        </StackLayout>
+
+        <StackLayout row="3">
+            <Button text="Start Meetup" tap="meetup" class="btn btn-primary"/>
+            <Button text="Cycle personhood" tap="cyclePersonhood" class="btn btn-primary btn-test"
+                    visibility="{{ testing ? 'visible' : 'collapse' }}"/>
+            <!--<Button text="Login to service" tap="login" class="btn btn-primary"-->
+                    <!--visibility="{{ testing ? 'visible' : 'collapse' }}"/>-->
+            <!--<Button text="Two Factor" tap="twoFA" class="btn btn-primary btn-stub"-->
+                    <!--visibility="{{ testing ? 'visible' : 'collapse' }}"/>-->
+        </StackLayout>
+
         <GridLayout rows="auto"
-                    row="1"
+                    row="4"
                     visibility="{{ networkStatus ? 'visible' : 'collapse'}}">
             <Label row="0" text="{{ networkStatus }}" class="label-title"
                    id="progress_text"/>
