@@ -30,7 +30,7 @@ export async function goNext(args: EventData) {
     if (a.length == 0) {
         return msgFailed("Please enter an alias")
     }
-    gData.alias = a;
+    gData.contact.alias = a;
     try {
         await gData.save();
     } catch(e){

@@ -12,8 +12,8 @@ export async function navigatingTo(args: EventData) {
     page = <Page>args.object;
     try {
         let atts = 1;
-        atts += gData.email != "" ? 1 : 0;
-        atts += gData.phone != "" ? 1 : 0;
+        atts += gData.contact.email != "" ? 1 : 0;
+        atts += gData.contact.phone != "" ? 1 : 0;
         addRundown(atts, 3, "attributes",
             "Add more information to your identity.", "Well done.");
         addRundown(gData.coinInstance != null ? 1 : 0, 1, "registrations",

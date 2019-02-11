@@ -34,7 +34,7 @@ let viewModel = fromObject({
 export function onNavigatingTo(args) {
     Log.lvl1("new ropasci");
     page = <Page>args.object;
-    dataForm.set("description", gData.alias);
+    dataForm.set("description", gData.contact.alias);
     page.bindingContext = viewModel;
 }
 

@@ -21,29 +21,17 @@ export class CredentialInstance {
     }
 
     getAttribute(credential: string, attribute: string): Buffer {
-        let cred = this.credential.credentials.find(c => c.name == credential);
-        if (!cred) {
-            return null;
-        }
-        let att = cred.attributes.find(a => a.name == attribute);
-        if (!att) {
-            return null;
-        }
-        return att.value;
+        return this.credential.getAttribute(credential, attribute);
     }
 
     async setAttribute(owner: Signer, credential: string, attribute: string, value: Buffer): Promise<any> {
-        let cred = this.credential.credentials.find(c => c.name == credential);
-        if (!cred) {
-            cred = new Credential(credential, [new Attribute(attribute, value)]);
-            this.credential.credentials.push(cred);
-        } else {
-            let att = cred.attributes.find(a => a.name == attribute);
-            if (!att) {
-                cred.attributes.push(new Attribute(attribute, value));
-            } else {
-                att.value = value;
-            }
+        this.credential.setAttribute(credential, attribute, value);
+        return this.sendUpdate(owner);
+    }
+
+    async sendUpdate(owner: Signer, newCred: CredentialStruct = null): Promise<CredentialInstance>{
+        if (newCred != null){
+            this.credential = newCred;
         }
         let ctx = new ClientTransaction([
             Instruction.createInvoke(this.iid,
@@ -55,14 +43,14 @@ export class CredentialInstance {
         return this;
     }
 
-    toObject(): any{
+    toObject(): any {
         return {
             iid: this.iid.toObject(),
             struct: this.credential.toProto(),
         }
     }
 
-    static fromObject(bc: ByzCoinRPC, obj: any):CredentialInstance{
+    static fromObject(bc: ByzCoinRPC, obj: any): CredentialInstance {
         return new CredentialInstance(bc,
             InstanceID.fromObject(obj.iid),
             CredentialStruct.fromProto(Buffer.from(obj.struct)));
@@ -87,6 +75,34 @@ export class CredentialStruct {
     constructor(public credentials: Credential[]) {
     }
 
+    getAttribute(credential: string, attribute: string): Buffer {
+        let cred = this.credentials.find(c => c.name == credential);
+        if (!cred) {
+            return null;
+        }
+        let att = cred.attributes.find(a => a.name == attribute);
+        if (!att) {
+            return null;
+        }
+        return att.value;
+    }
+
+    setAttribute(credential: string, attribute: string, value: Buffer) {
+        let cred = this.credentials.find(c => c.name == credential);
+        if (!cred) {
+            cred = new Credential(credential, [new Attribute(attribute, value)]);
+            this.credentials.push(cred);
+        } else {
+            let att = cred.attributes.find(a => a.name == attribute);
+            if (!att) {
+                cred.attributes.push(new Attribute(attribute, value));
+            } else {
+                att.value = value;
+            }
+
+        }
+    }
+
     toObject(): object {
         return this;
     }
@@ -95,12 +111,14 @@ export class CredentialStruct {
         return objToProto(this.toObject(), CredentialStruct.protoName)
     }
 
-    static fromProto(buf: Buffer): CredentialStruct {
+    static fromProto(buf: Buffer):
+        CredentialStruct {
         let cs = Root.lookup(CredentialStruct.protoName).decode(buf);
         return CredentialStruct.fromObject(cs);
     }
 
-    static fromObject(o: any): CredentialStruct{
+    static fromObject(o: any):
+        CredentialStruct {
         return new CredentialStruct(o.credentials.map(c => Credential.fromObject(c)));
     }
 

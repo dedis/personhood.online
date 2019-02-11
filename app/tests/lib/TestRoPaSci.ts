@@ -4,8 +4,8 @@ import * as Long from "long";
 import {RoPaSciInstance} from "~/lib/cothority/byzcoin/contracts/RoPaSciInstance";
 import {PersonhoodRPC} from "~/lib/PersonhoodRPC";
 
-describe("Rock Paper Scissors Test", () => {
-    describe("Rock Paper Scissors", async () => {
+fdescribe("Rock Paper Scissors Test", () => {
+    fdescribe("Rock Paper Scissors", async () => {
         let tdAdmin: TestData;
         let player1: Data;
         let player2: Data;
@@ -175,11 +175,8 @@ describe("Rock Paper Scissors Test", () => {
 
             Log.lvl2("handling played ropasci");
             await player2.ropascis[0].second(player2.coinInstance, player2.keyIdentitySigner, 2);
-            Log.print(player2.ropascis[0].data);
             await player2.save();
             await player2.load();
-            Log.print(player2.ropascis[0].data);
-            Log.print(rps1.data);
             expect(player2.ropascis.length).toBe(1);
             rps2 = player2.ropascis[0];
             expect(rps2.roPaSciStruct.secondPlayer).toBe(2);

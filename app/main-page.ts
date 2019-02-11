@@ -45,7 +45,7 @@ export async function navigatingTo(args: EventData) {
         }
         Log.lvl1("loading");
         await gData.load();
-        if (!gData.alias || gData.alias == "") {
+        if (!gData.contact.alias || gData.contact.alias == "") {
             return mainViewRegister(args);
         }
         return mainViewRegistered(args);

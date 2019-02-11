@@ -37,8 +37,16 @@ export class PersonhoodRPC {
         });
     }
 
+    // this removes all parties from the list, but not from byzcoin.
+    async wipeParties(){
+        await Promise.all(this.socket.addresses.map(async addr => {
+            let socket = new WebSocket(addr, this.socket.service);
+            await socket.send("PartyList", "PartyListResponse", {wipeparties: true});
+        }));
+    }
+
     // meetups interfaces the meetup endpoint from the personhood service. It will always return the
-    // currently stored meetups, but can either add a new meetup, or wipe all meetups.
+    // currently stored meetups, but can either add a new meetup, or wipe  all meetups.
     async meetups(meetup: Meetup = null): Promise<Meetup[]> {
         let data = {};
         if (meetup != null){

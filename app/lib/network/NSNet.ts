@@ -83,7 +83,7 @@ export class WebSocket {
 
             ws.on('message', (socket, message) => {
                 let buffer = new Uint8Array(message);
-                Log.llvl3("Getting message with length:", buffer.length);
+                Log.lvl3("Getting message with length:", buffer.length);
                 try {
                     protoMessage = responseModel.decode(buffer);
                     ws.close();

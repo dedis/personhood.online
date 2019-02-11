@@ -32,7 +32,7 @@ export async function navigatingTo(args: EventData) {
     page.bindingContext = identity;
     phrpc = new PersonhoodRPC(gData.bc);
     setProgress("Broadcasting position", 30);
-    await phrpc.meetups(new Meetup(gData.credentialInstance.credential, ""));
+    await phrpc.meetups(new Meetup(gData.contact.credentialInstance.credential, ""));
     await meetupUpdate();
 }
 

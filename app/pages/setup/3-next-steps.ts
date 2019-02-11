@@ -17,7 +17,7 @@ import {Defaults} from "~/lib/Defaults";
 export function navigatingTo(args: EventData) {
     let page = <Page>args.object;
     page.bindingContext = fromObject({
-        alias: gData.alias,
+        alias: gData.contact.alias,
         qrcode: gData.contact.qrcodeIdentity(),
         testing: Defaults.TestButtons,
     });

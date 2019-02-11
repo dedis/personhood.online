@@ -28,8 +28,9 @@ describe("TestData tests", () => {
     describe("Initializing Data", () => {
         it("Must start with empty values", () => {
             let d = new Data();
-            expect(d.alias).toBe("");
-            expect(d.email).toBe("");
+            expect(d.contact.alias).toBe("");
+            expect(d.contact.email).toBe("");
+            expect(d.contact.phone).toBe("");
             expect(d.continuousScan).toBe(false);
             expect(d.keyIdentity).not.toBe(null);
             expect(d.keyPersonhood).not.toBe(null);
@@ -48,11 +49,10 @@ describe("TestData tests", () => {
     });
 
     describe("saves and loads", () => {
-        it("Must keep data", async () => {
+        it("Must keep old data", async () => {
             await FileIO.rmrf(Defaults.DataDir);
-            // jasmine.getEnv().throwOnExpectationFailure(true);
-            Defaults.Testing = true;
-            let bc = await CreateByzCoin.start();
+            let admin = await TestData.init(new Data());
+            let bc = admin.cbc;
 
             let keyI = new KeyPair();
             let keyP = new KeyPair();
@@ -65,7 +65,39 @@ describe("TestData tests", () => {
                 bcID: bc.bc.bcID,
                 roster: bc.bc.config.roster.toObject(),
             };
-            let d = new Data(JSON.stringify(dataObj));
+            let d = new Data(dataObj);
+            let d2 = new Data();
+            await expect(d2.toObject()).not.toEqual(d.toObject());
+            await d2.load();
+            await expect(d2.toObject()).not.toEqual(d.toObject());
+
+            await d.save();
+            // Avoid automatic initializing of bc
+            d2.bc = bc.bc;
+            await d2.load();
+            d2.bc = null;
+            expect(d2.toObject()).toEqual(d.toObject());
+            expect(d2.alias).toEqual(dataObj.alias);
+            expect(d2.continuousScan).toEqual(dataObj.continuousScan);
+        });
+
+        it("Must work with new data", async () => {
+            await FileIO.rmrf(Defaults.DataDir);
+            let admin = await TestData.init(new Data());
+            let bc = admin.cbc;
+
+            let keyI = new KeyPair();
+            let keyP = new KeyPair();
+            let dataObj = {
+                continuousScan: true,
+                keyIdentity: keyI._private.toHex(),
+                keyPersonhood: keyP._private.toHex(),
+                bcID: bc.bc.bcID,
+                roster: bc.bc.config.roster.toObject(),
+            };
+            let d = new Data(dataObj);
+            d.contact.alias = "alias";
+            d.contact.email = "test@test.com";
             let d2 = new Data();
             await expect(d2.toObject()).not.toEqual(d.toObject());
             await d2.load();
@@ -76,19 +108,8 @@ describe("TestData tests", () => {
             await d2.load();
             d2.bc = null;
             expect(d2.toObject()).toEqual(d.toObject());
-
-            let cbc = await CreateByzCoin.start();
-            let org1 = await cbc.addUser("org1");
-            d.bc = cbc.bc;
-            d.darcInstance = org1.darcInst;
-            d.coinInstance = org1.coinInst;
-            await d.save();
-            d2 = new Data();
-            await d2.load();
-            await d2.connectByzcoin();
-            expect(JSON.stringify(d2.toObject())).toEqual(JSON.stringify(d.toObject()));
-            expect(d2.darcInstance.iid).toEqual(d.darcInstance.iid);
-            expect(d2.coinInstance.iid).toEqual(d.coinInstance.iid);
+            expect(d2.alias).toEqual("alias")
+            expect(d2.contact.email).toEqual("test@test.com")
         })
     });
 
@@ -105,12 +126,9 @@ describe("TestData tests", () => {
             await partyInst.activateBarrier(td.orgs[0].keyIdentitySigner);
 
             td.orgs[0].parties.push(new Party(partyInst));
-            Log.print(td.orgs[0].bc.bcID);
             await td.orgs[0].connectByzcoin();
 
             let po = td.orgs[0].toObject();
-            Log.print(po);
-            Log.print(po.spawnerInstance);
             let dOrg = new Data(po);
             await dOrg.setValues(po);
             await dOrg.connectByzcoin();
@@ -122,16 +140,13 @@ describe("TestData tests", () => {
     });
 
     describe("correctly handles parties and badges", async () => {
-        let td: testData = null;
-        let pdesc: PopDesc = null;
-
-        beforeAll(async () => {
-            td = await setupTestData(2, 2);
-            pdesc = new PopDesc("test", "testing", Long.fromNumber(0), "here");
-        });
 
         it("should only get appropriate parties with one organizer", async () => {
+            let td = await setupTestData(2, 2);
+            let pdesc = new PopDesc("test", "testing", Long.fromNumber(0), "here");
             Log.lvl1("*** Creates new party with one or two organizers");
+            let ph = new PersonhoodRPC(td.admin.cbc.bc);
+            await ph.wipeParties();
             await td.orgs[0].publishPersonhood(true);
             let partyInst = await td.admin.cbc.spawner.createPopParty(td.admin.d.coinInstance,
                 [td.admin.d.keyIdentitySigner], [td.orgs[0].contact],
@@ -156,7 +171,7 @@ describe("TestData tests", () => {
             Log.lvl2("finished activating barrier");
             let phrpc = new PersonhoodRPC(td.orgs[0].bc);
             let phParties = await phrpc.listParties();
-            expect(phParties.length).toBe(0);
+            expect(phParties.length).toBe(1);
             for (let i = 0; i < others.length; i++) {
                 let d = others[i];
                 Log.lvl2("Updating parties for", d.alias);
@@ -166,7 +181,6 @@ describe("TestData tests", () => {
 
             Log.lvl1("Adding attendee and finalizing party - verifying it gets converted to a badge");
             await td.orgs[0].parties[0].partyInstance.addAttendee(td.atts[0].keyPersonhood._public);
-            Log.print(td.orgs[0].parties[0].partyInstance.tmpAttendees);
             expect(td.orgs[0].parties[0].partyInstance.tmpAttendees.length).toBe(2);
             await td.orgs[0].parties[0].partyInstance.finalize(td.orgs[0].keyIdentitySigner);
             for (let i = 0; i < all.length; i++) {
@@ -198,7 +212,7 @@ describe("TestData tests", () => {
 
             Log.lvl1("Mining again");
             let miners = [td.orgs[0], td.atts[0]];
-            for (let i = 0; i < miners.length; i++){
+            for (let i = 0; i < miners.length; i++) {
                 let d = miners[i];
                 Log.lvl2("Mining again", d.alias);
                 expect(d.badges[0].mined).toBeTruthy();
@@ -213,7 +227,7 @@ describe("TestData tests", () => {
     describe("verify qrcode en/decoding", () => {
         it("show correctly encode", () => {
             let d = new Data();
-            d.alias = "org1";
+            d.contact.alias = "org1";
             let str = d.contact.qrcodeIdentityStr();
             expect(str.startsWith(Contact.urlUnregistered)).toBeTruthy();
             let user = parseQRCode(str, 3);
@@ -221,9 +235,9 @@ describe("TestData tests", () => {
             expect(user.credentials).toBeUndefined();
             expect(user.alias).not.toBeUndefined();
 
-            d.credentialInstance = new CredentialInstance(null, new InstanceID(Buffer.alloc(32)),
+            d.contact.credentialInstance = new CredentialInstance(null, new InstanceID(Buffer.alloc(32)),
                 new CredentialStruct([]));
-            d.credentialInstance.credential.credentials.push(new Credential("public",
+            d.contact.credentialInstance.credential.credentials.push(new Credential("public",
                 [new Attribute("ed25519", Public.fromRand().toBuffer())]));
             str = d.contact.qrcodeIdentityStr();
             expect(str.startsWith(Contact.urlRegistered)).toBeTruthy();
@@ -248,7 +262,7 @@ describe("TestData tests", () => {
             Log.lvl1("Creating org2");
             let d2 = new Data();
             d2.bc = td1.d.bc;
-            d2.alias = "org2";
+            d2.contact.alias = "org2";
             Log.lvl1("public key for d2:", d2.keyIdentity._public.toHex());
             Log.lvl1("Making sure org2 is not registered yet");
             await d2.verifyRegistration();

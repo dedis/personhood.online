@@ -121,14 +121,14 @@ function setScore(att: number, reg: boolean, meet: number, party: number) {
 }
 
 async function update() {
-    identity.set("alias", gData.alias);
+    identity.set("alias", gData.contact.alias);
     attributes.splice(0);
-    attributes.push({name: "alias", value: gData.alias});
-    if (gData.email != "") {
-        attributes.push({name: "email", value: gData.email});
+    attributes.push({name: "alias", value: gData.contact.alias});
+    if (gData.contact.email != "") {
+        attributes.push({name: "email", value: gData.contact.email});
     }
-    if (gData.phone != "") {
-        attributes.push({name: "phone", value: gData.phone});
+    if (gData.contact.phone != "") {
+        attributes.push({name: "phone", value: gData.contact.phone});
     }
     setScore(attributes.length, gData.coinInstance != null, 0, gData.badges.length);
     if (gData.coinInstance != null) {

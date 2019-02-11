@@ -28,7 +28,6 @@ describe("Contact tests", () => {
             };
 
             async getProof(iid: InstanceID): Promise<Proof> {
-                Log.print("proof for", iid);
                 let p = new Proof(null, iid);
                 p.matches = true;
                 if (iid.iid.equals(Buffer.alloc(32))) {
@@ -46,7 +45,10 @@ describe("Contact tests", () => {
         it("Simple qr-code parsing should work", async () => {
             Log.lvl1("*** simple qr-code parsing");
             let pubIdentity = Public.fromRand();
-            let reg1 = new Contact('reg1', pubIdentity);
+            let reg1 = new Contact(null, pubIdentity);
+            reg1.alias = 'reg1';
+            reg1.email = "test@test.com";
+            reg1.phone = "+41 1 111 11 11";
             let bc = new bcNull(SpawnerInstance.prepareUserDarc(pubIdentity, "reg1"));
             reg1.credentialInstance = new CredentialInstance(bc,
                 new InstanceID(Buffer.alloc(32)), new CredentialStruct(
@@ -57,9 +59,11 @@ describe("Contact tests", () => {
             let str = reg1.qrcodeIdentityStr();
             let qrReg1 = await Contact.fromQR(bc, str);
             expect(str).toEqual(qrReg1.qrcodeIdentityStr());
-            return;
 
-            let unreg2 = new Contact('reg1', Public.fromRand());
+            let unreg2 = new Contact(null, Public.fromRand());
+            unreg2.alias = 'reg1';
+            unreg2.email = "test@test.com";
+            unreg2.phone = "+41 1 111 11 11";
             str = unreg2.qrcodeIdentityStr();
             expect(str.startsWith(Contact.urlUnregistered)).toBeTruthy();
             let qrUnreg2 = await Contact.fromQR(bc, str);
@@ -76,9 +80,11 @@ describe("Contact tests", () => {
             Log.lvl1("Creating Byzcoin");
             tdAdmin = await TestData.init(new Data());
             await tdAdmin.createAll('admin');
-            reg1 = new Contact("reg1", Public.fromRand());
+            reg1 = new Contact(null, Public.fromRand());
+            reg1.alias = "reg1";
             await tdAdmin.d.registerContact(reg1);
-            unreg2 = new Contact("unreg2", Public.fromRand());
+            unreg2 = new Contact(null, Public.fromRand());
+            unreg2.alias = "unreg2";
         });
 
         afterEach(() => {
@@ -90,12 +96,12 @@ describe("Contact tests", () => {
             Log.lvl1("testing registered user");
             let str = JSON.stringify(reg1.toObject());
             Log.lvl2("string is:", str);
-            let umReg1 = Contact.fromObject(tdAdmin.cbc.bc, JSON.parse(str));
+            let umReg1 = await Contact.fromObjectBC(tdAdmin.cbc.bc, JSON.parse(str));
             expect(str).toEqual(JSON.stringify(umReg1.toObject()));
 
             Log.lvl1("testing unregistered user");
             str = JSON.stringify(unreg2.toObject());
-            let umUnreg2 = Contact.fromObject(tdAdmin.cbc.bc, JSON.parse(str));
+            let umUnreg2 = await Contact.fromObjectBC(tdAdmin.cbc.bc, JSON.parse(str));
             expect(str).toEqual(JSON.stringify(umUnreg2.toObject()));
 
             Log.lvl1("testing qrcode on registered");
@@ -109,7 +115,8 @@ describe("Contact tests", () => {
             expect(str).toEqual(umUnreg2.qrcodeIdentityStr());
 
             Log.lvl1("testing unregistered, but then registered user");
-            let unreg3 = new Contact("unreg3", Public.fromRand());
+            let unreg3 = new Contact(null, Public.fromRand());
+            unreg3.alias = "unreg3";
             str = unreg3.qrcodeIdentityStr();
             let umUnreg3 = await Contact.fromQR(tdAdmin.d.bc, str);
             expect(str).toEqual(umUnreg3.qrcodeIdentityStr());

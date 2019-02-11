@@ -37,7 +37,7 @@ describe("setup byzcoin and create party", () => {
         await admin.createAll('admin');
 
         Log.lvl1("Checking basic credentials");
-        let cred = admin.d.credentialInstance;
+        let cred = admin.d.contact.credentialInstance;
         testCredBase(admin.d, cred);
 
         Log.lvl1("Setting new attributes");

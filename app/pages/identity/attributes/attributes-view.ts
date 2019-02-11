@@ -14,7 +14,7 @@ export class AttributesViewModel extends Observable {
 
     constructor(d: Data) {
         super();
-        this.userId = new Identity(d.alias, d.email, d.phone, d.personhoodPublished);
+        this.userId = new Identity(d.alias, d.contact.email, d.contact.phone, d.personhoodPublished);
     }
 
     set userId(value: Identity) {

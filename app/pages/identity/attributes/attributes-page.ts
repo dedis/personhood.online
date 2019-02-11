@@ -51,9 +51,9 @@ export async function tapClear(args: EventData) {
 export async function tapSave(args: EventData) {
     try {
         let uid: Identity = page.bindingContext.userId;
-        gData.alias = uid.alias;
-        gData.email = uid.email;
-        gData.phone = uid.phone;
+        gData.contact.alias = uid.alias;
+        gData.contact.email = uid.email;
+        gData.contact.phone = uid.phone;
         await gData.publishPersonhood(uid.publishPersonhood);
         await gData.save();
         await msgOK("Saved your data");

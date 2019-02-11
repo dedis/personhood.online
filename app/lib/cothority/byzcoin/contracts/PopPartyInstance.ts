@@ -130,7 +130,10 @@ export class PopPartyInstance extends BasicInstance {
         Log.lvl1("dummy-process:", text, percentage);
     }
 
-    async mineFromData(att: Data, setProgress: Function = this.setProgress): Promise<any> {
+    async mineFromData(att: Data, setProgress: Function = null): Promise<any> {
+        if (setProgress == null){
+            setProgress = this.setProgress;
+        }
         if (att.coinInstance) {
             setProgress("Mining", 50);
             await this.mine(att.keyPersonhood, att.coinInstance.iid);
@@ -139,11 +142,11 @@ export class PopPartyInstance extends BasicInstance {
             let newDarc = SpawnerInstance.prepareUserDarc(att.keyIdentity._public, att.alias);
             setProgress("Creating coin & darc", 33);
             await this.mine(att.keyPersonhood, null, newDarc);
-            att.coinInstance = await CoinInstance.fromByzcoin(this.bc, SpawnerInstance.coinIID(newDarc.getBaseId()));
-            att.darcInstance = await DarcInstance.fromProof(this.bc,
+            att.contact.coinInstance = await CoinInstance.fromByzcoin(this.bc, SpawnerInstance.coinIID(newDarc.getBaseId()));
+            att.contact.darcInstance = await DarcInstance.fromProof(this.bc,
                 await this.bc.getProof(new InstanceID(newDarc.getBaseId())));
             setProgress("Creating credentials", 67);
-            att.credentialInstance = await att.createUserCredentials();
+            att.contact.credentialInstance = await att.createUserCredentials();
             await att.save()
             setProgress("Registered user", 100);
         }
