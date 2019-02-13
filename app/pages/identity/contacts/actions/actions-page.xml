@@ -1,4 +1,9 @@
-<Page shownModally="onShownModally">
+<Page xmlns="http://schemas.nativescript.org/tns.xsd"
+      navigatingTo="navigatingTo"
+      class="page">
+    <ActionBar class="action-bar">
+        <Label class="action-bar-title" text="Show Contact"/>
+    </ActionBar>
     <StackLayout style="margins: 10%; margin-top:20%;" width="80%">
         <Label text="{{ 'Info for ' + alias }}" class="h1"/>
         <Label text="{{ 'Email: ' + email }}" class="h2" visibility="{{ email ? 'visible' : 'collapse' }}"

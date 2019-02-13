@@ -160,6 +160,7 @@ export async function coins(args: EventData) {
         Log.catch(e);
         await msgFailed("Something unforseen happened: " + e.toString());
     }
+    setProgress();
 }
 
 export async function switchHome(args: SelectedIndexChangedEventData) {

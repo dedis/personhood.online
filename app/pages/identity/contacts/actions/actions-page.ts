@@ -6,18 +6,14 @@ import {msgFailed} from "~/lib/ui/messages";
 import {openUrl} from "tns-core-modules/utils/utils";
 import {Log} from "~/lib/Log";
 import {dial, requestCallPermission} from "nativescript-phone";
-
-
-let closeCallback: Function;
+import {topmost} from "tns-core-modules/ui/frame";
 
 let user: Contact;
 
-export function onShownModally(args) {
-    user = <Contact>args.context;
-    closeCallback = args.closeCallback;
+export function navigatingTo(args) {
     const page: Page = <Page>args.object;
+    user = <Contact>page.navigationContext;
     page.bindingContext = fromObject({
-        qrcode: user.qrcodeIdentity(),
         alias: user.alias,
         email: user.email,
         phone: user.phone,
@@ -32,18 +28,22 @@ export async function tapEmail() {
                 subject: "From Personhood",
                 to: [user.email]
             })
+        } else {
+            Log.print("using openurl");
+            openUrl("mailto:test@test.com");
+            // await msgFailed("Email not available");
         }
     } catch (e) {
-        await msgFailed("Couldn't send email")
+        await msgFailed("Couldn't send email");
     }
 }
 
 export async function tapPhone() {
     requestCallPermission("Allow calling this number?")
-        .then(() =>{
+        .then(() => {
             dial(user.phone, false);
         })
-        .catch(()=>{
+        .catch(() => {
             dial(user.phone, true);
         })
 }
@@ -62,5 +62,5 @@ export async function tapUrl() {
 }
 
 export async function goBack() {
-    closeCallback();
+    topmost().goBack();
 }

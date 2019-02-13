@@ -31,7 +31,7 @@ export class CredentialInstance {
 
     async sendUpdate(owner: Signer, newCred: CredentialStruct = null): Promise<CredentialInstance>{
         if (newCred != null){
-            this.credential = newCred;
+            this.credential = newCred.copy();
         }
         let ctx = new ClientTransaction([
             Instruction.createInvoke(this.iid,

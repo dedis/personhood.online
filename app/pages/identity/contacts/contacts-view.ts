@@ -27,7 +27,7 @@ export class ContactsView extends Observable {
         this.notifyUpdate();
     }
 
-    notifyUpdate(){
+    notifyUpdate() {
         this.notifyPropertyChange("users", this._users);
     }
 
@@ -58,12 +58,12 @@ export class UserView extends Observable {
         return this._user.alias;
     }
 
-    get isRegistered(): boolean{
+    get isRegistered(): boolean {
         try {
             Log.print("user is:", this._user);
             Log.print("registered:", this._user.isRegistered());
             return this._user.isRegistered();
-        } catch (e){
+        } catch (e) {
             Log.error(e);
             return false;
         }
@@ -102,17 +102,19 @@ export class UserView extends Observable {
 
     public async credUser(arg: ItemEventData) {
         try {
-            if (!this._user.isRegistered()){
+            if (!this._user.isRegistered()) {
                 Log.print("verifying registration");
                 await this._user.verifyRegistration(gData.bc);
             }
             await this._user.update(gData.bc);
             await gData.save();
             this.notifyPropertyChange("isRegistered", this.isRegistered);
-        } catch(e){
+        } catch (e) {
             Log.error("Couldn't update", this.alias, e)
         }
-        topmost().showModal("pages/modal/modal-contact", this._user,
-            ()=>{}, true, false, false);
+        topmost().navigate({
+            moduleName: "pages/identity/contacts/actions/actions-page",
+            context: this._user
+        });
     }
 }

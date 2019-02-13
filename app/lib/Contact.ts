@@ -148,7 +148,7 @@ export class Contact {
 
     // this method sends the current state of the Credentials to ByzCoin.
     async sendUpdate(signer: Signer) {
-        Log.print("credInst", this.credentialInstance);
+        Log.print("sending update with credInst", this.credentialInstance != null);
         if (this.credentialInstance != null) {
             if (this.coinInstance && !this.credential.getAttribute("coin", "coinIID")) {
                 this.credential.setAttribute("coin", "coinIID", this.coinInstance.iid.iid);
@@ -215,6 +215,7 @@ export class Contact {
             }
         }
         if (this.credentialInstance){
+            Log.print("version of credInst is:", Contact.getVersion(this.credentialInstance.credential));
             Log.print("storing public key in credential");
             this.credential.setAttribute("public", "ed25519", this.pubIdentity.toBuffer());
         }
