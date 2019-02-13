@@ -14,13 +14,14 @@ export async function navigatingTo(args: EventData) {
         let atts = 1;
         atts += gData.contact.email != "" ? 1 : 0;
         atts += gData.contact.phone != "" ? 1 : 0;
-        addRundown(atts, 3, "attributes",
+        atts += gData.contact.url != "" ? 1 : 0;
+        addRundown(atts, 4, "attributes",
             "Add more information to your identity.", "Well done.");
         addRundown(gData.coinInstance != null ? 1 : 0, 1, "registrations",
             "Get yourself registered on the blockchain by somebody who has some coins, or visit a personhood party.",
             "Nice. Enjoy staying on the blockchain!");
-        addRundown(gData.meetups.length, 6, "meetups",
-            "Meet some people and exchange contacts.",
+        addRundown(gData.uniqueMeetings, 6, "meetups",
+            "Meet some people and exchange contacts. Only unique meeting groups are counted.",
             "Keep up meeting other participants");
         addRundown(gData.badges.length, 1, "parties",
             "Go to a personhood party and get your public key registered.",

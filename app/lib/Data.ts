@@ -169,15 +169,15 @@ export class Data {
                 this.polls = obj.polls.map(rps => PollStruct.fromObject(rps));
             }
 
-            if (obj.contact){
+            if (obj.contact) {
                 await this.contact.addBC(this.bc, obj.contact)
             }
 
             Log.lvl2("Getting contact informations");
             this.friends = [];
-            if (obj.friends){
+            if (obj.friends) {
                 let f = obj.friends.filter(u => u);
-                for (let i = 0; i < f.length; i++){
+                for (let i = 0; i < f.length; i++) {
                     this.friends.push(await Contact.fromObjectBC(this.bc, f[i]));
                 }
             }
@@ -484,6 +484,16 @@ export class Data {
 
     get alias(): string {
         return this.contact.alias;
+    }
+
+    get uniqueMeetings(): number {
+        let meetups = this.meetups.map(m => m.users.map(u => u.alias)
+            .sort((a, b) => a.localeCompare(b)));
+        Log.print("Meetups are:", meetups.map(m => m.join(":")));
+        let unique = meetups.filter((meetup, i) =>
+            meetups.findIndex(m => m.join() == meetup.join()) == i);
+        Log.print("unique:", unique.map(m => m.join(":")));
+        return unique.length;
     }
 }
 

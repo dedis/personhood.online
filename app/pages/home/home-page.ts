@@ -106,7 +106,7 @@ export function setProgress(text: string = "", width: number = 0) {
 }
 
 function setScore(att: number, reg: boolean, meet: number, party: number) {
-    let attWidth = Math.floor(10 * att / 3);
+    let attWidth = Math.floor(10 * att / 4);
     identity.set("widthAttributes", attWidth + "%");
     let regWidth = reg ? 10 : 0;
     identity.set("widthRegistered", regWidth + "%");
@@ -128,6 +128,8 @@ export async function update() {
             // Need to send new credential to byzcoin
             await gData.contact.sendUpdate(gData.keyIdentitySigner);
         }
+        await gData.save()
+        Log.print("registered:", gData.contact.credentialInstance);
     }
     identity.set("qrcode", gData.contact.qrcodeIdentity());
     attributes.splice(0);
@@ -138,7 +140,7 @@ export async function update() {
     if (gData.contact.phone != "") {
         attributes.push({name: "phone", value: gData.contact.phone});
     }
-    setScore(attributes.length, gData.coinInstance != null, gData.meetups.length, gData.badges.length);
+    setScore(attributes.length, gData.coinInstance != null, gData.uniqueMeetings, gData.badges.length);
     if (gData.coinInstance != null) {
         identity.set("hasCoins", true);
         identity.set("init", false);

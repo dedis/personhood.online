@@ -48,7 +48,7 @@
                 <Image src="~/images/icon-personhood-64.png" width="20%" tap="goPersonhood"/>
             </StackLayout>
 
-            <Label text="Version 0.4.0" class="h5" row="3" style="text-align: right; margin-right: 5%;"/>
+            <Label text="Version 0.5.0" class="h5" row="3" style="text-align: right; margin-right: 5%;"/>
         </GridLayout>
     </ScrollView>
 </Page>

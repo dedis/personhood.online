@@ -57,6 +57,7 @@ export async function tapSave(args: EventData) {
         gData.contact.alias = uid.alias;
         gData.contact.email = uid.email;
         gData.contact.phone = uid.phone;
+        gData.contact.url = uid.url;
         gData.personhoodPublished = uid.publishPersonhood;
         if (gData.contact.isRegistered()) {
             adminView.setProgress("Sending Attributes to ByzCoin", 50);

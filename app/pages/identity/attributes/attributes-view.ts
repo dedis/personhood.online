@@ -15,7 +15,7 @@ export class AttributesViewModel extends Observable {
 
     constructor(d: Data) {
         super();
-        this.userId = new Identity(d.alias, d.contact.email, d.contact.phone, d.personhoodPublished);
+        this.userId = new Identity(d.alias, d.contact.email, d.contact.phone, d.contact.url, d.personhoodPublished);
     }
 
     set userId(value: Identity) {
@@ -53,6 +53,7 @@ export class AttributesViewModel extends Observable {
 
 export class Identity {
     constructor(public alias: string, public email: string, public phone: string,
+                public url: string,
                 public publishPersonhood: boolean) {
     }
 }

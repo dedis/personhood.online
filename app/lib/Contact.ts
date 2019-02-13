@@ -277,6 +277,21 @@ export class Contact {
         }
     }
 
+    get url(): string {
+        let u = this.credential.getAttribute("personal", "url");
+        if (u) {
+            return u.toString();
+        }
+        return "";
+    }
+
+    set url(u: string) {
+        if (u) {
+            this.credential.setAttribute("personal", "url", Buffer.from(u));
+            this.version = this.version + 1;
+        }
+    }
+
     get phone(): string {
         let p = this.credential.getAttribute("personal", "phone");
         if (p) {

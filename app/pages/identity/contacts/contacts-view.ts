@@ -112,17 +112,7 @@ export class UserView extends Observable {
         } catch(e){
             Log.error("Couldn't update", this.alias, e)
         }
-        let creds = ['alias: ' + this._user.alias];
-        if (this._user.email != "") {
-            creds.push('email: ' + this._user.email);
-        }
-        if (this._user.phone != "") {
-            creds.push('phone: ' + this._user.phone);
-        }
-        await dialogs.confirm({
-            title: "Credentials of " + this._user.alias,
-            message: creds.join("\n"),
-            okButtonText: "OK",
-        })
+        topmost().showModal("pages/modal/modal-contact", this._user,
+            ()=>{}, true, false, false);
     }
 }
