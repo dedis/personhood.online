@@ -18,7 +18,8 @@ export class ScanAttsView extends Observable {
     }
 
     get attendees(): Attendee[] {
-        return this.keys.map(k => new Attendee(k));
+        return this.keys.sort((a, b) => a.toHex().localeCompare(b.toHex()))
+            .map(k => new Attendee(k));
     }
 
     get keys(): Public[] {
@@ -72,6 +73,22 @@ export class ScanAttsView extends Observable {
         this.keys.splice(pos, 1);
         await gData.save();
         this.updateAll();
+    }
+
+    setProgress(text: string = "", width: number = 0) {
+        if (width == 0) {
+            this.set("networkStatus", null);
+        } else {
+            let color = "#308080;";
+            if (width < 0) {
+                color = "#a04040";
+            }
+            let pb = topmost().getViewById("progress_bar");
+            if (pb) {
+                pb.setInlineStyle("width:" + Math.abs(width) + "%; background-color: " + color);
+            }
+            this.set("networkStatus", text);
+        }
     }
 }
 

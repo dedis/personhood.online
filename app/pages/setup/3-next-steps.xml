@@ -13,7 +13,7 @@ Here the user can enter his alias
                class="h3"
                textWrap="true"/>
         <Button text="Show Main Screen" tap="goMain" class="btn btn-primary"/>
-        <Button text="Delete all" tap="deleteAll" class="btn btn-primary"
+        <Button text="Delete all" tap="deleteAll" class="btn btn-primary btn-test"
         visibility="{{ testing ? 'visible' : 'collapse' }}"/>
     </StackLayout>
 </Page>

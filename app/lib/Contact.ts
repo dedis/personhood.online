@@ -28,8 +28,8 @@ const QRGenerator = new ZXing();
  * 2. can be used to fetch the latest data from ByzCoin
  */
 export class Contact {
-    static readonly urlRegistered = "https://pop.dedis.ch/qrcode/identity-1";
-    static readonly urlUnregistered = "https://pop.dedis.ch/qrcode/unregistered-1";
+    static readonly urlRegistered = "https://pop.dedis.ch/qrcode/identity-2";
+    static readonly urlUnregistered = "https://pop.dedis.ch/qrcode/unregistered-2";
     credentialInstance: CredentialInstance = null;
     darcInstance: DarcInstance = null;
     coinInstance: CoinInstance = null;
@@ -37,14 +37,25 @@ export class Contact {
     constructor(public credential: CredentialStruct = null, public unregisteredPub: Public = null) {
         if (credential == null) {
             this.credential = new CredentialStruct([]);
+            Contact.setVersion(this.credential, 0);
         }
+    }
+
+    set version(v: number) {
+        Contact.setVersion(this.credential, v);
+    }
+
+    get version(): number {
+        return Contact.getVersion(this.credential);
     }
 
     toObject(): object {
         let o = {
             credential: this.credential.toObject(),
+            credentialIID: null,
             darc: null,
             coinIID: null,
+            unregisteredPub: null,
         };
         if (this.darcInstance) {
             o.darc = this.darcInstance.toObject();
@@ -52,25 +63,48 @@ export class Contact {
         if (this.coinInstance) {
             o.coinIID = this.coinInstance.iid.iid;
         }
+        if (this.credentialInstance) {
+            o.credentialIID = this.credentialInstance.iid.iid;
+        }
+        if (this.unregisteredPub) {
+            o.unregisteredPub = this.unregisteredPub.toBuffer();
+        }
         return o;
     }
 
     async update(bc: ByzCoinRPC): Promise<Contact> {
-        if (this.darcInstance == null) {
-            this.darcInstance = new DarcInstance(bc, SpawnerInstance.prepareUserDarc(this.unregisteredPub, this.alias));
-        } else {
-            await this.darcInstance.update();
-        }
+        Log.print("updating", this);
         if (this.credentialInstance == null) {
-            this.credentialInstance = await CredentialInstance.fromByzcoin(this.darcInstance.bc, this.credentialIID);
+            Log.print("checking if we can get credIID")
+            if (this.credentialIID) {
+                try {
+                    this.credentialInstance = await CredentialInstance.fromByzcoin(this.darcInstance.bc, this.credentialIID);
+                } catch (e) {
+                    Log.error("while updating credInst:", e);
+                }
+                Log.print("Got new credInst:", this.credentialInstance.credential);
+            }
         } else {
+            Log.print("updating credInst");
             await this.credentialInstance.update();
+        }
+        if (this.credentialInstance) {
+            if (this.darcInstance == null) {
+                this.darcInstance = new DarcInstance(bc, SpawnerInstance.prepareUserDarc(this.pubIdentity, this.alias));
+            } else {
+                await this.darcInstance.update();
+            }
+            Log.print("checking if newer version is available");
+            Log.print(Contact.getVersion(this.credentialInstance.credential), this.version);
+            if (Contact.getVersion(this.credentialInstance.credential) > this.version) {
+                this.credential = this.credentialInstance.credential.copy();
+            }
         }
         return this;
     }
 
     isRegistered(): boolean {
-        return this.credentialIID != null;
+        return this.credentialIID != null && this.credentialIID.iid.length == 32;
     }
 
     getCoinAddress(): InstanceID {
@@ -78,16 +112,11 @@ export class Contact {
             Log.error("don't have the credentials");
             return;
         }
-        for (let i = 0; i < this.credential.credentials.length; i++) {
-            let c = this.credential.credentials[i];
-            if (c.name == "coin") {
-                if (c.attributes[0].name == "coinIID") {
-                    let target = new InstanceID(c.attributes[0].value);
-                    return target;
-                }
-            }
+        let coinIID = this.credential.getAttribute("coin", "coinIID");
+        if (coinIID != null) {
+            return new InstanceID(coinIID);
         }
-        return null;
+        return SpawnerInstance.coinIID(this.darcInstance.iid.iid);
     }
 
     qrcodeIdentityStr(): string {
@@ -119,20 +148,38 @@ export class Contact {
 
     // this method sends the current state of the Credentials to ByzCoin.
     async sendUpdate(signer: Signer) {
+        Log.print("credInst", this.credentialInstance);
         if (this.credentialInstance != null) {
-            await this.credentialInstance.sendUpdate(signer, this.credential);
+            if (this.coinInstance && !this.credential.getAttribute("coin", "coinIID")) {
+                this.credential.setAttribute("coin", "coinIID", this.coinInstance.iid.iid);
+                this.version = this.version + 1;
+            }
+            Log.print(this.version, Contact.getVersion(this.credentialInstance.credential));
+            if (this.version > Contact.getVersion(this.credentialInstance.credential)) {
+                Log.print("sending update for", this);
+                await this.credentialInstance.sendUpdate(signer, this.credential);
+            } else {
+                Log.print("NOT SENDING UPDATE FOR SAME VERSION");
+            }
         }
     }
 
     async addBC(bc: ByzCoinRPC, obj: any) {
-        if (obj.credentialInstance) {
-            this.credentialInstance = CredentialInstance.fromObject(bc, obj.credentialInstance);
+        if (obj.credentialIID) {
+            this.credentialInstance = await CredentialInstance.fromByzcoin(bc, InstanceID.fromObjectBuffer(obj.credentialIID));
         }
         if (obj.darc) {
             this.darcInstance = DarcInstance.fromObject(bc, obj.darc)
         }
         if (obj.coinIID) {
-            this.coinInstance = await CoinInstance.fromProof(bc, await bc.getProof(new InstanceID(obj.coinIID)));
+            this.coinInstance = await CoinInstance.fromProof(bc, await bc.getProof(InstanceID.fromObjectBuffer(obj.coinIID)));
+            Log.print("Got coinIID for", this.alias, this.getCoinAddress());
+        } else {
+            await this.verifyRegistration(bc);
+        }
+        if (this.coinInstance) {
+            this.credential.setAttribute("coin", "coinIID", this.coinInstance.iid.iid);
+            Log.print("Got coin for", this.alias, this.getCoinAddress(), this);
         }
     }
 
@@ -142,6 +189,8 @@ export class Contact {
         let darcIID: InstanceID;
         if (this.darcInstance) {
             Log.lvl2("Using existing darc instance:", this.darcInstance.iid.iid);
+            let d = SpawnerInstance.prepareUserDarc(this.pubIdentity, this.alias);
+            Log.print("verification with calculated darc:", d.getBaseId());
             darcIID = this.darcInstance.iid;
         } else {
             let d = SpawnerInstance.prepareUserDarc(this.pubIdentity, this.alias);
@@ -165,6 +214,10 @@ export class Contact {
                 this.credentialInstance = await CredentialInstance.fromProof(bc, p);
             }
         }
+        if (this.credentialInstance){
+            Log.print("storing public key in credential");
+            this.credential.setAttribute("public", "ed25519", this.pubIdentity.toBuffer());
+        }
 
         if (!this.coinInstance) {
             let coinIID = SpawnerInstance.coinIID(darcIID.iid);
@@ -176,6 +229,12 @@ export class Contact {
                 this.coinInstance = CoinInstance.fromProof(bc, p);
             }
         }
+    }
+
+    toString(): string {
+        return sprintf("%s (%d): %s", this.alias, this.version,
+            this.credential.credentials.map(c =>
+                sprintf("%s: %s", c.name, c.attributes.map(a => a.name).join("::"))).join("\n"));
     }
 
     get credentialIID(): InstanceID {
@@ -199,6 +258,7 @@ export class Contact {
     set alias(a: string) {
         if (a) {
             this.credential.setAttribute("personal", "alias", Buffer.from(a));
+            this.version = this.version + 1;
         }
     }
 
@@ -213,6 +273,7 @@ export class Contact {
     set email(e: string) {
         if (e) {
             this.credential.setAttribute("personal", "email", Buffer.from(e));
+            this.version = this.version + 1;
         }
     }
 
@@ -227,6 +288,7 @@ export class Contact {
     set phone(p: string) {
         if (p) {
             this.credential.setAttribute("personal", "phone", Buffer.from(p));
+            this.version = this.version + 1;
         }
     }
 
@@ -234,17 +296,16 @@ export class Contact {
         if (this.unregisteredPub) {
             return this.unregisteredPub;
         }
-        if (this.credentialInstance) {
-            return Public.fromBuffer(this.credential.getAttribute("public", "ed25519"))
-        }
-        Log.error("Cannot return pubIdentity!");
-        return null;
+        return Public.fromBuffer(this.credential.getAttribute("public", "ed25519"))
     }
 
     static fromObject(obj: any): Contact {
         let u = new Contact();
         if (obj.credential) {
             u.credential = CredentialStruct.fromObject(obj.credential);
+        }
+        if (obj.unregisteredPub) {
+            u.unregisteredPub = Public.fromBuffer(Buffer.from(obj.unregisteredPub));
         }
         return u;
     }
@@ -265,6 +326,8 @@ export class Contact {
             case Contact.urlRegistered:
                 u.credentialInstance = await CredentialInstance.fromByzcoin(bc,
                     new InstanceID(Buffer.from(qr.credentialIID, 'hex')));
+                u.credential = u.credentialInstance.credential.copy();
+                Log.print("credential is:", u.credential.credentials);
                 u.darcInstance = await DarcInstance.fromProof(bc,
                     await bc.getProof(u.credentialInstance.darcID));
                 return await u.update(bc);
@@ -274,5 +337,19 @@ export class Contact {
             default:
                 return Promise.reject("invalid URL");
         }
+    }
+
+    static setVersion(c: CredentialStruct, v: number) {
+        let b = Buffer.alloc(4);
+        b.writeUInt32LE(v, 0);
+        c.setAttribute("personal", "version", b);
+    }
+
+    static getVersion(c: CredentialStruct): number {
+        let b = c.getAttribute("personal", "version");
+        if (b == null) {
+            return 0;
+        }
+        return b.readUInt32LE(0);
     }
 }

@@ -19,7 +19,7 @@ export async function navigatingTo(args: EventData) {
         addRundown(gData.coinInstance != null ? 1 : 0, 1, "registrations",
             "Get yourself registered on the blockchain by somebody who has some coins, or visit a personhood party.",
             "Nice. Enjoy staying on the blockchain!");
-        addRundown(0, 10, "meetups",
+        addRundown(gData.meetups.length, 6, "meetups",
             "Meet some people and exchange contacts.",
             "Keep up meeting other participants");
         addRundown(gData.badges.length, 1, "parties",

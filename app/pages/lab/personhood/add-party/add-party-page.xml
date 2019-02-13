@@ -13,114 +13,124 @@
                     visibility="{{ readOnly ? 'collapsed' : 'visible' }}"/>
     </ActionBar>
 
-    <ScrollView>
-        <GridLayout class="page-content" rows="auto, auto, auto,*"
-                    columns="*,auto,*">
-            <df:RadDataForm
-                    id="data-form"
-                    source="{{ dataForm }}"
-                    row="1" colSpan="3"
-                    isReadOnly="{{ readOnly }}">
-                <df:RadaForm.properties>
-                    <df:EntityProperty name="name" index="0">
-                        <df:EntityProperty.editor>
-                            <df:PropertyEditor type="Text">
-                                <df:PropertyEditor.propertyEditorStyle>
-                                    <df:PropertyEditorStyle labelPosition="Left" labelWidth="120"
-                                                                    labelFontStyle="Italic" labelTextColor="#00695c"/>
-                                </df:PropertyEditor.propertyEditorStyle>
-                            </df:PropertyEditor>
-                        </df:EntityProperty.editor>
-                    </df:EntityProperty>
-                    <df:EntityProperty name="date" index="1">
-                        <df:PropertyEditor.editor>
-                        <df:PropertyEditor type="DatePicker">
-                            <df:PropertyEditor.propertyEditorStyle>
-                                <df:PropertyEditorStyle labelPosition="Left" labelWidth="120"
+    <GridLayout columns="*">
+        <ScrollView row="0">
+            <GridLayout class="page-content" rows="auto, auto, auto,*"
+                        columns="*,auto,*">
+                <df:RadDataForm
+                        id="data-form"
+                        source="{{ dataForm }}"
+                        row="1" colSpan="3"
+                        isReadOnly="{{ readOnly }}">
+                    <df:RadaForm.properties>
+                        <df:EntityProperty name="name" index="0">
+                            <df:EntityProperty.editor>
+                                <df:PropertyEditor type="Text">
+                                    <df:PropertyEditor.propertyEditorStyle>
+                                        <df:PropertyEditorStyle labelPosition="Left" labelWidth="120"
                                                                 labelFontStyle="Italic" labelTextColor="#00695c"/>
-                            </df:PropertyEditor.propertyEditorStyle>
-                        </df:PropertyEditor>
-                        </df:PropertyEditor.editor>
-                    </df:EntityProperty>
-                    <df:EntityProperty name="time" index="2">
-                        <df:PropertyEditor.editor>
-                        <df:PropertyEditor type="TimePicker">
-                            <df:PropertyEditor.propertyEditorStyle>
-                                <df:PropertyEditorStyle labelPosition="Left" labelWidth="120"
+                                    </df:PropertyEditor.propertyEditorStyle>
+                                </df:PropertyEditor>
+                            </df:EntityProperty.editor>
+                        </df:EntityProperty>
+                        <df:EntityProperty name="date" index="1">
+                            <df:PropertyEditor.editor>
+                                <df:PropertyEditor type="DatePicker">
+                                    <df:PropertyEditor.propertyEditorStyle>
+                                        <df:PropertyEditorStyle labelPosition="Left" labelWidth="120"
                                                                 labelFontStyle="Italic" labelTextColor="#00695c"/>
-                            </df:PropertyEditor.propertyEditorStyle>
-                        </df:PropertyEditor>
-                        </df:PropertyEditor.editor>
-                    </df:EntityProperty>
-                    <df:EntityProperty name="purpose" index="3">
-                        <df:EntityProperty.editor>
-                            <df:PropertyEditor type="Text">
-                                <df:PropertyEditor.propertyEditorStyle>
-                                    <df:PropertyEditorStyle labelPosition="Left" labelWidth="120"
-                                                                    labelFontStyle="Italic" labelTextColor="#00695c"/>
-                                </df:PropertyEditor.propertyEditorStyle>
-                            </df:PropertyEditor>
-                        </df:EntityProperty.editor>
-                    </df:EntityProperty>
-                    <df:EntityProperty name="location" index="4">
-                        <df:EntityProperty.editor>
-                            <df:PropertyEditor type="Text">
-                                <df:PropertyEditor.propertyEditorStyle>
-                                    <df:PropertyEditorStyle labelPosition="Left" labelWidth="120"
-                                                                    labelFontStyle="Italic" labelTextColor="#00695c"/>
-                                </df:PropertyEditor.propertyEditorStyle>
-                            </df:PropertyEditor>
-                        </df:EntityProperty.editor>
-                    </df:EntityProperty>
-                    <df:EntityProperty name="reward" index="5">
-                        <df:EntityProperty.editor>
-                            <df:PropertyEditor type="Number">
-                                <df:PropertyEditor.propertyEditorStyle>
-                                    <df:PropertyEditorStyle labelPosition="Left" labelWidth="120"
-                                                                    labelFontStyle="Italic" labelTextColor="#00695c"/>
-                                </df:PropertyEditor.propertyEditorStyle>
-                            </df:PropertyEditor>
-                        </df:EntityProperty.editor>
-                    </df:EntityProperty>
+                                    </df:PropertyEditor.propertyEditorStyle>
+                                </df:PropertyEditor>
+                            </df:PropertyEditor.editor>
+                        </df:EntityProperty>
+                        <df:EntityProperty name="time" index="2">
+                            <df:PropertyEditor.editor>
+                                <df:PropertyEditor type="TimePicker">
+                                    <df:PropertyEditor.propertyEditorStyle>
+                                        <df:PropertyEditorStyle labelPosition="Left" labelWidth="120"
+                                                                labelFontStyle="Italic" labelTextColor="#00695c"/>
+                                    </df:PropertyEditor.propertyEditorStyle>
+                                </df:PropertyEditor>
+                            </df:PropertyEditor.editor>
+                        </df:EntityProperty>
+                        <df:EntityProperty name="purpose" index="3">
+                            <df:EntityProperty.editor>
+                                <df:PropertyEditor type="Text">
+                                    <df:PropertyEditor.propertyEditorStyle>
+                                        <df:PropertyEditorStyle labelPosition="Left" labelWidth="120"
+                                                                labelFontStyle="Italic" labelTextColor="#00695c"/>
+                                    </df:PropertyEditor.propertyEditorStyle>
+                                </df:PropertyEditor>
+                            </df:EntityProperty.editor>
+                        </df:EntityProperty>
+                        <df:EntityProperty name="location" index="4">
+                            <df:EntityProperty.editor>
+                                <df:PropertyEditor type="Text">
+                                    <df:PropertyEditor.propertyEditorStyle>
+                                        <df:PropertyEditorStyle labelPosition="Left" labelWidth="120"
+                                                                labelFontStyle="Italic" labelTextColor="#00695c"/>
+                                    </df:PropertyEditor.propertyEditorStyle>
+                                </df:PropertyEditor>
+                            </df:EntityProperty.editor>
+                        </df:EntityProperty>
+                        <df:EntityProperty name="reward" index="5">
+                            <df:EntityProperty.editor>
+                                <df:PropertyEditor type="Number">
+                                    <df:PropertyEditor.propertyEditorStyle>
+                                        <df:PropertyEditorStyle labelPosition="Left" labelWidth="120"
+                                                                labelFontStyle="Italic" labelTextColor="#00695c"/>
+                                    </df:PropertyEditor.propertyEditorStyle>
+                                </df:PropertyEditor>
+                            </df:EntityProperty.editor>
+                        </df:EntityProperty>
 
-                    <!-- For some reason the 'hidden="true"' doesn't work with an EntityProperty -->
-                    <df:RadDataForm.groups>
-                        <df:PropertyGroup collapsible="true" name="Hidden" hidden="true">
-                            <df:PropertyGroup.properties>
-                                <df:EntityProperty name="_observers"/>
-                                <df:EntityProperty name="_map"/>
-                            </df:PropertyGroup.properties>
-                        </df:PropertyGroup>
-                    </df:RadDataForm.groups>
-                </df:RadaForm.properties>
-            </df:RadDataForm>
+                        <!-- For some reason the 'hidden="true"' doesn't work with an EntityProperty -->
+                        <df:RadDataForm.groups>
+                            <df:PropertyGroup collapsible="true" name="Hidden" hidden="true">
+                                <df:PropertyGroup.properties>
+                                    <df:EntityProperty name="_observers"/>
+                                    <df:EntityProperty name="_map"/>
+                                </df:PropertyGroup.properties>
+                            </df:PropertyGroup>
+                        </df:RadDataForm.groups>
+                    </df:RadaForm.properties>
+                </df:RadDataForm>
 
-            <GridLayout id="org-list-header" rows="auto" columns="auto, *" row="2" colSpan="3">
-                <Label class="label-title" text="Organizers" row="0" col="0" colSpan="2"/>
-                <Label class="label-title" id="addOrg"
-                       text="+"
-                       tap="addOrg"
-                       row="0" col="1"
-                       visibility="{{ readOnly ? 'collapse' : 'visible' }}"/>
+                <GridLayout id="org-list-header" rows="auto" columns="auto, *" row="2" colSpan="3">
+                    <Label class="label-title" text="Organizers" row="0" col="0" colSpan="2"/>
+                    <Label class="label-title" id="addOrg"
+                           text="+"
+                           tap="addOrg"
+                           row="0" col="1"
+                           visibility="{{ readOnly ? 'collapse' : 'visible' }}"/>
+                </GridLayout>
+
+                <nsListView:RadListView items="{{ orgList }}" id="list-view-orgs"
+                                        itemTap="{{ readOnly ? '' : 'orgTapped' }}"
+                                        row="3"
+                                        col="0"
+                                        colSpan="3">
+                    <nsListView:RadListView.listViewLayout>
+                        <nsListView:ListViewGridLayout scrollDirection="vertical" spanCount="3"/>
+                    </nsListView:RadListView.listViewLayout>
+
+                    <nsListView:RadListView.itemTemplate>
+                        <StackLayout class="grid-list">
+                            <Label class="grid-list-text" text="{{ alias }}" textWrap="false"/>
+                        </StackLayout>
+                    </nsListView:RadListView.itemTemplate>
+
+                </nsListView:RadListView>
+
             </GridLayout>
-
-            <nsListView:RadListView items="{{ orgList }}" id="list-view-orgs"
-                                    itemTap="{{ readOnly ? '' : 'orgTapped' }}"
-                                    row="3"
-                                    col="0"
-                                    colSpan="3">
-                <nsListView:RadListView.listViewLayout>
-                    <nsListView:ListViewGridLayout scrollDirection="vertical" spanCount="3"/>
-                </nsListView:RadListView.listViewLayout>
-
-                <nsListView:RadListView.itemTemplate>
-                    <StackLayout class="grid-list">
-                        <Label class="grid-list-text" text="{{ alias }}" textWrap="false"/>
-                    </StackLayout>
-                </nsListView:RadListView.itemTemplate>
-
-            </nsListView:RadListView>
-
+        </ScrollView>
+        <GridLayout rows="auto" row="0"
+                    visibility="{{ networkStatus ? 'visible' : 'collapse'}}"
+                    style="vertical-align: bottom;">
+            <Label row="0" text="{{ networkStatus }}" class="label-title network-progress"
+                   id="progress_text"/>
+            <Label row="0" width="100%" backgroundColor="blue" style="horizontal-align:left; opacity:0.75;"
+                   id="progress_bar"/>
         </GridLayout>
-    </ScrollView>
+    </GridLayout>
 </Page>

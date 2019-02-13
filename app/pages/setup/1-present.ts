@@ -43,6 +43,9 @@ export async function goInitTest(args: EventData) {
         setProgress("creating credentials", 80);
         await td.createUserCredentials();
 
+        setProgress("verify registration", 90);
+        await gData.contact.verifyRegistration(gData.bc);
+
         setProgress("saving", 100);
         await gData.save();
         mainView.set("showGroup", 2);

@@ -23,14 +23,14 @@ This is the presentation screen when the user is not signed up yet.
         </StackLayout>
         <StackLayout row="0" backgroundColor="gray"
                      style="opacity:0.0;"/>
-        <!--style="{{ networkStatus ? 'opacity:0.5;' : 'opacity:0;' }}"/>-->
+        <!--style="{{ networkStatus ? 'opacity:0.75;' : 'opacity:0;' }}"/>-->
         <GridLayout rows="auto"
                     row="1"
                     visibility="{{ networkStatus ? 'visible' : 'collapse'}}">
-            <Label row="0" text="{{ networkStatus }}" class="label-title"
-                   id="progress_text"/>
-            <Label row="0" width="100%" backgroundColor="blue" style="horizontal-align:left; opacity:0.5;"
+            <Label row="0" width="100%" backgroundColor="blue" style="horizontal-align:left; opacity:0.75;"
                    id="progress_bar"/>
+            <Label row="0" text="{{ networkStatus }}" class="label-title network-progress"
+                   id="progress_text"/>
         </GridLayout>
     </GridLayout>
 </Page>

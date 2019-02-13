@@ -7,8 +7,12 @@ import {ByzCoinRPC} from "~/lib/cothority/byzcoin/ByzCoinRPC";
 import {randomBytes} from "crypto-browserify";
 import {RingSig, Sign} from "~/lib/RingSig";
 import {Party} from "~/lib/Party";
-import {Private} from "~/lib/KeyPair";
-import {CredentialStruct} from "~/lib/cothority/byzcoin/contracts/CredentialInstance";
+import {Private, Public} from "~/lib/KeyPair";
+import {CredentialInstance, CredentialStruct} from "~/lib/cothority/byzcoin/contracts/CredentialInstance";
+import {objToProto, Root} from "~/lib/cothority/protobuf/Root";
+import Long = require("long");
+import {Contact} from "~/lib/Contact";
+
 const crypto = require("crypto-browserify");
 
 export class PersonhoodRPC {
@@ -38,7 +42,7 @@ export class PersonhoodRPC {
     }
 
     // this removes all parties from the list, but not from byzcoin.
-    async wipeParties(){
+    async wipeParties() {
         await Promise.all(this.socket.addresses.map(async addr => {
             let socket = new WebSocket(addr, this.socket.service);
             await socket.send("PartyList", "PartyListResponse", {wipeparties: true});
@@ -47,32 +51,34 @@ export class PersonhoodRPC {
 
     // meetups interfaces the meetup endpoint from the personhood service. It will always return the
     // currently stored meetups, but can either add a new meetup, or wipe  all meetups.
-    async meetups(meetup: Meetup = null): Promise<Meetup[]> {
+    async meetups(meetup: Meetup = null): Promise<UserLocation[]> {
         let data = {};
-        if (meetup != null){
+        if (meetup != null) {
             data = meetup.toObject();
         }
-        let meetups: Meetup[] = [];
+        let uls: UserLocation[] = [];
         await Promise.all(this.socket.addresses.map(async addr => {
             let socket = new WebSocket(addr, this.socket.service);
             let resp = await socket.send("Meetup", "MeetupResponse", data);
-            if (resp) {
-                meetups.push(resp.users);
+            try {
+                resp.users.forEach(ul => uls.push(UserLocation.fromObject(ul)));
+            } catch(e){
+                Log.error(e);
             }
         }));
-        return meetups.filter(m => m.attributes != null).filter((meetup, i) => {
-            return meetups.findIndex(mu => mu.attributes.toProto().equals(meetup.attributes.toProto())) == i;
+        return uls.filter(m => m != null).filter((userlocation, i) => {
+            return uls.findIndex(ul => ul.toProto().equals(userlocation.toProto())) == i;
         });
     }
 
     // listMeetups returns a list of all currently stored meetups.
-    async listMeetups(): Promise<Meetup[]>{
+    async listMeetups(): Promise<UserLocation[]> {
         return this.meetups();
     }
 
     // wipeMeetups removes all meetups from the servers. This is mainly for tests.
     async wipeMeetups(){
-        return this.meetups(new Meetup(null, "", true));
+        return this.meetups(new Meetup(null, true));
     }
 
     async listRPS(id: InstanceID = null): Promise<RoPaSci[]> {
@@ -213,7 +219,8 @@ export class Poll {
 
 // Empty class to request the list of polls available.
 export class PollList {
-    constructor(public partyIDs: InstanceID[]){}
+    constructor(public partyIDs: InstanceID[]) {
+    }
 
     toObject(): any {
         return {partyids: this.partyIDs.map(pi => pi.iid)};
@@ -322,20 +329,105 @@ export class PollResponse {
 }
 
 // Meetup contains one user that wants to meet others.
-export class Meetup{
-    constructor(public attributes: CredentialStruct, public location: string, public wipe: boolean = false){}
-
-    toObject(): any{
-        let obj = {
-            attributes: null, location: this.location,
-        };
-        if (this.attributes != null){
-            obj.attributes = this.attributes.toObject();
-        }
-        return obj;
+export class Meetup {
+    constructor(public userLocation: UserLocation, public wipe: boolean = false) {
     }
 
-    static fromObject(obj: any): Meetup{
-        return new Meetup(CredentialStruct.fromObject(obj.attributes), obj.location);
+    toObject(): any {
+        let o = {
+            userlocation: null,
+            wipe: this.wipe,
+        };
+        if (this.userLocation){
+            o.userlocation = this.userLocation.toObject();
+        }
+        return o;
+    }
+
+    static fromObject(obj: any): Meetup {
+        return new Meetup(UserLocation.fromObject(obj.userlocation), obj.wipe);
+    }
+}
+
+// UserLocation is one user in one location, either a registered one, or an unregistered one.
+export class UserLocation {
+    static readonly protoName = "UserLocation";
+
+    constructor(public credential: CredentialStruct, public location: string,
+                public publicKey: Public = null,
+                public credentialIID: InstanceID = null, public time: Long = Long.fromNumber(0)) {
+    }
+
+    toObject(): any {
+        let o = {
+            credential: this.credential.toObject(),
+            location: this.location,
+            time: this.time,
+            credentialiid: null,
+            publickey: null,
+        };
+        if (this.credentialIID) {
+            o.credentialiid = this.credentialIID.iid;
+        }
+        if (this.publicKey){
+            o.publickey = this.publicKey.toBuffer();
+        }
+        return o
+    }
+
+    toProto(): Buffer {
+        return objToProto(this.toObject(), UserLocation.protoName);
+    }
+
+    get alias(): string{
+        return this.credential.getAttribute("personal", "alias").toString();
+    }
+
+    get unique(): Buffer{
+        if (this.credentialIID){
+            return this.credentialIID.iid;
+        }
+        return Buffer.from(this.alias);
+    }
+
+    equals(ul: UserLocation): boolean{
+        return this.unique.equals(ul.unique);
+    }
+
+    async toContact(bc: ByzCoinRPC): Promise<Contact>{
+        let c = new Contact(this.credential);
+        if (this.credentialIID){
+            try {
+                c.credentialInstance = await CredentialInstance.fromByzcoin(bc, this.credentialIID);
+                c.credential = c.credentialInstance.credential.copy();
+                Log.print("pubkey for", c.alias, c.pubIdentity);
+            } catch (e){
+                Log.error("couldn't get credentialInstance:", e);
+            }
+        } else {
+            c.unregisteredPub = this.publicKey;
+        }
+        return c;
+    }
+
+    static fromObject(o: any): UserLocation{
+        let crediid: InstanceID = null;
+        let pubkey: Public = null;
+        if (o.credentialiid && o.credentialiid.length == 32){
+            crediid = InstanceID.fromObjectBuffer(o.credentialiid);
+        }
+        if (o.publickey){
+            pubkey = Public.fromBuffer(Buffer.from(o.publickey));
+        }
+        return new UserLocation(CredentialStruct.fromObject(o.credential),
+            o.location, pubkey, crediid, o.time);
+    }
+
+    static fromProto(p: Buffer): UserLocation{
+        return UserLocation.fromObject(Root.lookup(UserLocation.protoName).decode(p));
+    }
+
+    static fromContact(c: Contact): UserLocation{
+        return new UserLocation(c.credential, "somewhere", c.pubIdentity, c.credentialIID);
     }
 }

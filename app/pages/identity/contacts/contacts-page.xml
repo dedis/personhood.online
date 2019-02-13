@@ -8,33 +8,39 @@
                     icon="res://ic_add_white" android.position="actionBar"/>
     </ActionBar>
     <GridLayout rows="*, auto" row="1" tap="cancelNetwork">
-    <ListView items="{{ users }}" class="list-group" row="0">
-        <ListView.itemTemplate>
-            <FlexboxLayout orientation="horizontal" flexDirection="row"
-                           class="basic-list-decorated"
-                           alignItems="center">
-                <Label text="{{ alias }}" class="h3"
-                       textTransform="uppercase"
-                       tap="{{ credUser }}"
-                       flexGrow="1"/>
-                <Label text="&#xf158;  " class="fas h1"
-                       tap="{{ payUser }}"/>
-                <Label text="&#xf029;  " class="fas h1"
-                       tap="{{ showUser }}"/>
-                <Label text="&#xf2ed;" class="fas h1"
-                       tap="{{ deleteUser }}"/>
-            </FlexboxLayout>
-        </ListView.itemTemplate>
-    </ListView>
+        <ListView items="{{ users }}" class="list-group" row="0">
+            <ListView.itemTemplate>
+                <FlexboxLayout orientation="horizontal" flexDirection="row"
+                               class="basic-list-decorated"
+                               alignItems="center">
+                    <StackLayout width="5%" style="margin-right: 2%;">
+                        <Image src="~/images/icon-personhood-64.png"
+                               visibility="{{ isRegistered ? 'visible' : 'collapse' }}"
+                               tap="{{ credUser }}"/>
+                    </StackLayout>
+                    <Label text="{{ alias }}" class="h3"
+                           height="100%"
+                           textTransform="uppercase"
+                           tap="{{ credUser }}"
+                           flexGrow="1"/>
+                    <Label text="&#xf158;  " class="fas h1"
+                           tap="{{ payUser }}"/>
+                    <Label text="&#xf029;  " class="fas h1"
+                           tap="{{ showUser }}"/>
+                    <Label text="&#xf2ed;" class="fas h1"
+                           tap="{{ deleteUser }}"/>
+                </FlexboxLayout>
+            </ListView.itemTemplate>
+        </ListView>
         <StackLayout row="0" backgroundColor="gray"
                      style="opacity:0.0;"/>
-        <!--style="{{ networkStatus ? 'opacity:0.5;' : 'opacity:0;' }}"/>-->
+        <!--style="{{ networkStatus ? 'opacity:0.75;' : 'opacity:0;' }}"/>-->
         <GridLayout rows="auto"
-                    row="1"
-                    visibility="{{ networkStatus ? 'visible' : 'collapse'}}">
-            <Label row="0" text="{{ networkStatus }}" class="label-title"
+                    visibility="{{ networkStatus ? 'visible' : 'collapse'}}"
+                    row="1">
+            <Label row="0" text="{{ networkStatus }}" class="label-title network-progress"
                    id="progress_text"/>
-            <Label row="0" width="100%" style="horizontal-align:left; opacity:0.5;"
+            <Label row="0" width="100%" style="horizontal-align:left; opacity:0.75;"
                    id="progress_bar" tap="setProgress"/>
         </GridLayout>
     </GridLayout>

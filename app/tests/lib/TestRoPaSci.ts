@@ -4,8 +4,8 @@ import * as Long from "long";
 import {RoPaSciInstance} from "~/lib/cothority/byzcoin/contracts/RoPaSciInstance";
 import {PersonhoodRPC} from "~/lib/PersonhoodRPC";
 
-fdescribe("Rock Paper Scissors Test", () => {
-    fdescribe("Rock Paper Scissors", async () => {
+describe("Rock Paper Scissors Test", () => {
+    describe("Rock Paper Scissors", async () => {
         let tdAdmin: TestData;
         let player1: Data;
         let player2: Data;
@@ -15,11 +15,11 @@ fdescribe("Rock Paper Scissors Test", () => {
             Log.lvl1("Creating Byzcoin");
             tdAdmin = await TestData.init(new Data());
             await tdAdmin.createAll('admin');
-            player1 = new Data("player1");
+            player1 = new Data({alias: "player1"});
             await player1.connectByzcoin();
             await tdAdmin.d.registerContact(player1.contact, Long.fromNumber(1e6));
             await player1.verifyRegistration();
-            player2 = new Data("player2");
+            player2 = new Data({alias: "player2"});
             await player2.connectByzcoin();
             await tdAdmin.d.registerContact(player2.contact, Long.fromNumber(1e6));
             await player2.verifyRegistration();

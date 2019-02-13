@@ -18,31 +18,35 @@ import {ItemEventData} from "tns-core-modules/ui/list-view";
 import {ContactsView} from "~/pages/identity/contacts/contacts-view";
 import {Label} from "tns-core-modules/ui/label";
 
-let identity: ContactsView;
+export let contacts: ContactsView;
 let page: Page;
 
 // Event handler for Page "navigatingTo" event attached in identity.xml
 export function navigatingTo(args: EventData) {
-    identity = new ContactsView(gData.friends);
+    contacts = new ContactsView(gData.friends);
     page = <Page>args.object;
-    page.bindingContext = identity;
+    page.bindingContext = contacts;
     friendsUpdateList();
 }
 
 export function friendsUpdateList() {
-    identity.updateUsers(gData.friends);
+    contacts.updateUsers(gData.friends);
 }
 
 export async function addFriend(args: GestureEventData) {
-    let u = await scanNewUser(gData);
-    await assertRegistered(u, setProgress);
-    friendsUpdateList();
-    await gData.save();
+    try {
+        let u = await scanNewUser(gData);
+        await assertRegistered(u, setProgress);
+        friendsUpdateList();
+        await gData.save();
+    } catch (e){
+        Log.error(e);
+    }
 }
 
 export function setProgress(text: string = "", width: number = 0) {
     if (width == 0) {
-        identity.set("networkStatus", undefined);
+        contacts.set("networkStatus", undefined);
     } else {
         let color = "#308080;";
         if (width < 0) {

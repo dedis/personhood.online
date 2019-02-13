@@ -16,13 +16,13 @@ describe("Rock Paper Scissors Test", () => {
 
         beforeAll(async () => {
             Log.lvl1("Trying to load previous byzcoin");
-            player1 = new Data("player1");
+            player1 = new Data({alias: "player1"});
             player1.setFileName("data1.json");
 
-            player2 = new Data("player2");
+            player2 = new Data({alias: "player2"});
             player2.setFileName("data2.json");
 
-            player3 = new Data("player3");
+            player3 = new Data({alias: "player3"});
             player3.setFileName("data3.json");
 
             await player1.load();
@@ -76,7 +76,7 @@ describe("Rock Paper Scissors Test", () => {
         it("must be saved and loaded", async () => {
             let poll1 = await player1.addPoll(party.partyInstance.iid, "test", "for testing",
                 ["one", "two", "three"]);
-            let player1bis = new Data("player1bis");
+            let player1bis = new Data({alias: "player1bis"});
             player1bis.setFileName("data1.json");
             await player1bis.load();
             expect(player1bis.polls.length).toBe(1);

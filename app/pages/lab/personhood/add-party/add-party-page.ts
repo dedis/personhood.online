@@ -14,6 +14,7 @@ import {sprintf} from "sprintf-js";
 import {CredentialInstance} from "~/lib/cothority/byzcoin/contracts/CredentialInstance";
 import {msgFailed} from "~/lib/ui/messages";
 import {Contact} from "~/lib/Contact";
+import {dismissSoftKeyboard} from "~/lib/ui/users";
 
 let NewParty: PopDesc = undefined;
 let newConfig = undefined;
@@ -31,7 +32,8 @@ let dataForm = fromObject({
 let viewModel = fromObject({
     dataForm: dataForm,
     orgList: new ObservableArray(),
-    readOnly: false
+    readOnly: false,
+    networkStatus: null,
 });
 
 export function onNavigatingTo(args) {
@@ -96,19 +98,25 @@ export function goBack() {
 
 export async function save() {
     try {
+        dismissSoftKeyboard();
+        setProgress("Saving", 30);
         await copyViewModelToParty();
         let orgs = viewModel.get("orgList").slice();
 
         // Create the party
+        setProgress("Creating Party on ByzCoin", 50);
         let ppi = await gData.spawnerInstance.createPopParty(gData.coinInstance, [gData.keyIdentitySigner],
             orgs, NewParty, Long.fromNumber(dataForm.get("reward")));
         let p = new Party(ppi);
         p.isOrganizer = true;
+        setProgress("Storing Parties", 75);
         await gData.addParty(p);
-        await gData.save();
+        setProgress();
         goBack();
     } catch (e) {
+        setProgress("Error: " + e.toString(), -100);
         await msgFailed(e.toString());
+        setProgress();
         Log.catch(e);
     }
 }
@@ -122,5 +130,21 @@ export async function addOrg(args: any) {
     let org = gData.friends.find(f => f.alias == result);
     if (org != null) {
         viewModel.get("orgList").push(org);
+    }
+}
+
+function setProgress(text: string = "", width: number = 0) {
+    if (width == 0) {
+        viewModel.set("networkStatus", null);
+    } else {
+        let color = "#308080;";
+        if (width < 0) {
+            color = "#a04040";
+        }
+        let pb = topmost().getViewById("progress_bar");
+        if (pb) {
+            pb.setInlineStyle("width:" + Math.abs(width) + "%; background-color: " + color);
+        }
+        viewModel.set("networkStatus", text);
     }
 }

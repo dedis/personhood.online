@@ -52,16 +52,22 @@ export async function addNewKey() {
  */
 export async function finalize() {
     try {
+        viewScanModel.setProgress("Finalizing Party", 50);
         await party.partyInstance.finalize(gData.keyIdentitySigner);
         if (party.partyInstance.popPartyStruct.state == Party.Finalized) {
-            await msgOK("Finalized the party");
+            viewScanModel.setProgress("Saving Data", 75);
             await gData.save();
+            viewScanModel.setProgress("Done", 100);
+            await msgOK("Finalized the party");
+            viewScanModel.setProgress();
         } else {
             await msgOK("Waiting for other organizers to finalize");
         }
         await goBack();
     } catch (e) {
+        viewScanModel.setProgress("Error: " + e.toString(), -100);
         await msgFailed("Something went wrong: " + e.toString());
+        viewScanModel.setProgress();
     }
 }
 

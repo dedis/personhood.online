@@ -9,6 +9,7 @@ import {adminView} from "~/pages/settings/settings-page";
 import {ObservableArray} from "tns-core-modules/data/observable-array";
 import {Image} from "tns-core-modules/ui/image";
 import {ImageSource} from "tns-core-modules/image-source";
+import {topmost} from "tns-core-modules/ui/frame";
 
 export class AttributesViewModel extends Observable {
 
@@ -31,6 +32,22 @@ export class AttributesViewModel extends Observable {
 
     get hasCoins(): boolean {
         return gData.coinInstance != null;
+    }
+
+    setProgress(text: string = "", width: number = 0) {
+        if (width == 0) {
+            this.set("networkStatus", null);
+        } else {
+            let color = "#308080;";
+            if (width < 0) {
+                color = "#a04040";
+            }
+            let pb = topmost().getViewById("progress_bar");
+            if (pb) {
+                pb.setInlineStyle("width:" + Math.abs(width) + "%; background-color: " + color);
+            }
+            this.set("networkStatus", text);
+        }
     }
 }
 

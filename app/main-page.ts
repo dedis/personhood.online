@@ -35,6 +35,11 @@ export async function navigatingTo(args: EventData) {
         let page = <Page>args.object;
         page.bindingContext = mainView;
 
+        if (gData.bc){
+            Log.print("directly going to main screen");
+            return mainViewRegistered(args);
+        }
+
         if (Defaults.LoadTestStore) {
             let ts = await TestStore.load(Defaults.Roster);
             Defaults.ByzCoinID = ts.bcID;

@@ -17,13 +17,18 @@ import {ObservableArray} from "tns-core-modules/data/observable-array";
 import {ItemEventData} from "tns-core-modules/ui/list-view";
 import {ContactsView} from "~/pages/identity/contacts/contacts-view";
 import {Label} from "tns-core-modules/ui/label";
-import {Meetup, PersonhoodRPC} from "~/lib/PersonhoodRPC";
+import {Meetup, PersonhoodRPC, UserLocation} from "~/lib/PersonhoodRPC";
 import {MeetupView} from "~/pages/home/meetup/meetup-view";
 import {topmost} from "tns-core-modules/ui/frame";
+import {SocialNode} from "~/lib/SocialNode";
+import {msgFailed} from "~/lib/ui/messages";
+import Timeout = NodeJS.Timeout;
 
 let identity: MeetupView;
 let page: Page;
 let phrpc: PersonhoodRPC;
+let interval: Timeout;
+let counter: number;
 
 // Event handler for Page "navigatingTo" event attached in identity.xml
 export async function navigatingTo(args: EventData) {
@@ -32,8 +37,25 @@ export async function navigatingTo(args: EventData) {
     page.bindingContext = identity;
     phrpc = new PersonhoodRPC(gData.bc);
     setProgress("Broadcasting position", 30);
-    await phrpc.meetups(new Meetup(gData.contact.credentialInstance.credential, ""));
-    await meetupUpdate();
+    try {
+        let ul = UserLocation.fromContact(gData.contact);
+        await phrpc.meetups(new Meetup(ul));
+        Log.print(1);
+        await meetupUpdate();
+        if (interval){
+            clearInterval(interval);
+        }
+        counter = 0;
+        interval = setInterval(() => {
+            meetupUpdate();
+            counter++;
+            if (counter >= 12){
+                clearInterval(interval);
+            }
+        }, 5000);
+    } catch (e){
+        Log.error(e);
+    }
 }
 
 export async function meetupUpdate() {
@@ -44,6 +66,17 @@ export async function meetupUpdate() {
 }
 
 export async function addContacts(){
+    clearInterval(interval);
+    interval = null;
+    if (identity.users.length == 0){
+        await msgFailed("Need at least one other attendee to count meetup", "Empty Meetup");
+    } else {
+        gData.meetups.push(new SocialNode(identity.users));
+        for (let i = 0; i < identity.users.length; i++) {
+            gData.addContact(await identity.users[i].toContact(gData.bc))
+        }
+        await gData.save();
+    }
     topmost().goBack();
 }
 

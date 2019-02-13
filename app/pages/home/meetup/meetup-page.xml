@@ -3,9 +3,14 @@
       class="page">
     <ActionBar class="action-bar">
         <Label class="action-bar-title" text="Meetup"/>
+        <ActionItem tap="meetupUpdate" ios.position="right" android.position="actionBar">
+            <ActionItem.actionView>
+                <Label text="&#xf2f1;  " class="fas" style="font-size: 25%;"/>
+            </ActionItem.actionView>
+        </ActionItem>
     </ActionBar>
     <GridLayout rows="*, auto, auto" row="1">
-        <ListView items="{{ users }}" class="list-group" row="0">
+        <ListView items="{{ userViews }}" class="list-group" row="0">
             <ListView.itemTemplate>
                 <FlexboxLayout orientation="horizontal" flexDirection="row"
                                class="basic-list-decorated"
@@ -19,12 +24,14 @@
         </ListView>
         <Button row="1" text="Add all contacts" class="btn btn-primary" tap="addContacts"/>
         <GridLayout rows="auto"
-                    row="2"
-                    visibility="{{ networkStatus ? 'visible' : 'collapse'}}">
-            <Label row="0" text="{{ networkStatus }}" class="label-title"
-                   id="progress_text"/>
-            <Label row="0" width="100%" style="horizontal-align:left; opacity:0.5;"
-                   id="progress_bar" tap="setProgress"/>
+                    row="2">
+            <Label class="label-title" text=" "/>
+            <GridLayout visibility="{{ networkStatus ? 'visible' : 'hidden'}}">
+                <Label row="0" text="{{ networkStatus }}" class="label-title network-progress"
+                       id="progress_text"/>
+                <Label row="0" width="100%" style="horizontal-align:left; opacity:0.75;"
+                       id="progress_bar" tap="setProgress"/>
+            </GridLayout>
         </GridLayout>
     </GridLayout>
 </Page>

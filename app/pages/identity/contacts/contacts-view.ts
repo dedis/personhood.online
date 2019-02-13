@@ -2,7 +2,7 @@ import {Observable} from "tns-core-modules/data/observable";
 import {Contact} from "~/lib/Contact";
 import {Log} from "~/lib/Log";
 import {gData} from "~/lib/Data";
-import {friendsUpdateList, setProgress} from "~/pages/identity/contacts/contacts-page";
+import {contacts, friendsUpdateList, setProgress} from "~/pages/identity/contacts/contacts-page";
 import {topmost} from "tns-core-modules/ui/frame";
 import {ItemEventData} from "tns-core-modules/ui/list-view";
 import * as dialogs from "tns-core-modules/ui/dialogs";
@@ -22,16 +22,21 @@ export class ContactsView extends Observable {
     }
 
     updateUsers(users: Contact[]) {
-        this._users = users.map(u => new UserView(u));
+        this._users = users.sort((a, b) => a.alias.localeCompare(b.alias))
+            .map(u => new UserView(u));
+        this.notifyUpdate();
+    }
+
+    notifyUpdate(){
         this.notifyPropertyChange("users", this._users);
     }
 
-    public set networkStatus(str: string){
+    public set networkStatus(str: string) {
         this._networkStatus = str;
         this.notifyPropertyChange("networkStatus", this._networkStatus);
     }
 
-    public get networkStatus():string{
+    public get networkStatus(): string {
         return this._networkStatus;
     }
 }
@@ -49,8 +54,19 @@ export class UserView extends Observable {
         this._user = user;
     }
 
-    get alias(): string{
+    get alias(): string {
         return this._user.alias;
+    }
+
+    get isRegistered(): boolean{
+        try {
+            Log.print("user is:", this._user);
+            Log.print("registered:", this._user.isRegistered());
+            return this._user.isRegistered();
+        } catch (e){
+            Log.error(e);
+            return false;
+        }
     }
 
     public async deleteUser(arg: ItemEventData) {
@@ -66,28 +82,46 @@ export class UserView extends Observable {
         }
     }
 
-    public async showUser(arg: ItemEventData){
+    public async showUser(arg: ItemEventData) {
         topmost().showModal("pages/modal/modal-user", this._user,
-            ()=>{}, false, false, false);
+            () => {
+            }, false, false, false);
     }
 
     public async payUser(args: ItemEventData) {
         try {
             await sendCoins(this._user, setProgress);
-        } catch(e){
+            contacts.notifyUpdate();
+            this.notifyPropertyChange("isRegistered", this.isRegistered);
+        } catch (e) {
             Log.catch(e);
             await msgFailed(e, "Error");
         }
         setProgress();
     }
 
-    public async credUser(arg: ItemEventData){
+    public async credUser(arg: ItemEventData) {
+        try {
+            if (!this._user.isRegistered()){
+                Log.print("verifying registration");
+                await this._user.verifyRegistration(gData.bc);
+            }
+            await this._user.update(gData.bc);
+            await gData.save();
+            this.notifyPropertyChange("isRegistered", this.isRegistered);
+        } catch(e){
+            Log.error("Couldn't update", this.alias, e)
+        }
+        let creds = ['alias: ' + this._user.alias];
+        if (this._user.email != "") {
+            creds.push('email: ' + this._user.email);
+        }
+        if (this._user.phone != "") {
+            creds.push('phone: ' + this._user.phone);
+        }
         await dialogs.confirm({
             title: "Credentials of " + this._user.alias,
-            message: this._user.credential.credentials.map(
-                (c) => {
-                    return c.name + ": " + c.attributes[0].name;
-                }).join("\n"),
+            message: creds.join("\n"),
             okButtonText: "OK",
         })
     }

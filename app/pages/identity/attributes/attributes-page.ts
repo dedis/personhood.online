@@ -14,6 +14,7 @@ import {Defaults} from "~/lib/Defaults";
 import {SelectedIndexChangedEventData} from "tns-core-modules/ui/tab-view";
 import {msgFailed, msgOK} from "~/lib/ui/messages";
 import {mainView, mainViewRegister} from "~/main-page";
+import {dismissSoftKeyboard} from "~/lib/ui/users";
 
 let page: Page;
 export let adminView: AttributesViewModel;
@@ -50,16 +51,24 @@ export async function tapClear(args: EventData) {
 
 export async function tapSave(args: EventData) {
     try {
+        dismissSoftKeyboard();
+        adminView.setProgress("Saving Attributes", 10);
         let uid: Identity = page.bindingContext.userId;
         gData.contact.alias = uid.alias;
         gData.contact.email = uid.email;
         gData.contact.phone = uid.phone;
-        await gData.publishPersonhood(uid.publishPersonhood);
+        gData.personhoodPublished = uid.publishPersonhood;
+        if (gData.contact.isRegistered()) {
+            adminView.setProgress("Sending Attributes to ByzCoin", 50);
+        }
         await gData.save();
+        adminView.setProgress("Done", 100);
         await msgOK("Saved your data");
-    } catch (e){
+    } catch (e) {
+        adminView.setProgress("Error: " + e, -100);
         await msgFailed("Something went wrong: " + e.toString());
     }
+    adminView.setProgress();
 }
 
 export async function switchSettings(args: SelectedIndexChangedEventData) {

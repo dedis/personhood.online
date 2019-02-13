@@ -36,6 +36,7 @@ import {Party} from "~/lib/Party";
 import {PopPartyInstance} from "~/lib/cothority/byzcoin/contracts/PopPartyInstance";
 import {RoPaSciInstance} from "~/lib/cothority/byzcoin/contracts/RoPaSciInstance";
 import {elRoPaSci} from "~/pages/lab/ropasci/ropasci-page";
+import {SocialNode} from "~/lib/SocialNode";
 
 /**
  * Data holds the data of the app.
@@ -49,12 +50,13 @@ export class Data {
     bc: ByzCoinRPC = null;
     spawnerInstance: SpawnerInstance = null;
     constructorObj: any;
+    contact: Contact = null;
     friends: Contact[] = [];
     parties: Party[] = [];
     badges: Badge[] = [];
     ropascis: RoPaSciInstance[] = [];
     polls: PollStruct[] = [];
-    contact: Contact = null;
+    meetups: SocialNode[] = [];
 
     /**
      * Constructs a new Data, optionally initialized with an object containing
@@ -78,7 +80,8 @@ export class Data {
             this.personhoodPublished = obj.personhoodPublished ? obj.personhoodPublished : false;
             this.keyPersonhood = obj.keyPersonhood ? new KeyPair(obj.keyPersonhood) : new KeyPair();
             this.keyIdentity = obj.keyIdentity ? new KeyPair(obj.keyIdentity) : new KeyPair();
-            this.friends = obj.friends ? obj.friends.filter(u => u).map(u => Contact.fromObject(u)) : [];
+            this.meetups = obj.meetups ? obj.meetups.map(m => SocialNode.fromObject(m)) : [];
+
             if (obj.contact != null) {
                 this.contact = Contact.fromObject(obj.contact);
             } else {
@@ -100,6 +103,7 @@ export class Data {
         this.bc = null;
         this.spawnerInstance = null;
         this.constructorObj = {};
+        this.meetups = [];
         this.parties = [];
         this.badges = [];
         this.ropascis = [];
@@ -118,12 +122,18 @@ export class Data {
                 let ts = await TestStore.load(Defaults.Roster);
                 Defaults.ByzCoinID = ts.bcID;
                 Defaults.SpawnerIID = ts.spawnerIID.iid;
-                Log.lvl1("Stored new bcID/spawnerIID:", ts.bcID, ts.spawnerIID.iid);
+                Log.lvl1("Updated Defaults bcID/spawnerIID:", ts.bcID, ts.spawnerIID.iid);
             }
 
-            Log.lvl2("Creating bc variable", obj.bcID, Defaults.ByzCoinID);
             let bcID = obj.bcID ? Buffer.from(obj.bcID) : Defaults.ByzCoinID;
             let roster = obj.roster ? Roster.fromObject(obj.roster) : Defaults.Roster;
+            if (bcID == null || bcID.length == 0) {
+                if (Defaults.Testing) {
+                    return;
+                } else {
+                    return Promise.reject("Cannot connect to ByzCoin");
+                }
+            }
             this.bc = await ByzCoinRPC.fromByzcoin(new RosterSocket(roster, RequestPath.BYZCOIN), bcID);
 
             Log.lvl2("Getting spawnerInstance");
@@ -159,9 +169,17 @@ export class Data {
                 this.polls = obj.polls.map(rps => PollStruct.fromObject(rps));
             }
 
-            Log.lvl2("Getting contact informations");
             if (obj.contact){
                 await this.contact.addBC(this.bc, obj.contact)
+            }
+
+            Log.lvl2("Getting contact informations");
+            this.friends = [];
+            if (obj.friends){
+                let f = obj.friends.filter(u => u);
+                for (let i = 0; i < f.length; i++){
+                    this.friends.push(await Contact.fromObjectBC(this.bc, f[i]));
+                }
             }
         } catch (e) {
             await Log.rcatch(e);
@@ -170,12 +188,15 @@ export class Data {
     }
 
     toObject(): any {
+        Log.print("friends are:");
+        this.friends.forEach(f => Log.print(f.isRegistered(), f));
         let v = {
             continuousScan: this.continuousScan,
             personhoodPublished: this.personhoodPublished,
             keyPersonhood: this.keyPersonhood._private.toHex(),
             keyIdentity: this.keyIdentity._private.toHex(),
             friends: this.friends.map(u => u.toObject()),
+            meetups: this.meetups.map(m => m.toObject()),
             contact: this.contact.toObject(),
             bcRoster: null,
             bcID: null,
@@ -229,12 +250,17 @@ export class Data {
         } catch (e) {
             Log.catch(e);
         }
+        this.bc = null;
         await this.connectByzcoin();
         return this;
     }
 
     async save(): Promise<Data> {
         await FileIO.writeFile(this.dataFileName, JSON.stringify(this.toObject()));
+        if (this.personhoodPublished) {
+            this.contact.credential.setAttribute("personhood",
+                "ed25519", this.keyPersonhood._public.toBuffer());
+        }
         await this.contact.sendUpdate(this.keyIdentitySigner);
         return this;
     }

@@ -14,10 +14,10 @@ import {Label} from "tns-core-modules/ui/label";
 import {msgFailed, msgOK} from "~/lib/ui/messages";
 import {Defaults} from "~/lib/Defaults";
 import {ObservableArray} from "tns-core-modules/data/observable-array";
-import {topmost} from "tns-core-modules/ui/frame";
+import {Frame, topmost} from "tns-core-modules/ui/frame";
+import {frame} from "~/pages/identity/identity-page";
 
 let attributes = new ObservableArray();
-
 let identity = fromObject({
     alias: "unknown",
     qrcode: undefined,
@@ -49,7 +49,9 @@ export async function navigatingToHome(args: EventData) {
 }
 
 export function meetup() {
-    return msgOK("Confirm presence of others");
+    return topmost().navigate({
+        moduleName: "pages/home/meetup/meetup-page"
+    });
 }
 
 export function login() {
@@ -69,7 +71,6 @@ export function personhoodDesc() {
 }
 
 export function cyclePersonhood() {
-    Log.print(identityShow);
     switch (identityShow) {
         case 0:
             setScore(3, false, 0, 0);
@@ -91,10 +92,6 @@ export function cyclePersonhood() {
     identityShow++;
 }
 
-export async function switchHome(args: SelectedIndexChangedEventData) {
-    await update();
-}
-
 export function setProgress(text: string = "", width: number = 0) {
     if (width == 0) {
         identity.set("networkStatus", undefined);
@@ -113,15 +110,26 @@ function setScore(att: number, reg: boolean, meet: number, party: number) {
     identity.set("widthAttributes", attWidth + "%");
     let regWidth = reg ? 10 : 0;
     identity.set("widthRegistered", regWidth + "%");
-    let meetWidth = meet;
+    let meetWidth = Math.min(meet, 6) * 5;
+    Log.print(meet);
     identity.set("widthMeetups", meetWidth + "%");
     let partyWidth = party > 0 ? 50 : 0;
     identity.set("widthParty", partyWidth + "%");
     identity.set("personhoodScore", (attWidth + regWidth + meetWidth + partyWidth) + "%");
 }
 
-async function update() {
+export async function update() {
+    setProgress("Updating", 50);
+    identity.set("hasCoins", false);
     identity.set("alias", gData.contact.alias);
+    if (!gData.contact.isRegistered()) {
+        await gData.contact.verifyRegistration(gData.bc);
+        if (gData.contact.isRegistered()) {
+            // Need to send new credential to byzcoin
+            await gData.contact.sendUpdate(gData.keyIdentitySigner);
+        }
+    }
+    identity.set("qrcode", gData.contact.qrcodeIdentity());
     attributes.splice(0);
     attributes.push({name: "alias", value: gData.contact.alias});
     if (gData.contact.email != "") {
@@ -130,14 +138,14 @@ async function update() {
     if (gData.contact.phone != "") {
         attributes.push({name: "phone", value: gData.contact.phone});
     }
-    setScore(attributes.length, gData.coinInstance != null, 0, gData.badges.length);
+    setScore(attributes.length, gData.coinInstance != null, gData.meetups.length, gData.badges.length);
     if (gData.coinInstance != null) {
         identity.set("hasCoins", true);
+        identity.set("init", false);
         await gData.coinInstance.update();
         identity.set("coins", gData.coinInstance.coin.value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " "));
-        identity.set("qrcode", gData.contact.qrcodeIdentity());
-        identity.set("init", false);
     }
+    setProgress();
 }
 
 export async function coins(args: EventData) {
@@ -150,4 +158,9 @@ export async function coins(args: EventData) {
         Log.catch(e);
         await msgFailed("Something unforseen happened: " + e.toString());
     }
+}
+
+export async function switchHome(args: SelectedIndexChangedEventData) {
+    await page.frame.navigate("pages/home/home-page");
+    await update();
 }

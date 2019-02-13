@@ -5,3 +5,5 @@ hooks/
 node_modules/
 platforms/
 releases/
+archive/
+release

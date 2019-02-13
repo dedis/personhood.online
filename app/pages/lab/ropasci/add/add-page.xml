@@ -66,9 +66,9 @@
 
         <GridLayout rows="auto" row="4" colSpan="3" tap="cancelNetwork"
                     visibility="{{ networkStatusShow ? 'visible' : 'collapse'}}">
-            <Label row="0" text="{{ networkStatus }}" class="label-title"
+            <Label row="0" text="{{ networkStatus }}" class="label-title network-progress"
                    id="progress_text"/>
-            <Label row="0" width="100%" style="horizontal-align:left; opacity:0.5;"
+            <Label row="0" width="100%" style="horizontal-align:left; opacity:0.75;"
                    id="progress_bar" tap="setProgress"/>
         </GridLayout>
     </GridLayout>

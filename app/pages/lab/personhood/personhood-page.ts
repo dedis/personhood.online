@@ -15,7 +15,7 @@ import * as Long from "long";
 import {scanNewUser} from "~/lib/ui/users";
 import {ObservableArray} from "tns-core-modules/data/observable-array";
 import {PersonhoodView} from "~/pages/lab/personhood/personhood-view";
-import {msgOK} from "~/lib/ui/messages";
+import {msgFailed, msgOK} from "~/lib/ui/messages";
 import {topmost} from "tns-core-modules/ui/frame";
 
 export let elements: PersonhoodView;
@@ -31,12 +31,19 @@ export async function navigatingTo(args: EventData) {
 
 export async function updateParties() {
     try {
+        elements.setProgress("Updating", 20);
         await elements.updateAddParty();
         await gData.reloadParties();
         await gData.save();
+        elements.setProgress("Updating Parties", 50);
         await elements.updateParties();
+        elements.setProgress("Updating Badges", 75);
         await elements.updateBadges();
+        elements.setProgress()
     } catch(e){
+        elements.setProgress("Error: " + e, -100);
+        await msgFailed("Error: " + e);
+        elements.setProgress();
         Log.catch(e);
     }
 }

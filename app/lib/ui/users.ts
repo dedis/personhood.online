@@ -5,7 +5,19 @@ import {Contact} from "~/lib/Contact";
 import * as dialogs from "tns-core-modules/ui/dialogs";
 import * as Long from "long";
 import {msgFailed, msgOK} from "~/lib/ui/messages";
-import {setProgress} from "~/pages/identity/contacts/contacts-page";
+
+import * as utils from "utils/utils";
+import {isIOS, isAndroid} from "platform";
+import * as frame from "ui/frame";
+
+export function dismissSoftKeyboard() {
+    if (isIOS) {
+        frame.topmost().nativeView.endEditing(true);
+    }
+    if (isAndroid) {
+        utils.ad.dismissSoftInput();
+    }
+}
 
 export async function scanNewUser(d: Data): Promise<Contact> {
     let str = await scan("Scan Identity Code");
@@ -36,8 +48,9 @@ export async function assertRegistered(u: Contact, setProgress: Function): Promi
                 await msgFailed("Couldn't register user: " + e.toString());
                 return false;
             }
+            await u.verifyRegistration(gData.bc);
             await msgOK(u.alias + " is now registered and can be verified.");
-            setProgress();
+            await gData.save();
             return true;
         }
     } else {
@@ -65,6 +78,9 @@ export async function sendCoins(u: Contact, setProgress: Function) {
                     await gData.coinInstance.transfer(coins, target, [gData.keyIdentitySigner]);
                     setProgress("Success", 100);
                     await msgOK("Transferred " + coins.toString() + " to " + u.alias)
+                    setProgress();
+                } else {
+                    await msgFailed("couldn't get targetAddress");
                 }
             } else {
                 await msgFailed("Cannot pay " + coins.toString() + " coins.");

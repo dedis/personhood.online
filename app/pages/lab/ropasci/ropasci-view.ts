@@ -86,7 +86,7 @@ export class RopasciViewElement extends Observable {
                     break
             }
         }
-        return "horizontal-align:left; opacity:0.5; background-color: #" + color;
+        return "horizontal-align:left; opacity:0.9; background-color: #" + color;
     }
 
     get stake(): string {

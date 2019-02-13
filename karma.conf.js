@@ -3,6 +3,9 @@ module.exports = function (config) {
         client: {
             jasmine: {
                 oneFailurePerSpec: true,
+                stopSpecOnExpectationFailure: true,
+                browserDisconnectTolerance: 2,
+                browserNoActivityTimeout: 500000,
                 failFast: true,
                 timeoutInterval: 60000,
                 random: false,

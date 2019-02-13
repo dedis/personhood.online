@@ -19,9 +19,7 @@ import {viewScanModel} from "~/pages/lab/personhood/scan-atts/scan-atts-page";
 export class PersonhoodView extends Observable {
     parties: PartyView[] = [];
     badges: BadgeView[] = [];
-    networkStatus: string;
     canAddParty: boolean;
-    networkStatusShow: boolean = false;
 
     constructor() {
         super();
@@ -56,9 +54,7 @@ export class PersonhoodView extends Observable {
     }
 
     async updateParties() {
-        this.setProgress("Updating parties", 50);
         await gData.updateParties();
-        this.setProgress("Got parties", 100);
         this.parties = gData.parties.map(p => new PartyView(p))
             .sort((a, b) => a.party.partyInstance.popPartyStruct.description.dateTime.sub(
                 b.party.partyInstance.popPartyStruct.description.dateTime).toNumber());
@@ -67,15 +63,13 @@ export class PersonhoodView extends Observable {
             this.parties[0].setChosen(true);
         }
         this.notifyPropertyChange("elements", this.elements);
-        this.setProgress();
     }
 
     setProgress(text: string = "", width: number = 0) {
         Log.lvl2("setting progress to", text, width);
         if (width == 0) {
-            elements.set("networkStatusShow", false);
+            elements.set("networkStatus", null);
         } else {
-            elements.set("networkStatusShow", true);
             let color = "#308080;";
             if (width < 0) {
                 color = "#a04040";
@@ -84,7 +78,7 @@ export class PersonhoodView extends Observable {
             if (pb) {
                 pb.setInlineStyle("width:" + Math.abs(width) + "%; background-color: " + color);
             }
-            elements.notifyPropertyChange("networkStatus", text);
+            elements.set("networkStatus", text);
         }
     }
 }
@@ -284,7 +278,9 @@ export class PartyView extends Observable {
                     }
                     break;
                 case BARRIER:
+                    elements.setProgress("Activating Barrier Point", 50);
                     await this.party.partyInstance.activateBarrier(gData.keyIdentitySigner);
+                    elements.setProgress();
                     break;
                 case SCAN:
                     return topmost().navigate({

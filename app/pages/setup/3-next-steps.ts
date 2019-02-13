@@ -36,10 +36,10 @@ export async function deleteAll(args: any) {
         // Page navigation, without saving navigation history.
         backstackVisible: false
     });
+    await msgOK("Deleted all data");
     // return gotoMain("Deleted all data");
 }
 
-async function goMain(msg: string, args: any) {
-    await msgOK(msg);
+export async function goMain(args: any = null) {
     await mainViewRegistered(args);
 }

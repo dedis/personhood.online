@@ -75,6 +75,10 @@ export class CredentialStruct {
     constructor(public credentials: Credential[]) {
     }
 
+    copy(): CredentialStruct{
+        return CredentialStruct.fromObject(this.toObject());
+    }
+
     getAttribute(credential: string, attribute: string): Buffer {
         let cred = this.credentials.find(c => c.name == credential);
         if (!cred) {

@@ -35,10 +35,10 @@
                             </StackLayout>
                         </StackLayout>
                     </StackLayout>
-                    <GridLayout visibility="{{ nextStep ? 'visible' : 'collapse' }}">
+                    <GridLayout visibility="{{ nextStep ? 'visible' : 'collapse' }}" tap="{{ onTap }}">
                         <Label text="{{ nextStep }}" class="h3" row="0" style="text-align: center;" width="100%"/>
                         <Label width="{{ stepWidth }}"
-                               style="horizontal-align:left; opacity:0.5; background-color: #00caab;"
+                               style="horizontal-align:left; opacity:0.75; background-color: #00caab;"
                                id="{{ 'progress_bar_' + desc.name }}" row="0"/>
                         <Label width="100%"
                                style="border-color: black; border-width: 2px;"/>
@@ -49,13 +49,12 @@
 
         <StackLayout row="0" backgroundColor="gray"
                      style="opacity:0.0;"/>
-        <!--style="{{ networkStatus ? 'opacity:0.5;' : 'opacity:0;' }}"/>-->
         <GridLayout rows="auto"
                     row="1"
-                    visibility="{{ networkStatusShow ? 'visible' : 'collapse'}}">
-            <Label row="0" text="{{ networkStatus }}" class="label-title"
+                    visibility="{{ networkStatus ? 'visible' : 'collapse'}}">
+            <Label row="0" text="{{ networkStatus }}" class="label-title network-progress"
                    id="progress_text"/>
-            <Label row="0" width="100%" style="horizontal-align:left; opacity:0.5;"
+            <Label row="0" width="100%" style="horizontal-align:left; opacity:0.75;"
                    id="progress_bar" tap="setProgress"/>
         </GridLayout>
     </GridLayout>
