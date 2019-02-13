@@ -485,8 +485,7 @@ export class Data {
     }
 
     get uniqueMeetings(): number {
-        let meetups = this.meetups.map(m => m.users.map(u => u.alias)
-            .sort((a, b) => a.localeCompare(b)));
+        let meetups = this.meetups.map(m => Contact.sortAlias(m.users));
         let unique = meetups.filter((meetup, i) =>
             meetups.findIndex(m => m.join() == meetup.join()) == i);
         return unique.length;

@@ -10,11 +10,11 @@ import {getFrameById, topmost} from "tns-core-modules/ui/frame";
 import {RoPaSciInstance, RoPaSciStruct} from "~/lib/cothority/byzcoin/contracts/RoPaSciInstance";
 import {elRoPaSci, updateRoPaSci} from "~/pages/lab/ropasci/ropasci-page";
 import {ObservableArray} from "tns-core-modules/data/observable-array";
+import {contacts} from "~/pages/identity/contacts/contacts-page";
 
 export class RopasciView extends Observable {
     ropascis = new ObservableArray();
     networkStatus: string;
-    networkStatusShow: boolean = false;
 
     constructor() {
         super();
@@ -37,19 +37,13 @@ export class RopasciView extends Observable {
     }
 
     setProgress(text: string = "", width: number = 0) {
-        if (width == 0) {
-            elRoPaSci.set("networkStatusShow", false);
-        } else {
-            elRoPaSci.set("networkStatusShow", true);
+        elRoPaSci.set("networkStatus", width == 0 ? undefined : text);
+        if (width != 0) {
             let color = "#308080;";
             if (width < 0) {
                 color = "#a04040";
             }
-            let pb = topmost().getViewById("progress_bar");
-            if (pb) {
-                pb.setInlineStyle("width:" + Math.abs(width) + "%; background-color: " + color);
-            }
-            elRoPaSci.notifyPropertyChange("networkStatus", text);
+            topmost().getViewById("progress_bar").setInlineStyle("width:" + Math.abs(width) + "%; background-color: " + color);
         }
     }
 }

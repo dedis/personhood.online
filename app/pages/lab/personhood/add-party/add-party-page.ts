@@ -133,18 +133,14 @@ export async function addOrg(args: any) {
     }
 }
 
-function setProgress(text: string = "", width: number = 0) {
-    if (width == 0) {
-        viewModel.set("networkStatus", null);
-    } else {
+export function setProgress(text: string = "", width: number = 0) {
+    viewModel.set("networkStatus", width == 0 ? undefined : text);
+    if (width != 0) {
         let color = "#308080;";
         if (width < 0) {
             color = "#a04040";
         }
-        let pb = topmost().getViewById("progress_bar");
-        if (pb) {
-            pb.setInlineStyle("width:" + Math.abs(width) + "%; background-color: " + color);
-        }
-        viewModel.set("networkStatus", text);
+        page.getViewById("progress_bar").setInlineStyle("width:" + Math.abs(width) + "%; background-color: " + color);
     }
 }
+

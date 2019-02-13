@@ -13,7 +13,7 @@
                     visibility="{{ readOnly ? 'collapsed' : 'visible' }}"/>
     </ActionBar>
 
-    <GridLayout columns="*">
+    <GridLayout rows="*">
         <ScrollView row="0">
             <GridLayout class="page-content" rows="auto, auto, auto,*"
                         columns="*,auto,*">
@@ -124,13 +124,14 @@
 
             </GridLayout>
         </ScrollView>
-        <GridLayout rows="auto" row="0"
-                    visibility="{{ networkStatus ? 'visible' : 'collapse'}}"
-                    style="vertical-align: bottom;">
-            <Label row="0" text="{{ networkStatus }}" class="label-title network-progress"
-                   id="progress_text"/>
-            <Label row="0" width="100%" backgroundColor="blue" style="horizontal-align:left; opacity:0.75;"
-                   id="progress_bar"/>
+
+        <GridLayout rows="auto" row="0" class="network-progress-grid">
+            <GridLayout visibility="{{ networkStatus ? 'visible' : 'hidden'}}">
+                <Label row="0" text="{{ networkStatus }}" class="label-title network-progress"
+                       id="progress_text"/>
+                <Label row="0" width="100%" class="network-progress-bar"
+                       id="progress_bar" tap="setProgress"/>
+            </GridLayout>
         </GridLayout>
     </GridLayout>
 </Page>

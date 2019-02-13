@@ -22,8 +22,8 @@ export class ContactsView extends Observable {
     }
 
     updateUsers(users: Contact[]) {
-        this._users = users.sort((a, b) => a.alias.localeCompare(b.alias))
-            .map(u => new UserView(u));
+        Contact.sortAlias(users);
+        this._users = users.map(u => new UserView(u));
         this.notifyUpdate();
     }
 

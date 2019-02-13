@@ -22,14 +22,15 @@
                 </FlexboxLayout>
             </ListView.itemTemplate>
         </ListView>
-        <Button row="1" text="Add all contacts" class="btn btn-primary" tap="addContacts"/>
-        <GridLayout rows="auto"
-                    row="2">
+
+        <Button row="1" text="Add all contacts" class="btn" tap="addContacts"/>
+
+        <GridLayout rows="auto" row="2" class="network-progress-grid">
             <Label class="label-title" text=" "/>
             <GridLayout visibility="{{ networkStatus ? 'visible' : 'hidden'}}">
                 <Label row="0" text="{{ networkStatus }}" class="label-title network-progress"
                        id="progress_text"/>
-                <Label row="0" width="100%" style="horizontal-align:left; opacity:0.75;"
+                <Label row="0" width="100%" class="network-progress-bar"
                        id="progress_bar" tap="setProgress"/>
             </GridLayout>
         </GridLayout>

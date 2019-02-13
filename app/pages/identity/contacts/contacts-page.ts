@@ -45,14 +45,13 @@ export async function addFriend(args: GestureEventData) {
 }
 
 export function setProgress(text: string = "", width: number = 0) {
-    if (width == 0) {
-        contacts.set("networkStatus", undefined);
-    } else {
+    contacts.set("networkStatus", width == 0 ? undefined : text);
+    if (width != 0) {
         let color = "#308080;";
         if (width < 0) {
             color = "#a04040";
         }
         page.getViewById("progress_bar").setInlineStyle("width:" + Math.abs(width) + "%; background-color: " + color);
-        (<Label>page.getViewById("progress_text")).text = text;
     }
 }
+

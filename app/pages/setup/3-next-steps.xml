@@ -19,8 +19,8 @@ Here the user can enter his alias
             <Label text="Once you're signed up you can play a game of rock-paper-scissors on the blockchain. If you participate in a personhood party, you can create an anonymous, troll-resistant poll."
                    class="h3"
                    textWrap="true"/>
-            <Button text="Show Main Screen" tap="goMain" class="btn btn-primary"/>
-            <Button text="Delete all" tap="deleteAll" class="btn btn-primary btn-test"
+            <Button text="Show Main Screen" tap="goMain" class="btn"/>
+            <Button text="Delete all" tap="deleteAll" class="btn btn-test"
                     visibility="{{ testing ? 'visible' : 'collapse' }}"/>
         </StackLayout>
     </ScrollView>

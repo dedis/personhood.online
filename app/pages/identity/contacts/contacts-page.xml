@@ -32,16 +32,14 @@
                 </FlexboxLayout>
             </ListView.itemTemplate>
         </ListView>
-        <StackLayout row="0" backgroundColor="gray"
-                     style="opacity:0.0;"/>
-        <!--style="{{ networkStatus ? 'opacity:0.75;' : 'opacity:0;' }}"/>-->
-        <GridLayout rows="auto"
-                    visibility="{{ networkStatus ? 'visible' : 'collapse'}}"
-                    row="1">
-            <Label row="0" text="{{ networkStatus }}" class="label-title network-progress"
-                   id="progress_text"/>
-            <Label row="0" width="100%" style="horizontal-align:left; opacity:0.75;"
-                   id="progress_bar" tap="setProgress"/>
+
+        <GridLayout rows="auto" row="1" class="network-progress-grid">
+            <GridLayout visibility="{{ networkStatus ? 'visible' : 'hidden'}}">
+                <Label row="0" text="{{ networkStatus }}" class="label-title network-progress"
+                       id="progress_text"/>
+                <Label row="0" width="100%" class="network-progress-bar"
+                       id="progress_bar" tap="setProgress"/>
+            </GridLayout>
         </GridLayout>
     </GridLayout>
 </Page>

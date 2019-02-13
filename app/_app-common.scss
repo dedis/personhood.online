@@ -178,7 +178,7 @@ ActionBar .action-bar-title {
 }
 
 .btn-test {
-  background-color: #cc7700;
+  background-color: #fffff0;
   color: #000000;
 }
 
@@ -187,5 +187,17 @@ ActionBar .action-bar-title {
 }
 
 .network-progress {
-  //color: #4444ff;
+  color: #104040;
+  background-color: #e0ffff;
+  width: 100%;
+  text-align: center;
+}
+
+.network-progress-bar {
+  horizontal-align:left;
+  opacity:0.5;
+}
+
+.network-progress-grid {
+  vertical-align: bottom;
 }

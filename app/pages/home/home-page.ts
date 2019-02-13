@@ -42,7 +42,7 @@ export async function navigatingToHome(args: EventData) {
     page = <Page>args.object;
     try {
         page.bindingContext = identity;
-        await update();
+        setTimeout(() => update(), 1);
     } catch (e) {
         Log.catch(e);
     }
@@ -73,16 +73,16 @@ export function personhoodDesc() {
 export function cyclePersonhood() {
     switch (identityShow) {
         case 0:
-            setScore(3, false, 0, 0);
+            setScore(4, false, 0, 0);
             break;
         case 1:
-            setScore(3, true, 0, 0);
+            setScore(4, true, 0, 0);
             break;
         case 2:
-            setScore(3, true, 30, 0);
+            setScore(4, true, 6, 0);
             break;
-        case 3:
-            setScore(3, true, 30, 50);
+        case 4:
+            setScore(4, true, 6, 1);
             break;
         case 4:
             setScore(0, false, 0, 0);
@@ -93,15 +93,13 @@ export function cyclePersonhood() {
 }
 
 export function setProgress(text: string = "", width: number = 0) {
-    if (width == 0) {
-        identity.set("networkStatus", undefined);
-    } else {
+    identity.set("networkStatus", width == 0 ? undefined : text);
+    if (width != 0) {
         let color = "#308080;";
         if (width < 0) {
             color = "#a04040";
         }
         page.getViewById("progress_bar").setInlineStyle("width:" + Math.abs(width) + "%; background-color: " + color);
-        (<Label>page.getViewById("progress_text")).text = text;
     }
 }
 
@@ -163,5 +161,4 @@ export async function coins(args: EventData) {
 
 export async function switchHome(args: SelectedIndexChangedEventData) {
     await page.frame.navigate("pages/home/home-page");
-    await update();
 }

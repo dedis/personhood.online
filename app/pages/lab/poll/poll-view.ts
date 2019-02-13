@@ -11,11 +11,11 @@ import {elPoll, updatePoll} from "~/pages/lab/poll/poll-page";
 import {ObservableArray} from "tns-core-modules/data/observable-array";
 import {PersonhoodRPC, PollChoice, PollStruct} from "~/lib/PersonhoodRPC";
 import {Defaults} from "~/lib/Defaults";
+import {contacts} from "~/pages/identity/contacts/contacts-page";
 
 export class PollView extends Observable {
     polls = new ObservableArray();
     networkStatus: string;
-    networkStatusShow: boolean = false;
 
     constructor() {
         super();
@@ -30,19 +30,13 @@ export class PollView extends Observable {
     }
 
     setProgress(text: string = "", width: number = 0) {
-        if (width == 0) {
-            elPoll.set("networkStatusShow", false);
-        } else {
-            elPoll.set("networkStatusShow", true);
+        elPoll.set("networkStatus", width == 0 ? undefined : text);
+        if (width != 0) {
             let color = "#308080;";
             if (width < 0) {
                 color = "#a04040";
             }
-            let pb = topmost().getViewById("progress_bar");
-            if (pb) {
-                pb.setInlineStyle("width:" + Math.abs(width) + "%; background-color: " + color);
-            }
-            elPoll.notifyPropertyChange("networkStatus", text);
+            topmost().getViewById("progress_bar").setInlineStyle("width:" + Math.abs(width) + "%; background-color: " + color);
         }
     }
 }

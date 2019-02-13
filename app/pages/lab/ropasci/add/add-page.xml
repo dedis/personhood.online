@@ -59,17 +59,18 @@
             </df:RadaForm.properties>
         </df:RadDataForm>
 
-        <Button text="Send Game to ByzCoin" tap="save" class="btn btn-primary btn-active"
+        <Button text="Send Game to ByzCoin" tap="save" class="btn"
                 row="2" colSpan="3"/>
 
         <Label text="" row="3"/>
 
-        <GridLayout rows="auto" row="4" colSpan="3" tap="cancelNetwork"
-                    visibility="{{ networkStatusShow ? 'visible' : 'collapse'}}">
-            <Label row="0" text="{{ networkStatus }}" class="label-title network-progress"
-                   id="progress_text"/>
-            <Label row="0" width="100%" style="horizontal-align:left; opacity:0.75;"
-                   id="progress_bar" tap="setProgress"/>
+        <GridLayout rows="auto" row="4" class="network-progress-grid">
+            <GridLayout visibility="{{ networkStatus ? 'visible' : 'hidden'}}">
+                <Label row="0" text="{{ networkStatus }}" class="label-title network-progress"
+                       id="progress_text"/>
+                <Label row="0" width="100%" class="network-progress-bar"
+                       id="progress_bar" tap="setProgress"/>
+            </GridLayout>
         </GridLayout>
     </GridLayout>
 </Page>

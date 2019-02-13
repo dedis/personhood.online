@@ -15,7 +15,7 @@
                     <!--ios.systemIcon="13" ios.position="right"-->
                     <!--icon="res://ic_reload_white" android.position="actionBar"/>-->
     </ActionBar>
-    <GridLayout rows="*, auto" tap="cancelNetwork">
+    <GridLayout rows="*" tap="cancelNetwork">
         <ListView items="{{ elements }}" class="list-group" row="0">
             <ListView.itemTemplate>
                 <StackLayout class="{{ 'basic-list-decorated ' + bgcolor }}">
@@ -38,7 +38,7 @@
                     <GridLayout visibility="{{ nextStep ? 'visible' : 'collapse' }}" tap="{{ onTap }}">
                         <Label text="{{ nextStep }}" class="h3" row="0" style="text-align: center;" width="100%"/>
                         <Label width="{{ stepWidth }}"
-                               style="horizontal-align:left; opacity:0.75; background-color: #00caab;"
+                               style="horizontal-align:left; opacity:0.5; background-color: #00caab;"
                                id="{{ 'progress_bar_' + desc.name }}" row="0"/>
                         <Label width="100%"
                                style="border-color: black; border-width: 2px;"/>
@@ -47,15 +47,13 @@
             </ListView.itemTemplate>
         </ListView>
 
-        <StackLayout row="0" backgroundColor="gray"
-                     style="opacity:0.0;"/>
-        <GridLayout rows="auto"
-                    row="1"
-                    visibility="{{ networkStatus ? 'visible' : 'collapse'}}">
-            <Label row="0" text="{{ networkStatus }}" class="label-title network-progress"
-                   id="progress_text"/>
-            <Label row="0" width="100%" style="horizontal-align:left; opacity:0.75;"
-                   id="progress_bar" tap="setProgress"/>
+        <GridLayout rows="auto" row="0" class="network-progress-grid">
+            <GridLayout visibility="{{ networkStatus ? 'visible' : 'hidden'}}">
+                <Label row="0" text="{{ networkStatus }}" class="label-title network-progress"
+                       id="progress_text"/>
+                <Label row="0" width="100%" class="network-progress-bar"
+                       id="progress_bar" tap="setProgress"/>
+            </GridLayout>
         </GridLayout>
     </GridLayout>
 </Page>

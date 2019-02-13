@@ -351,4 +351,12 @@ export class Contact {
         }
         return b.readUInt32LE(0);
     }
+
+    static sortAlias(cs: hasAlias[]): hasAlias[]{
+        return cs.sort((a, b) => a.alias.toLocaleLowerCase().localeCompare(b.alias.toLocaleLowerCase()));
+    }
+}
+
+interface hasAlias {
+    alias: string
 }

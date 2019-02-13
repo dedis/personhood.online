@@ -26,7 +26,7 @@
                         visibility="{{ testing ? 'visible' : 'collapse' }}"/>
                 <Button text="Share data" tap="shareData" class="btn btn-test"
                         visibility="{{ testing ? 'visible' : 'collapse' }}"/>
-                <Button text="Save" tap="tapSave" class="btn btn-primary btn-active"/>
+                <Button text="Save" tap="tapSave" class="btn"/>
             </StackLayout>
 
             <StackLayout row="1">
@@ -44,17 +44,20 @@
 
             <StackLayout row="2">
                 <StackLayout orientation="horizontal" style="horizontal-align: center;">
-                    <HtmlView html="Personhood is brought to you by <u>https://personhood.online</u>:" class="h3"
-                              textWrap="true"
-                              width="60%" style="vertical-align: center;" tap="goPersonhood"/>
+                    <StackLayout>
+                        <HtmlView html="Personhood is brought to you by <u>https://personhood.online</u>" class="h3"
+                                  textWrap="true"
+                                  width="60%" style="vertical-align: center;" tap="goPersonhood"/>
+                        <HtmlView html="You find the code on github: <u>https://github.com/dedis/personhood.online</u>"
+                                  class="h3"
+                                  textWrap="true"
+                                  width="60%" style="vertical-align: center;" tap="goGithub"/>
+                    </StackLayout>
                     <Image src="~/images/icon-personhood-64.png" width="20%" tap="goPersonhood"/>
                 </StackLayout>
-                <HtmlView html="You find the code on github: <u>https://github.com/dedis/personhood.online</u>:" class="h3"
-                          textWrap="true"
-                          width="60%" style="vertical-align: center;" tap="goGithub"/>
             </StackLayout>
 
-            <Label text="Version 0.5.0" class="h5" row="3" style="text-align: right; margin-right: 5%;"/>
+            <Label text="Version 0.5.1" class="h5" row="3" style="text-align: right; margin-right: 5%;"/>
         </GridLayout>
     </ScrollView>
 </Page>

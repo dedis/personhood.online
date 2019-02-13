@@ -76,14 +76,14 @@ export function goPersonhood() {
     openUrl("https://personhood.online");
 }
 
-function setProgress(text: string = "", width: number = 0) {
-    if (width == 0) {
-        view.set("networkStatus", undefined);
-    } else {
-        let pb = page.getViewById("progress_bar");
-        if (pb) {
-            pb.setInlineStyle("width:" + width + "%;");
-            (<Label>page.getViewById("progress_text")).text = text;
+export function setProgress(text: string = "", width: number = 0) {
+    view.set("networkStatus", width == 0 ? undefined : text);
+    if (width != 0) {
+        let color = "#308080;";
+        if (width < 0) {
+            color = "#a04040";
         }
+        page.getViewById("progress_bar").setInlineStyle("width:" + Math.abs(width) + "%; background-color: " + color);
     }
 }
+

@@ -70,14 +70,15 @@
                 </df:RadDataForm.groups>
             </df:RadDataForm>
 
-        <Button text="Save new poll" tap="save" class="btn btn-primary btn-active" row="2"/>
+        <Button text="Save new poll" tap="save" class="btn" row="2"/>
 
-        <GridLayout rows="auto" row="1" tap="cancelNetwork"
-                    visibility="{{ networkStatusShow ? 'visible' : 'collapse'}}">
-            <Label row="0" text="{{ networkStatus }}" class="label-title network-progress"
-                   id="progress_text"/>
-            <Label row="0" width="100%" style="horizontal-align:left; opacity:0.75;"
-                   id="progress_bar" tap="setProgress"/>
+        <GridLayout rows="auto" row="1" class="network-progress-grid">
+            <GridLayout visibility="{{ networkStatus ? 'visible' : 'hidden'}}">
+                <Label row="0" text="{{ networkStatus }}" class="label-title network-progress"
+                       id="progress_text"/>
+                <Label row="0" width="100%" class="network-progress-bar"
+                       id="progress_bar" tap="setProgress"/>
+            </GridLayout>
         </GridLayout>
     </GridLayout>
 </Page>

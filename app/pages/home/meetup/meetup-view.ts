@@ -25,8 +25,8 @@ export class MeetupView extends Observable {
         this.users = users.filter((user, i) =>
             users.findIndex(u => u.equals(user)) == i)
             .filter(u => u.alias != gData.alias);
-        this._userViews = this.users.sort((a, b) => a.alias.localeCompare(b.alias))
-            .map(u => new UserView(u));
+        Contact.sortAlias(this.users).map(u => u.alias);
+        this._userViews = this.users.map(u => new UserView(u));
         this.notifyPropertyChange("userViews", this._userViews);
     }
 
