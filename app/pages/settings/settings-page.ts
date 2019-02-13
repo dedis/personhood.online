@@ -54,7 +54,6 @@ export async function tapClear(args: EventData) {
 export async function shareData(args: EventData){
     let shareFile = new ShareFile();
     await gData.save();
-    Log.print("file is saved at", Documents.getFile(gData.dataFileName));
     await shareFile.open(
         {
             path: "/data/user/0/online.personhood/files/storage/data.json",
@@ -83,5 +82,9 @@ export async function switchSettings(args: SelectedIndexChangedEventData) {
 
 export function goPersonhood() {
     openUrl("https://personhood.online");
+}
+
+export function goGithub() {
+    openUrl("https://github.com/dedis/personhood.online");
 }
 

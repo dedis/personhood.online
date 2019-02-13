@@ -400,7 +400,6 @@ export class UserLocation {
             try {
                 c.credentialInstance = await CredentialInstance.fromByzcoin(bc, this.credentialIID);
                 c.credential = c.credentialInstance.credential.copy();
-                Log.print("pubkey for", c.alias, c.pubIdentity);
             } catch (e){
                 Log.error("couldn't get credentialInstance:", e);
             }

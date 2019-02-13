@@ -8,7 +8,7 @@ This is the presentation screen when the user is not signed up yet.
     <GridLayout rows="*, auto" row="1" tap="cancelNetwork">
         <StackLayout class="p-20" row="0">
             <Label text="Presenting personhood" class="h2 text-center"/>
-            <Label text="Personhood is a new kind of identity management app that helps you aggregating all your identities in one place. Furthermore it allows you to use a password-less login on all enabled services, freely deciding which need 2-factor or more-factor authentication."
+            <Label text="Personhood.online is an experimental application that is used to try out new ideas for identity management and troll-resistance. It is based on research from the DEDIS lab at EPFL and actively developed by Linus Gasser. The current version should run without too many bugs and its goal is to start a discussion of what is possible."
                    class="h3" textWrap="true"/>
             <StackLayout orientation="horizontal" style="horizontal-align: center;">
                 <HtmlView html="Personhood is brought to you by <u>https://personhood.online</u>:" class="h3" textWrap="true"

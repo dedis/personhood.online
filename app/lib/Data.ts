@@ -188,8 +188,6 @@ export class Data {
     }
 
     toObject(): any {
-        Log.print("friends are:");
-        this.friends.forEach(f => Log.print(f.isRegistered(), f));
         let v = {
             continuousScan: this.continuousScan,
             personhoodPublished: this.personhoodPublished,
@@ -489,10 +487,8 @@ export class Data {
     get uniqueMeetings(): number {
         let meetups = this.meetups.map(m => m.users.map(u => u.alias)
             .sort((a, b) => a.localeCompare(b)));
-        Log.print("Meetups are:", meetups.map(m => m.join(":")));
         let unique = meetups.filter((meetup, i) =>
             meetups.findIndex(m => m.join() == meetup.join()) == i);
-        Log.print("unique:", unique.map(m => m.join(":")));
         return unique.length;
     }
 }

@@ -111,7 +111,6 @@ function setScore(att: number, reg: boolean, meet: number, party: number) {
     let regWidth = reg ? 10 : 0;
     identity.set("widthRegistered", regWidth + "%");
     let meetWidth = Math.min(meet, 6) * 5;
-    Log.print(meet);
     identity.set("widthMeetups", meetWidth + "%");
     let partyWidth = party > 0 ? 50 : 0;
     identity.set("widthParty", partyWidth + "%");
@@ -129,7 +128,6 @@ export async function update() {
             await gData.contact.sendUpdate(gData.keyIdentitySigner);
         }
         await gData.save()
-        Log.print("registered:", gData.contact.credentialInstance);
     }
     identity.set("qrcode", gData.contact.qrcodeIdentity());
     attributes.splice(0);

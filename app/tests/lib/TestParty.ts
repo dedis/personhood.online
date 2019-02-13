@@ -187,8 +187,6 @@ describe("TestParty tests", () => {
 
             let partyObj = party.toObject();
             let badgeObj = badge.toObject();
-            Log.print(partyObj);
-            Log.print(badgeObj);
 
             let party2 = Party.fromObject(td.admin.cbc.bc, partyObj);
             let badge2 = Badge.fromObject(td.admin.cbc.bc, badgeObj);

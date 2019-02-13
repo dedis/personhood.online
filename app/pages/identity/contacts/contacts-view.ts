@@ -60,8 +60,6 @@ export class UserView extends Observable {
 
     get isRegistered(): boolean {
         try {
-            Log.print("user is:", this._user);
-            Log.print("registered:", this._user.isRegistered());
             return this._user.isRegistered();
         } catch (e) {
             Log.error(e);
@@ -103,7 +101,6 @@ export class UserView extends Observable {
     public async credUser(arg: ItemEventData) {
         try {
             if (!this._user.isRegistered()) {
-                Log.print("verifying registration");
                 await this._user.verifyRegistration(gData.bc);
             }
             await this._user.update(gData.bc);

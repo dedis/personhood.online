@@ -29,7 +29,6 @@ export async function tapEmail() {
                 to: [user.email]
             })
         } else {
-            Log.print("using openurl");
             openUrl("mailto:test@test.com");
             // await msgFailed("Email not available");
         }
@@ -53,7 +52,6 @@ export async function tapUrl() {
     if (!u.startsWith("http")) {
         u = "https://" + u;
     }
-    Log.print("opening", u);
     try {
         openUrl(u);
     } catch (e) {

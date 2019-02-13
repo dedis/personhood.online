@@ -69,7 +69,6 @@ export class RoPaSciInstance extends BasicInstance {
     }
 
     async update(): Promise<RoPaSciInstance> {
-        Log.print("updating", this.roPaSciStruct.description);
         await super.updateInstance(this.contractID);
         this.roPaSciStruct = RoPaSciStruct.fromProto(this.data);
         return this;

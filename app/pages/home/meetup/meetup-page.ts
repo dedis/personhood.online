@@ -40,7 +40,6 @@ export async function navigatingTo(args: EventData) {
     try {
         let ul = UserLocation.fromContact(gData.contact);
         await phrpc.meetups(new Meetup(ul));
-        Log.print(1);
         await meetupUpdate();
         if (interval){
             clearInterval(interval);

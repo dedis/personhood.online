@@ -36,7 +36,6 @@ export async function navigatingTo(args: EventData) {
         page.bindingContext = mainView;
 
         if (gData.bc){
-            Log.print("directly going to main screen");
             return mainViewRegistered(args);
         }
 

@@ -13,7 +13,12 @@ import {msgFailed} from "~/lib/ui/messages";
 import {Defaults} from "~/lib/Defaults";
 
 let input = fromObject({
-    input: {alias: Defaults.Alias}
+    input: {
+        alias: Defaults.Alias,
+        email: "",
+        phone: "",
+        url: ""
+    }
 });
 
 let page: Page;
@@ -25,15 +30,17 @@ export function navigatingTo(args: EventData) {
 
 // Event handler for Page "navigatingTo" event attached in main-page.xml
 export async function goNext(args: EventData) {
-    let a = page.bindingContext.get("input").alias;
-    Log.lvl1("saving alias", a);
-    if (a.length == 0) {
+    let input = page.bindingContext.get("input");
+    if (input.alias.length == 0) {
         return msgFailed("Please enter an alias")
     }
-    gData.contact.alias = a;
+    gData.contact.alias = input.alias;
+    gData.contact.email = input.email;
+    gData.contact.phone = input.phone;
+    gData.contact.url = input.url;
     try {
         await gData.save();
-    } catch(e){
+    } catch (e) {
         Log.catch(e);
     }
     getFrameById("setup").navigate("pages/setup/3-next-steps");

@@ -72,8 +72,6 @@ fdescribe("Meetup Test", () => {
             await phrpc.wipeMeetups();
             await phrpc.meetups(new Meetup(UserLocation.fromContact(user1.contact)));
             let users = await phrpc.meetups();
-            Log.print(users[0]);
-            Log.print(users[0].publicKey);
             return;
 
             expect(user1.spawnerInstance).not.toBe(null);
@@ -132,11 +130,9 @@ fdescribe("Meetup Test", () => {
 
             for (let i = 0; i < users.length; i++) {
                 let uls = await phrpc.listMeetups();
-                Log.print(uls);
                 for (let j = 0; j < uls.length; j++) {
                     let c = await uls[j].toContact(user1.bc);
                     await c.verifyRegistration(user1.bc);
-                    Log.print("adding contact", c, c.pubIdentity.toHex(), c.isRegistered());
                     users[i].addContact(c);
                 }
                 await users[i].save();
@@ -161,16 +157,13 @@ fdescribe("Meetup Test", () => {
                 await users[i].save();
             }
 
-            Log.print("last for")
             for (let i = 0; i < users.length; i++) {
                 await users[i].load();
-                Log.print("Loaded", i);
                 expect(users[i].friends.length).toBe(users.length, "after save/load");
                 expect(users[i].friends[0].isRegistered()).toBe(true);
                 expect(users[i].friends[1].isRegistered()).toBe(true);
                 expect(users[i].friends[2].isRegistered()).toBe(false);
             }
-            Log.print("done");
         });
     });
 });

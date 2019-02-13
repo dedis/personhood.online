@@ -73,19 +73,15 @@ export class Contact {
     }
 
     async update(bc: ByzCoinRPC): Promise<Contact> {
-        Log.print("updating", this);
         if (this.credentialInstance == null) {
-            Log.print("checking if we can get credIID")
             if (this.credentialIID) {
                 try {
                     this.credentialInstance = await CredentialInstance.fromByzcoin(this.darcInstance.bc, this.credentialIID);
                 } catch (e) {
                     Log.error("while updating credInst:", e);
                 }
-                Log.print("Got new credInst:", this.credentialInstance.credential);
             }
         } else {
-            Log.print("updating credInst");
             await this.credentialInstance.update();
         }
         if (this.credentialInstance) {
@@ -94,8 +90,6 @@ export class Contact {
             } else {
                 await this.darcInstance.update();
             }
-            Log.print("checking if newer version is available");
-            Log.print(Contact.getVersion(this.credentialInstance.credential), this.version);
             if (Contact.getVersion(this.credentialInstance.credential) > this.version) {
                 this.credential = this.credentialInstance.credential.copy();
             }
@@ -148,18 +142,13 @@ export class Contact {
 
     // this method sends the current state of the Credentials to ByzCoin.
     async sendUpdate(signer: Signer) {
-        Log.print("sending update with credInst", this.credentialInstance != null);
         if (this.credentialInstance != null) {
             if (this.coinInstance && !this.credential.getAttribute("coin", "coinIID")) {
                 this.credential.setAttribute("coin", "coinIID", this.coinInstance.iid.iid);
                 this.version = this.version + 1;
             }
-            Log.print(this.version, Contact.getVersion(this.credentialInstance.credential));
             if (this.version > Contact.getVersion(this.credentialInstance.credential)) {
-                Log.print("sending update for", this);
                 await this.credentialInstance.sendUpdate(signer, this.credential);
-            } else {
-                Log.print("NOT SENDING UPDATE FOR SAME VERSION");
             }
         }
     }
@@ -173,13 +162,11 @@ export class Contact {
         }
         if (obj.coinIID) {
             this.coinInstance = await CoinInstance.fromProof(bc, await bc.getProof(InstanceID.fromObjectBuffer(obj.coinIID)));
-            Log.print("Got coinIID for", this.alias, this.getCoinAddress());
         } else {
             await this.verifyRegistration(bc);
         }
         if (this.coinInstance) {
             this.credential.setAttribute("coin", "coinIID", this.coinInstance.iid.iid);
-            Log.print("Got coin for", this.alias, this.getCoinAddress(), this);
         }
     }
 
@@ -190,7 +177,6 @@ export class Contact {
         if (this.darcInstance) {
             Log.lvl2("Using existing darc instance:", this.darcInstance.iid.iid);
             let d = SpawnerInstance.prepareUserDarc(this.pubIdentity, this.alias);
-            Log.print("verification with calculated darc:", d.getBaseId());
             darcIID = this.darcInstance.iid;
         } else {
             let d = SpawnerInstance.prepareUserDarc(this.pubIdentity, this.alias);
@@ -215,8 +201,6 @@ export class Contact {
             }
         }
         if (this.credentialInstance){
-            Log.print("version of credInst is:", Contact.getVersion(this.credentialInstance.credential));
-            Log.print("storing public key in credential");
             this.credential.setAttribute("public", "ed25519", this.pubIdentity.toBuffer());
         }
 
@@ -343,7 +327,6 @@ export class Contact {
                 u.credentialInstance = await CredentialInstance.fromByzcoin(bc,
                     new InstanceID(Buffer.from(qr.credentialIID, 'hex')));
                 u.credential = u.credentialInstance.credential.copy();
-                Log.print("credential is:", u.credential.credentials);
                 u.darcInstance = await DarcInstance.fromProof(bc,
                     await bc.getProof(u.credentialInstance.darcID));
                 return await u.update(bc);
