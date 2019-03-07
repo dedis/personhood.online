@@ -60,6 +60,7 @@ export class Contact {
         if (this.darcInstance) {
             o.darc = this.darcInstance.toObject();
         }
+        Log.print("coinInstance is:", this.coinInstance);
         if (this.coinInstance) {
             o.coinIID = this.coinInstance.iid.iid;
         }
@@ -336,6 +337,14 @@ export class Contact {
             default:
                 return Promise.reject("invalid URL");
         }
+    }
+
+    static async fromByzcoin(bc: ByzCoinRPC, credIID: InstanceID): Promise<Contact>{
+        let u = new Contact();
+        u.credentialInstance = await CredentialInstance.fromByzcoin(bc, credIID);
+        u.credential = u.credentialInstance.credential;
+        u.darcInstance = await DarcInstance.fromByzcoin(bc, u.credentialInstance.darcID);
+        return u;
     }
 
     static setVersion(c: CredentialStruct, v: number) {

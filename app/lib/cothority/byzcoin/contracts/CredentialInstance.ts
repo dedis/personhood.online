@@ -5,6 +5,8 @@ import {Proof} from "~/lib/cothority/byzcoin/Proof";
 import {objToProto, Root} from "~/lib/cothority/protobuf/Root";
 import {SignerEd25519} from "~/lib/cothority/darc/SignerEd25519";
 import {Signer} from "~/lib/cothority/darc/Signer";
+import {Buffer} from "buffer";
+import {Public} from "~/lib/KeyPair";
 
 export class CredentialInstance {
     static readonly contractID = "credential";
@@ -29,8 +31,8 @@ export class CredentialInstance {
         return this.sendUpdate(owner);
     }
 
-    async sendUpdate(owner: Signer, newCred: CredentialStruct = null): Promise<CredentialInstance>{
-        if (newCred != null){
+    async sendUpdate(owner: Signer, newCred: CredentialStruct = null): Promise<CredentialInstance> {
+        if (newCred != null) {
             this.credential = newCred.copy();
         }
         let ctx = new ClientTransaction([
@@ -41,6 +43,18 @@ export class CredentialInstance {
         await ctx.signBy([[owner]], this.bc);
         await this.bc.sendTransactionAndWait(ctx);
         return this;
+    }
+
+    async recoverIdentity(pubKey: Public, signatures: RecoverySignature[]): Promise<any> {
+        let sigBuf = Buffer.alloc(RecoverySignature.pubSig * signatures.length);
+        signatures.forEach((s, i) => s.signature.copy(sigBuf, RecoverySignature.pubSig * i));
+        let ctx = new ClientTransaction([
+            Instruction.createInvoke(this.iid,
+                "recover",
+                [new Argument("signatures", sigBuf),
+                    new Argument("public", pubKey.toBuffer())])
+        ]);
+        await this.bc.sendTransactionAndWait(ctx);
     }
 
     toObject(): any {
@@ -75,7 +89,7 @@ export class CredentialStruct {
     constructor(public credentials: Credential[]) {
     }
 
-    copy(): CredentialStruct{
+    copy(): CredentialStruct {
         return CredentialStruct.fromObject(this.toObject());
     }
 
@@ -154,5 +168,17 @@ export class Attribute {
 
     static fromObject(o: any): Attribute {
         return new Attribute(o.name, Buffer.from(o.value));
+    }
+}
+
+
+export class RecoverySignature {
+    static readonly sig = 64;
+    static readonly pub = 32;
+    static readonly credIID = 32;
+    static readonly version = 8;
+    static readonly pubSig = RecoverySignature.pub + RecoverySignature.sig;
+    static readonly msgBuf = RecoverySignature.credIID + RecoverySignature.pub + RecoverySignature.version;
+    constructor(public credentialIID: InstanceID, public signature: Buffer) {
     }
 }

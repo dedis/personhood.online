@@ -4,6 +4,9 @@
  */
 import {PersonhoodParty, PersonhoodRPC, PollStruct} from "~/lib/PersonhoodRPC";
 
+const curve = require("@dedis/kyber-js").curve.newCurve("edwards25519");
+const Schnorr = require("@dedis/kyber-js").sign.schnorr;
+
 require("nativescript-nodeify");
 
 import {ByzCoinRPC} from "~/lib/cothority/byzcoin/ByzCoinRPC";
@@ -22,7 +25,7 @@ import {
     Attribute,
     Credential,
     CredentialInstance,
-    CredentialStruct
+    CredentialStruct, RecoverySignature
 } from "~/lib/cothority/byzcoin/contracts/CredentialInstance";
 import {CoinInstance} from "~/lib/cothority/byzcoin/contracts/CoinInstance";
 import {Roster} from "~/lib/network/Roster";
@@ -37,6 +40,9 @@ import {PopPartyInstance} from "~/lib/cothority/byzcoin/contracts/PopPartyInstan
 import {RoPaSciInstance} from "~/lib/cothority/byzcoin/contracts/RoPaSciInstance";
 import {elRoPaSci} from "~/pages/lab/ropasci/ropasci-page";
 import {SocialNode} from "~/lib/SocialNode";
+import {sprintf} from "sprintf-js";
+import {parseQRCode} from "~/lib/Scan";
+import {Signature} from "~/lib/cothority/darc/Signature";
 
 /**
  * Data holds the data of the app.
@@ -57,6 +63,12 @@ export class Data {
     ropascis: RoPaSciInstance[] = [];
     polls: PollStruct[] = [];
     meetups: SocialNode[] = [];
+
+    // Non-stored fields
+    recoverySignatures: RecoverySignature[] = [];
+
+    static readonly urlRecoveryRequest = "https://pop.dedis.ch/recoveryReq-1";
+    static readonly urlRecoverySignature = "https://pop.dedis.ch/recoverySig-1";
 
     /**
      * Constructs a new Data, optionally initialized with an object containing
@@ -345,6 +357,122 @@ export class Data {
             return Promise.reject("cannot verify if no byzCoin connection is set");
         }
         await this.contact.verifyRegistration(this.bc);
+    }
+
+    // setRecovery stores the given contacts in the credential, so that a threshold of these contacts
+    // can recover the darc. Only one set of contacts for recovery can be stored.
+    async setRecovery(threshold: number, cs: Contact[]): Promise<any> {
+        if (cs.filter(c => c.isRegistered()).length != cs.length) {
+            return Promise.reject("not all contacts are registered");
+        }
+        let thresholdBuf = Buffer.alloc(4);
+        thresholdBuf.writeUInt32LE(threshold, 0);
+        this.contact.credential.setAttribute("recover", "threshold", thresholdBuf);
+        let recoverBuf = Buffer.alloc(32 * cs.length);
+        cs.forEach((c, i) =>
+            cs[i].darcInstance.iid.iid.copy(recoverBuf, i * 32, 0, 32));
+        this.contact.credential.setAttribute("recover", "trustees", recoverBuf);
+        return this.contact.sendUpdate(this.keyIdentitySigner);
+    }
+
+    // searchRecovery searches all contacts to know if this user is in the list of recovery possibilities.
+    // It also updates all contacts by getting proofs from byzcoin.
+    async searchRecovery(): Promise<Contact[]> {
+        let recoveries: Contact[] = [];
+        for (let i = 0; i < this.friends.length; i++) {
+            await this.friends[i].update(this.bc);
+            let recoveryTrustees = this.friends[i].credential.getAttribute("recover", "trustees");
+            if (recoveryTrustees != null) {
+                for (let j = 0; j < recoveryTrustees.length; j += 32) {
+                    if (this.contact.darcInstance.iid.iid.compare(recoveryTrustees, j, j + 32) == 0) {
+                        recoveries.push(this.friends[i]);
+                        break;
+                    }
+                }
+            }
+        }
+        return recoveries;
+    }
+
+    // recoveryRequest returns a string for a qrcode that holds the new public key of the new user.
+    recoveryRequest(): string {
+        return sprintf("%s?public=%s", Data.urlRecoveryRequest, this.keyIdentity._public.toHex());
+    }
+
+    // RecoverySignature returns a string for a qrcode that holds the signature to be used to proof that this
+    // trustee is OK with recovering a given account.
+    async recoverySignature(request: string, user: Contact): Promise<string> {
+        let requestObj = parseQRCode(request, 1);
+        if (requestObj.url != Data.urlRecoveryRequest) {
+            return Promise.reject("not a recovery request");
+        }
+        if (!requestObj.public) {
+            return Promise.reject("recovery request is missing public argument");
+        }
+        let publicKey = Buffer.from(requestObj.public, "hex");
+        if (publicKey.length != RecoverySignature.pub) {
+            return Promise.reject("got wrong public key length");
+        }
+
+        await user.update(this.bc);
+
+        // the message to be signed is:
+        // credentialIID + newPublicKey + latestDarcVersion
+        let msg = Buffer.alloc(RecoverySignature.msgBuf);
+        user.credentialIID.iid.copy(msg);
+        publicKey.copy(msg, RecoverySignature.credIID);
+        msg.writeUInt32LE(user.darcInstance.darc.version,RecoverySignature.credIID + RecoverySignature.pub);
+
+        let sig = Schnorr.sign(curve, this.keyIdentity._private.scalar, new Uint8Array(msg));
+        let sigBuf = Buffer.alloc(RecoverySignature.pubSig);
+        this.keyIdentity._public.toBuffer().copy(sigBuf);
+        Buffer.from(sig).copy(sigBuf, RecoverySignature.pub);
+        Log.print("public key is:", this.keyIdentity._public.toBuffer());
+        Log.print("signature buffer:", sigBuf);
+
+        return sprintf("%s?credentialIID=%s&pubSig=%s", Data.urlRecoverySignature,
+            user.credentialIID.iid.toString("hex"),
+            sigBuf.toString("hex"));
+    }
+
+    async recoveryStore(signature: string): Promise<string> {
+        let sigObj = parseQRCode(signature, 2);
+        if (sigObj.url != Data.urlRecoverySignature) {
+            return Promise.reject("not a recovery signature");
+        }
+        if (!sigObj.credentialIID || !sigObj.pubSig) {
+            return Promise.reject("credentialIID or signature missing");
+        }
+        let credIID = InstanceID.fromHex(sigObj.credentialIID);
+        let pubSig = Buffer.from(sigObj.pubSig, "hex");
+        if (pubSig.length != RecoverySignature.pubSig) {
+            return Promise.reject("signature should be of length 64");
+        }
+
+        if (this.recoverySignatures.length > 0){
+            if (!this.recoverySignatures[0].credentialIID.equals(credIID)){
+                this.recoverySignatures = [];
+            }
+        }
+        this.recoverySignatures.push(new RecoverySignature(credIID, pubSig));
+    }
+
+    // recoveryUser returns the user that is currently being recovered.
+    async recoveryUser(): Promise<Contact> {
+        if (this.recoverySignatures.length == 0){
+            return Promise.reject("don't have any recovery signatures stored yet.");
+        }
+        return Contact.fromByzcoin(this.bc, this.recoverySignatures[0].credentialIID);
+    }
+
+    // recoverIdentity sends all received signatures to the credential instance, thus evolving the
+    // darc to include our new public key.
+    async recoverIdentity(): Promise<any> {
+        this.contact = await this.recoveryUser();
+        await this.contact.credentialInstance.recoverIdentity(this.keyIdentity._public, this.recoverySignatures);
+        this.recoverySignatures = [];
+        await this.contact.darcInstance.update();
+        await this.verifyRegistration();
     }
 
     addContact(nu: Contact) {

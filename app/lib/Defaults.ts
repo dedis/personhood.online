@@ -62,7 +62,7 @@ export var Defaults = {
     // settings should be set in the below 'if'. This ensures that we don't forget any testing setting.
 
     // Testing
-    Testing: false,
+    Testing: true,
     // If Confirm is false, there are no security confirmations asked. This is for
     // easier UI testing.
     Confirm: true,

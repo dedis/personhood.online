@@ -1,17 +1,14 @@
 # Progress
 
-## 9th of February 2019
+## 6th of March
 
 ### Top-down
 
-- add meetups
-- exchange data with or without registration
-- moved darcInstance, credentialInstance, coinInstance from Data to Contact
-- Finished TestContact
-- Working on TestData
-  - poppartyinstance doesn't correctly load from byzcoin
-- Check if other tests needed
+- Recovery of user
+- wrote go-part
+- testing recovery in TS
 
-### Other needs
+### TODO
 
-- check GUI to work well
+- test with a user that is allowed to recover more than one user
+- UI

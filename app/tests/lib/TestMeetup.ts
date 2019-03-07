@@ -8,8 +8,8 @@ import {Party} from "~/lib/Party";
 import {FileIO} from "~/lib/FileIO";
 import {Defaults} from "~/lib/Defaults";
 
-fdescribe("Meetup Test", () => {
-    fdescribe("Meetup", async () => {
+describe("Meetup Test", () => {
+    describe("Meetup", async () => {
         let tdAdmin: TestData;
         let user1: Data;
         let user2: Data;
@@ -113,7 +113,7 @@ fdescribe("Meetup Test", () => {
             expect(meetups.length).toEqual(3);
         });
 
-        fit("must reload contacts correctly after a save/load cycle", async () => {
+        it("must reload contacts correctly after a save/load cycle", async () => {
             Log.lvl1("testing that meetups correctly get sent to all nodes");
             await phrpc.wipeMeetups();
             let unreg1 = new Data({alias: "unreg1"});
