@@ -1,5 +1,5 @@
 const util = require("util");
-const application = require("application");
+const application = require("tns-core-modules/application");
 import {Buffer} from "buffer/";
 
 const defaultLvl = 2;

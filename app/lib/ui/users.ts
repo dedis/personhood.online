@@ -6,9 +6,9 @@ import * as dialogs from "tns-core-modules/ui/dialogs";
 import * as Long from "long";
 import {msgFailed, msgOK} from "~/lib/ui/messages";
 
-import * as utils from "utils/utils";
-import {isIOS, isAndroid} from "platform";
-import * as frame from "ui/frame";
+import * as utils from "tns-core-modules/utils/utils";
+import {isIOS, isAndroid} from "tns-core-modules/platform";
+import * as frame from "tns-core-modules/ui/frame";
 
 export function dismissSoftKeyboard() {
     if (isIOS) {

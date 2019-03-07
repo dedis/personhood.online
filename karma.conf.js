@@ -7,7 +7,7 @@ module.exports = function (config) {
                 browserDisconnectTolerance: 2,
                 browserNoActivityTimeout: 500000,
                 failFast: true,
-                timeoutInterval: 60000,
+                timeoutInterval: 600000,
                 random: false,
             }
         },
@@ -39,7 +39,7 @@ module.exports = function (config) {
         // test results reporter to use
         // possible values: 'dots', 'progress'
         // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-        reporters: ['progress'],
+        reporters: ['progress', 'dots'],
 
 
         // web server port

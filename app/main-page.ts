@@ -12,7 +12,7 @@ import {Defaults} from "~/lib/Defaults";
 import {TestStore} from "~/lib/network/TestStore";
 import {navigatingToHome, switchHome} from "~/pages/home/home-page";
 import * as dialogs from "tns-core-modules/ui/dialogs";
-import * as application from "application";
+import * as application from "tns-core-modules/application";
 import {SelectedIndexChangedEventData, TabView} from "tns-core-modules/ui/tab-view";
 import {adminView, switchSettings} from "~/pages/settings/settings-page";
 import {switchLab} from "~/pages/lab/lab-page";
