@@ -7,8 +7,9 @@
 - Recovery of user
 - wrote go-part
 - testing recovery in TS
+- multi trustee and recovery doesn't work because of Jasmine timeouts
+
+- UI
+- writing recover-view updateTrustees
 
 ### TODO
-
-- test with a user that is allowed to recover more than one user
-- UI

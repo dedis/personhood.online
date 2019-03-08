@@ -5,17 +5,34 @@
         <NavigationButton text="Go Back" tap="goBack"
                           android:icon="res://ic_arrow_back" ios:iconSource="res://ic_reload_white"/>
         <Label class="action-bar-title" text="Recover Account"/>
+        <ActionItem tap="addTrustee"
+                    ios.systemIcon="4" ios.position="right"
+                    icon="res://ic_add_white" android.position="actionBar"/>
     </ActionBar>
     <ScrollView>
-        <StackLayout tap="goBack" style="margin:30px;">
-            <Label text="Here you will be able to define a set of contacts that can collectively recover your account."
-                   textWrap="true" class="h2"/>
-            <Label text="This will be protected by the blockchain, which will assure with a smart contract that only the authorized friends can come together and reset your account."
-                   textWrap="true" class="h2"/>
-            <Label text="Of course you can give this authority to any combination of contacts or groups of contacts."
-                   textWrap="true" class="h2"/>
-            <Label text="This will be the end of long lists of meaningless words that are lost."
-                   textWrap="true" class="h2"/>
+        <StackLayout>
+            <StackLayout visibility="{{ maxValue > 0 ? 'visible' : 'collapsed' }}">
+                <Label text="Number of contacts that need to come together to recover your identity" textWrap="true"
+                       class="h2"/>
+                <Slider value="{{ nbrTrustees }}" minValue="1" maxValue="{{ maxValue }}"/>
+            </StackLayout>
+
+            <ListView items="{{ trustees }}" class="list-group" row="0">
+                <ListView.itemTemplate>
+                    <FlexboxLayout orientation="horizontal" flexDirection="row"
+                                   class="basic-list-decorated"
+                                   alignItems="center">
+                        <Label text="{{ alias }}" class="h3"
+                               height="100%"
+                               textTransform="uppercase"
+                               tap="{{ showTrustee }}"
+                               flexGrow="1"/>
+                        <Label text="&#xf2ed;" class="fas h1"
+                               tap="{{ removeTrustee }}"/>
+                    </FlexboxLayout>
+                </ListView.itemTemplate>
+            </ListView>
+
         </StackLayout>
     </ScrollView>
 </Page>
