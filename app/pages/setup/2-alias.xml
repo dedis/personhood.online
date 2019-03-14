@@ -60,6 +60,7 @@ Here the user can enter his alias
                 </df:RadaForm.properties>
             </df:RadDataForm>
 
+            <Button text="Recover" tap="goRecover" class="btn"/>
             <Button text="Continue" tap="goNext" class="btn"/>
         </StackLayout>
     </ScrollView>

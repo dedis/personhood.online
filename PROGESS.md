@@ -1,6 +1,6 @@
 # Progress
 
-## 6th of March
+## 14th of March
 
 ### Top-down
 
@@ -13,3 +13,5 @@
 - writing recover-view updateTrustees
 
 ### TODO
+
+- Replace Darc in recovery with Credential, even if it means more lookups in the contract. But going from darc to credential is not always straightforward.

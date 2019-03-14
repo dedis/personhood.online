@@ -43,6 +43,8 @@ import {SocialNode} from "~/lib/SocialNode";
 import {sprintf} from "sprintf-js";
 import {parseQRCode} from "~/lib/Scan";
 import {Signature} from "~/lib/cothority/darc/Signature";
+import {fromNativeSource, ImageSource} from "tns-core-modules/image-source";
+import {screen} from "tns-core-modules/platform";
 
 /**
  * Data holds the data of the app.
@@ -359,20 +361,17 @@ export class Data {
         await this.contact.verifyRegistration(this.bc);
     }
 
-    // setRecovery stores the given contacts in the credential, so that a threshold of these contacts
+    // setTrustees stores the given contacts in the credential, so that a threshold of these contacts
     // can recover the darc. Only one set of contacts for recovery can be stored.
-    async setRecovery(threshold: number, cs: Contact[]): Promise<any> {
+    setTrustees(threshold: number, cs: Contact[]): Promise<any> {
         if (cs.filter(c => c.isRegistered()).length != cs.length) {
             return Promise.reject("not all contacts are registered");
         }
-        let thresholdBuf = Buffer.alloc(4);
-        thresholdBuf.writeUInt32LE(threshold, 0);
-        this.contact.credential.setAttribute("recover", "threshold", thresholdBuf);
         let recoverBuf = Buffer.alloc(32 * cs.length);
         cs.forEach((c, i) =>
-            cs[i].darcInstance.iid.iid.copy(recoverBuf, i * 32, 0, 32));
-        this.contact.credential.setAttribute("recover", "trustees", recoverBuf);
-        return this.contact.sendUpdate(this.keyIdentitySigner);
+            cs[i].credentialIID.iid.copy(recoverBuf, i * 32, 0, 32));
+        this.contact.recover.trusteesBuf = recoverBuf;
+        this.contact.recover.threshold = threshold;
     }
 
     // searchRecovery searches all contacts to know if this user is in the list of recovery possibilities.
@@ -381,14 +380,9 @@ export class Data {
         let recoveries: Contact[] = [];
         for (let i = 0; i < this.friends.length; i++) {
             await this.friends[i].update(this.bc);
-            let recoveryTrustees = this.friends[i].credential.getAttribute("recover", "trustees");
-            if (recoveryTrustees != null) {
-                for (let j = 0; j < recoveryTrustees.length; j += 32) {
-                    if (this.contact.darcInstance.iid.iid.compare(recoveryTrustees, j, j + 32) == 0) {
-                        recoveries.push(this.friends[i]);
-                        break;
-                    }
-                }
+            if (this.friends[i].recover.trustees.filter(t =>
+                t.equals(this.contact.credentialIID)).length > 0) {
+                recoveries.push(this.friends[i]);
             }
         }
         return recoveries;
@@ -421,20 +415,24 @@ export class Data {
         let msg = Buffer.alloc(RecoverySignature.msgBuf);
         user.credentialIID.iid.copy(msg);
         publicKey.copy(msg, RecoverySignature.credIID);
-        msg.writeUInt32LE(user.darcInstance.darc.version,RecoverySignature.credIID + RecoverySignature.pub);
+        msg.writeUInt32LE(user.darcInstance.darc.version, RecoverySignature.credIID + RecoverySignature.pub);
 
         let sig = Schnorr.sign(curve, this.keyIdentity._private.scalar, new Uint8Array(msg));
         let sigBuf = Buffer.alloc(RecoverySignature.pubSig);
         this.keyIdentity._public.toBuffer().copy(sigBuf);
         Buffer.from(sig).copy(sigBuf, RecoverySignature.pub);
-        Log.print("public key is:", this.keyIdentity._public.toBuffer());
-        Log.print("signature buffer:", sigBuf);
 
         return sprintf("%s?credentialIID=%s&pubSig=%s", Data.urlRecoverySignature,
             user.credentialIID.iid.toString("hex"),
             sigBuf.toString("hex"));
     }
 
+    /**
+     * recoveryStore stores a signature for restauration. It checks if all the signature are for
+     * restauration of the same credentialIID.
+     *
+     * @param signature the qrcode-string received from scanning.
+     */
     async recoveryStore(signature: string): Promise<string> {
         let sigObj = parseQRCode(signature, 2);
         if (sigObj.url != Data.urlRecoverySignature) {
@@ -449,8 +447,8 @@ export class Data {
             return Promise.reject("signature should be of length 64");
         }
 
-        if (this.recoverySignatures.length > 0){
-            if (!this.recoverySignatures[0].credentialIID.equals(credIID)){
+        if (this.recoverySignatures.length > 0) {
+            if (!this.recoverySignatures[0].credentialIID.equals(credIID)) {
                 this.recoverySignatures = [];
             }
         }
@@ -459,7 +457,7 @@ export class Data {
 
     // recoveryUser returns the user that is currently being recovered.
     async recoveryUser(): Promise<Contact> {
-        if (this.recoverySignatures.length == 0){
+        if (this.recoverySignatures.length == 0) {
             return Promise.reject("don't have any recovery signatures stored yet.");
         }
         return Contact.fromByzcoin(this.bc, this.recoverySignatures[0].credentialIID);

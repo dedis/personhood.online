@@ -45,3 +45,15 @@ export async function goNext(args: EventData) {
     }
     getFrameById("setup").navigate("pages/setup/3-next-steps");
 }
+
+export async function goRecover(args: EventData){
+    let doit = await dialogs.confirm({
+        title: "Start Recovery",
+        message: "Did you lose your identity and have set up contacts to recover it?",
+        okButtonText: "Recover",
+        cancelButtonText: "Abort"
+    });
+    if (doit){
+        getFrameById("setup").navigate("pages/setup/4-recover");
+    }
+}

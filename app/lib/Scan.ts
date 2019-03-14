@@ -1,5 +1,9 @@
 import {BarcodeScanner, ScanResult} from "nativescript-barcodescanner";
 import {Log} from "~/lib/Log";
+import {fromNativeSource, ImageSource} from "tns-core-modules/image-source";
+import {screen} from "tns-core-modules/platform";
+const ZXing = require("nativescript-zxing");
+const QRGenerator = new ZXing();
 
 export async function scan(msg: string = "Please scan QRCode"): Promise<ScanResult> {
     return new Promise<ScanResult>(resolve => {
@@ -43,5 +47,19 @@ export function parseQRCode(str: string, maxArgs: number): any {
         ret[r[0]] = r[1];
     });
     return ret;
+}
+
+export function createQrcode(str: string, width: number = 0): ImageSource {
+    let sideLength = screen.mainScreen.widthPixels / 4;
+    if (width > 0){
+        sideLength = width;
+    }
+    const qrcode = QRGenerator.createBarcode({
+        encode: str,
+        format: ZXing.QR_CODE,
+        height: sideLength,
+        width: sideLength
+    });
+    return fromNativeSource(qrcode);
 }
 

@@ -53,7 +53,7 @@ fdescribe("Recovery Test", () => {
             Log.print("this line will be overwritten");
         });
 
-        it("set recovery", async () => {
+        fit("set recovery", async () => {
             Log.lvl1("setting up users");
             let user1 = new Data({alias: "user1"});
             user1.setFileName("dataUser1.json");
@@ -68,7 +68,7 @@ fdescribe("Recovery Test", () => {
             await user3.connectByzcoin();
 
             Log.lvl1("should reject recovery using unregistered users");
-            await expectAsync(user1.setRecovery(2, [user2.contact, user3.contact])).toBeRejected();
+            await expectAsync(user1.setTrustees(2, [user2.contact, user3.contact])).toBeRejected();
 
             Log.lvl1("registering user2 and user3");
             await user1.registerContact(user2.contact);
@@ -80,7 +80,8 @@ fdescribe("Recovery Test", () => {
             user2.addContact(user1.contact);
             user3.addContact(user1.contact);
             expect((await user2.searchRecovery()).length).toBe(0);
-            await user1.setRecovery(2, [user2.contact, user3.contact]);
+            await user1.setTrustees(2, [user2.contact, user3.contact]);
+            await user1.save();
             expect((await user2.searchRecovery()).length).toBe(1);
             expect((await user3.searchRecovery()).length).toBe(1);
 
@@ -91,15 +92,18 @@ fdescribe("Recovery Test", () => {
             let recoverySig2 = await user2.recoverySignature(recoveryRequest, user1.contact);
             await user1New.recoveryStore(recoverySig2);
             expect((await user1New.recoveryUser()).toObject()).not.toEqual(user1.contact.toObject());
+            Log.lvl2("trying to recover with only one signature - this should fail");
             await expectAsync(user1New.recoverIdentity()).toBeRejected();
 
             let recoverySig3 = await user3.recoverySignature(recoveryRequest, user1.contact);
             await user1New.recoveryStore(recoverySig3);
+            Log.lvl2("recovering with both signatures - this should work");
             await user1New.recoverIdentity();
             expect(user1New.contact.credential.toObject()).toEqual(user1.contact.credential.toObject());
+            Log.lvl1("Success!!**");
         });
 
-        fit("recover multiple users", async () => {
+        it("recover multiple users", async () => {
             Log.lvl1("setting up users");
             let nbrRecovery = 2;
             let nbrTrustees = 3;
@@ -130,7 +134,7 @@ fdescribe("Recovery Test", () => {
                     trustees[trustee].addContact(recoveries[recovery].contact);
                     rs.push(trustees[trustee].contact);
                 }
-                await recoveries[recovery].setRecovery(nbrTrustees, rs);
+                await recoveries[recovery].setTrustees(nbrTrustees, rs);
             }
             for (let trustee = 0; trustee < nbrTrustees; trustee++) {
                 expect((await trustees[trustee].searchRecovery()).length).toBe(nbrRecovery);

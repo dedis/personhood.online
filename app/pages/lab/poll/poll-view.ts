@@ -2,8 +2,6 @@ import {fromObject, Observable} from "tns-core-modules/data/observable";
 import {Log} from "~/lib/Log";
 import {gData} from "~/lib/Data";
 import {GestureEventData} from "tns-core-modules/ui/gestures";
-import {fromFile, ImageSource} from "tns-core-modules/image-source";
-import {sprintf} from "sprintf-js";
 import {msgFailed, msgOK} from "~/lib/ui/messages";
 import * as dialogs from "tns-core-modules/ui/dialogs";
 import {getFrameById, topmost} from "tns-core-modules/ui/frame";
@@ -11,7 +9,6 @@ import {elPoll, updatePoll} from "~/pages/lab/poll/poll-page";
 import {ObservableArray} from "tns-core-modules/data/observable-array";
 import {PersonhoodRPC, PollChoice, PollStruct} from "~/lib/PersonhoodRPC";
 import {Defaults} from "~/lib/Defaults";
-import {contacts} from "~/pages/identity/contacts/contacts-page";
 
 export class PollView extends Observable {
     polls = new ObservableArray();
@@ -36,7 +33,10 @@ export class PollView extends Observable {
             if (width < 0) {
                 color = "#a04040";
             }
-            topmost().getViewById("progress_bar").setInlineStyle("width:" + Math.abs(width) + "%; background-color: " + color);
+            let pb = topmost().getViewById("progress_bar");
+            if (pb) {
+                pb.setInlineStyle("width:" + Math.abs(width) + "%; background-color: " + color);
+            }
         }
     }
 }
@@ -82,7 +82,7 @@ export class PollViewElement extends Observable {
                     let badge = gData.badges.find(p => {
                         return p.party.partyInstance.iid.equals(this.poll.personhood)
                     });
-                    if (badge == null){
+                    if (badge == null) {
                         await msgFailed("Invalid poll with invalid partyID");
                         return;
                     }

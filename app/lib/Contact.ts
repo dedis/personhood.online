@@ -16,6 +16,7 @@ import {Signer} from "~/lib/cothority/darc/Signer";
 const ZXing = require("nativescript-zxing");
 const QRGenerator = new ZXing();
 
+
 /**
  * Contact represents a user that is either registered or not. It holds
  * all data in an internal CredentialStruct, and can synchronize in two ways
@@ -33,12 +34,14 @@ export class Contact {
     credentialInstance: CredentialInstance = null;
     darcInstance: DarcInstance = null;
     coinInstance: CoinInstance = null;
+    recover: Recover = null;
 
     constructor(public credential: CredentialStruct = null, public unregisteredPub: Public = null) {
         if (credential == null) {
             this.credential = new CredentialStruct([]);
             Contact.setVersion(this.credential, 0);
         }
+        this.recover = new Recover(this);
     }
 
     set version(v: number) {
@@ -60,7 +63,6 @@ export class Contact {
         if (this.darcInstance) {
             o.darc = this.darcInstance.toObject();
         }
-        Log.print("coinInstance is:", this.coinInstance);
         if (this.coinInstance) {
             o.coinIID = this.coinInstance.iid.iid;
         }
@@ -201,7 +203,7 @@ export class Contact {
                 this.credentialInstance = await CredentialInstance.fromProof(bc, p);
             }
         }
-        if (this.credentialInstance){
+        if (this.credentialInstance) {
             this.credential.setAttribute("public", "ed25519", this.pubIdentity.toBuffer());
         }
 
@@ -339,7 +341,7 @@ export class Contact {
         }
     }
 
-    static async fromByzcoin(bc: ByzCoinRPC, credIID: InstanceID): Promise<Contact>{
+    static async fromByzcoin(bc: ByzCoinRPC, credIID: InstanceID): Promise<Contact> {
         let u = new Contact();
         u.credentialInstance = await CredentialInstance.fromByzcoin(bc, credIID);
         u.credential = u.credentialInstance.credential;
@@ -361,11 +363,102 @@ export class Contact {
         return b.readUInt32LE(0);
     }
 
-    static sortAlias(cs: hasAlias[]): hasAlias[]{
+    static sortAlias(cs: hasAlias[]): hasAlias[] {
         return cs.sort((a, b) => a.alias.toLocaleLowerCase().localeCompare(b.alias.toLocaleLowerCase()));
     }
 }
 
 interface hasAlias {
     alias: string
+}
+
+class Recover {
+    constructor(public contact: Contact) {
+    }
+
+    get trusteesBuf(): Buffer {
+        let b =this.contact.credential.getAttribute("recover", "trustees");
+        return b == null ? Buffer.alloc(0) : b;
+    }
+
+    set trusteesBuf(t: Buffer) {
+        this.contact.credential.setAttribute("recover", "trustees", t);
+        this.contact.version++;
+    }
+
+    get trustees(): InstanceID[] {
+        let ts: InstanceID[] = [];
+        for (let t = 0; t < this.trusteesBuf.length; t += 32) {
+            ts.push(new InstanceID(this.trusteesBuf.slice(t, t + 32)));
+        }
+        return ts;
+    }
+
+    set trustees(ts: InstanceID[]) {
+        let tsBuf = Buffer.alloc(ts.length * 32);
+        ts.forEach((t, i) => t.iid.copy(tsBuf, i * 32));
+        this.trusteesBuf = tsBuf;
+    }
+
+    get threshold(): number {
+        let tBuf = this.contact.credential.getAttribute("recover", "threshold");
+        if (tBuf == null) {
+            return 0;
+        }
+        return tBuf.readUInt32LE(0);
+    }
+
+    set threshold(t: number) {
+        let thresholdBuf = Buffer.alloc(4);
+        thresholdBuf.writeUInt32LE(t, 0);
+        this.contact.credential.setAttribute("recover", "threshold", thresholdBuf);
+        this.contact.version++;
+    }
+
+    findTrustee(trustee: InstanceID | Contact): number {
+        let tBuf = this.getBuffer(trustee);
+        if (this.trusteesBuf == null || this.trusteesBuf.length == 0) {
+            return -1;
+        }
+        for (let t = 0; t < this.trusteesBuf.length; t += 32) {
+            if (this.trusteesBuf.slice(t, t + 32).equals(tBuf)) {
+                return t;
+            }
+        }
+        return -1;
+    }
+
+    addTrustee(trustee: InstanceID | Contact) {
+        if (this.findTrustee(trustee) >= 0) {
+            return;
+        }
+        let tBuf = this.getBuffer(trustee);
+        let result = Buffer.alloc(this.trusteesBuf.length + 32);
+        this.trusteesBuf.copy(result);
+        tBuf.copy(result, this.trusteesBuf.length);
+        this.trusteesBuf = result;
+    }
+
+    rmTrustee(trustee: InstanceID | Contact) {
+        let pos = this.findTrustee(trustee);
+        if (pos < 0) {
+            return
+        }
+        let result = Buffer.alloc(this.trusteesBuf.length - 32);
+        if (result.length > 0) {
+            this.trusteesBuf.copy(result, 0, 0, pos * 32);
+            this.trusteesBuf.copy(result, pos * 32, (pos + 1) * 32);
+        }
+        this.trusteesBuf = result;
+    }
+
+    getBuffer(trustee: InstanceID | Contact): Buffer {
+        let tBuf: Buffer;
+        if (trustee.constructor.name === "Buffer") {
+            tBuf = (<InstanceID>trustee).iid;
+        } else {
+            tBuf = (<Contact>trustee).credentialIID.iid;
+        }
+        return tBuf;
+    }
 }

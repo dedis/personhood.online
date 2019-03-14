@@ -2,38 +2,63 @@ import {Observable} from "tns-core-modules/data/observable";
 import {Contact} from "~/lib/Contact";
 import {Log} from "~/lib/Log";
 import {gData} from "~/lib/Data";
-import {contacts, friendsUpdateList, setProgress} from "~/pages/identity/contacts/contacts-page";
 import {topmost} from "tns-core-modules/ui/frame";
 import {ItemEventData} from "tns-core-modules/ui/list-view";
 import * as dialogs from "tns-core-modules/ui/dialogs";
-import * as Long from "long";
-import {assertRegistered, sendCoins} from "~/lib/ui/users";
-import {msgFailed, msgOK} from "~/lib/ui/messages";
-import {ObservableArray} from "tns-core-modules/data/observable-array";
-import {InstanceID} from "~/lib/cothority/byzcoin/ClientTransaction";
+import {recoverView} from "~/pages/identity/recover/recover-page";
 
 export class RecoverView extends Observable {
-    public trustees: ObservableArray<Trustee> = new ObservableArray();
-    public maxValue: number;
-    public nbrTrustees: number;
-    public networkStatus: string;
-
     constructor() {
         super();
 
-        // Get current trustees
+        this._threshold = gData.contact.recover.threshold;
+        // Get current trusteesBuf
         this.updateTrustees().catch(e => {
             Log.catch(e);
         });
     }
 
     async updateTrustees() {
-        let ts = gData.contact.credential.getAttribute("recover", "trustees");
-        this.trustees.splice(0);
-        for (let t = 0; t < ts.length; t += 32) {
-            let c = await Contact.fromByzcoin(gData.bc, new InstanceID(ts.slice(t, t + 32)));
-            this.trustees.push(new Trustee(c));
-        }
+        let trustees: Trustee[] = [];
+        gData.contact.recover.trustees.forEach(darciid => {
+            let contacts = gData.friends.filter( c => c.darcInstance.iid.equals(darciid));
+            if (contacts.length == 1){
+                trustees.push(new Trustee(contacts[0]));
+            }
+        });
+        this._maxValue = trustees.length;
+        this._trustees = trustees;
+        this._isTrustee = (await gData.searchRecovery()).length > 0;
+    }
+
+    sliderChange(v: number){
+        gData.contact.recover.threshold = v;
+        this._threshold = v;
+        this._changed = true;
+    }
+
+    set _changed(c: boolean){
+        this.set("changed", c);
+    }
+
+    set _threshold(t: number){
+        this.set("threshold", t);
+    }
+
+    set _trustees(ts: Trustee[]){
+        this.set("trustees", ts);
+    }
+
+    set _maxValue(mv: number){
+        this.set("maxValue", mv);
+    }
+
+    set _networkStatus(ns: string){
+        this.set("networkStatus", ns);
+    }
+
+    set _isTrustee(it: boolean){
+        this.set("isTrustee", it);
     }
 }
 
@@ -62,15 +87,16 @@ export class Trustee extends Observable {
             okButtonText: "Remove",
             cancelButtonText: "Keep",
         })) {
-            gData.rmContact(this._user);
-            await gData.save();
-            friendsUpdateList();
+            await gData.contact.recover.rmTrustee(this._user);
+            recoverView._changed = true;
+            await recoverView.updateTrustees();
         }
     }
 
     public async showTrustee(arg: ItemEventData) {
-        topmost().showModal("pages/modal/modal-user", this._user,
-            () => {
-            }, false, false, false);
+        topmost().navigate({
+            moduleName: "pages/identity/contacts/actions/actions-page",
+            context: this._user
+        });
     }
 }
