@@ -151,7 +151,7 @@ export class LogC {
         }
     }
 
-    rcatch(e, ...args): Promise<string> {
+    rcatch(e, ...args): Promise<any> {
         let errMsg = e;
         if (e.message) {
             errMsg = e.message;

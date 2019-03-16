@@ -13,6 +13,10 @@ import {ByzCoinRPC} from "~/lib/cothority/byzcoin/ByzCoinRPC";
 import {Proof, StateChangeBody} from "~/lib/cothority/byzcoin/Proof";
 import {Darc} from "~/lib/cothority/darc/Darc";
 import {SpawnerInstance} from "~/lib/cothority/byzcoin/contracts/SpawnerInstance";
+import {Meetup, PersonhoodRPC, UserLocation} from "~/lib/PersonhoodRPC";
+import * as Long from "long";
+import {FileIO} from "~/lib/FileIO";
+import {Defaults} from "~/lib/Defaults";
 
 describe("Contact tests", () => {
     describe("no byzcoin needed to test", () => {
@@ -34,7 +38,8 @@ describe("Contact tests", () => {
                     p.stateChangeBody = <StateChangeBody>{
                         value: this.credInst.credential.toProto(),
                         contractID: "credential",
-                        darcID: this.credDarc.getBaseId()};
+                        darcID: this.credDarc.getBaseId()
+                    };
                 } else {
                     p.stateChangeBody = <StateChangeBody>{value: this.credDarc.toProto(), contractID: "darc"};
                 }
@@ -128,6 +133,73 @@ describe("Contact tests", () => {
             umUnreg3 = await Contact.fromQR(tdAdmin.d.bc, str);
             expect(str).toEqual(umUnreg3.qrcodeIdentityStr());
             expect(umUnreg3.isRegistered()).toBeTruthy();
+        });
+    });
+
+
+    describe("With Byzcoin", async () => {
+        let tdAdmin: TestData;
+        let admin: Data;
+        let phrpc: PersonhoodRPC;
+
+        beforeAll(async () => {
+            // await FileIO.rmrf(Defaults.DataDir);
+
+            Log.lvl1("Trying to load previous byzcoin");
+            admin = new Data({alias: "admin"});
+            admin.setFileName("data1.json");
+
+            try {
+                await admin.load();
+            } catch (e) {
+                Log.lvl1("Error while trying to load - going to reset chain");
+                admin.contact.email = "";
+            }
+            if (admin.contact.email != "") {
+                Log.lvl1("Probably found an existing byzcoin - using this one to speed up tests");
+                admin.friends = [];
+                phrpc = new PersonhoodRPC(admin.bc);
+                return;
+            } else {
+                admin = new Data({alias: "admin"});
+                admin.setFileName("data1.json");
+            }
+
+            Log.lvl1("Creating Byzcoin");
+            tdAdmin = await TestData.init(new Data());
+            await tdAdmin.createAll('admin');
+            admin.contact.email = "test@test.com";
+            await admin.connectByzcoin();
+            await tdAdmin.d.registerContact(admin.contact, Long.fromNumber(1e6));
+            await admin.verifyRegistration();
+            await admin.save();
+            phrpc = new PersonhoodRPC(admin.bc);
+        });
+
+        afterEach(() => {
+            Log.print("this line will be overwritten");
+        });
+
+        it("set recovery", async () => {
+            let one = new Data({alias: "one"});
+            one.setFileName("contactOne.json");
+            await one.connectByzcoin();
+
+            await phrpc.wipeMeetups();
+
+            await phrpc.meetups(new Meetup(UserLocation.fromContact(admin.contact)));
+            await phrpc.meetups(new Meetup(UserLocation.fromContact(one.contact)));
+            let users = await phrpc.meetups();
+
+            Log.lvl1("Updating admin");
+            let adminCopy = await users[0].toContact(admin.bc);
+            await adminCopy.update(admin.bc);
+
+            Log.lvl1("Updating one");
+            let oneCopy = await users[1].toContact(admin.bc);
+            await oneCopy.update(admin.bc);
+
+            Log.lvl1("success");
         });
     });
 });

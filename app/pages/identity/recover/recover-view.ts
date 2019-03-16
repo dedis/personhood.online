@@ -20,8 +20,8 @@ export class RecoverView extends Observable {
 
     async updateTrustees() {
         let trustees: Trustee[] = [];
-        gData.contact.recover.trustees.forEach(darciid => {
-            let contacts = gData.friends.filter( c => c.darcInstance.iid.equals(darciid));
+        gData.contact.recover.trustees.forEach(crediid => {
+            let contacts = gData.friends.filter( c => c.credentialIID.equals(crediid));
             if (contacts.length == 1){
                 trustees.push(new Trustee(contacts[0]));
             }
@@ -29,6 +29,7 @@ export class RecoverView extends Observable {
         this._maxValue = trustees.length;
         this._trustees = trustees;
         this._isTrustee = (await gData.searchRecovery()).length > 0;
+        this._threshold = gData.contact.recover.threshold;
     }
 
     sliderChange(v: number){
@@ -88,6 +89,7 @@ export class Trustee extends Observable {
             cancelButtonText: "Keep",
         })) {
             await gData.contact.recover.rmTrustee(this._user);
+            gData.contact.recover.threshold -= 1;
             recoverView._changed = true;
             await recoverView.updateTrustees();
         }

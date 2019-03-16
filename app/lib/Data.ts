@@ -45,6 +45,7 @@ import {parseQRCode} from "~/lib/Scan";
 import {Signature} from "~/lib/cothority/darc/Signature";
 import {fromNativeSource, ImageSource} from "tns-core-modules/image-source";
 import {screen} from "tns-core-modules/platform";
+import {Rule} from "~/lib/cothority/darc/Darc";
 
 /**
  * Data holds the data of the app.
@@ -273,7 +274,10 @@ export class Data {
             this.contact.credential.setAttribute("personhood",
                 "ed25519", this.keyPersonhood._public.toBuffer());
         }
-        await this.contact.sendUpdate(this.keyIdentitySigner);
+        if (this.contact.isRegistered()) {
+            Log.print("is registered");
+            await this.contact.sendUpdate(this.keyIdentitySigner);
+        }
         return this;
     }
 
@@ -415,7 +419,7 @@ export class Data {
         let msg = Buffer.alloc(RecoverySignature.msgBuf);
         user.credentialIID.iid.copy(msg);
         publicKey.copy(msg, RecoverySignature.credIID);
-        msg.writeUInt32LE(user.darcInstance.darc.version, RecoverySignature.credIID + RecoverySignature.pub);
+        msg.writeUInt32LE(user.darcInstance.darc.version.toNumber(), RecoverySignature.credIID + RecoverySignature.pub);
 
         let sig = Schnorr.sign(curve, this.keyIdentity._private.scalar, new Uint8Array(msg));
         let sigBuf = Buffer.alloc(RecoverySignature.pubSig);
@@ -470,6 +474,11 @@ export class Data {
         await this.contact.credentialInstance.recoverIdentity(this.keyIdentity._public, this.recoverySignatures);
         this.recoverySignatures = [];
         await this.contact.darcInstance.update();
+        let newDarc = this.contact.darcInstance.darc.copy();
+        ["update", "fetch", "transfer"].forEach(r => {
+            newDarc.setRule(Rule.fromIdentities("invoke:" + r, [this.keyIdentitySigner.identity], "&"));
+        });
+        await this.contact.darcInstance.evolve(newDarc, [this.keyIdentitySigner]);
         await this.verifyRegistration();
     }
 

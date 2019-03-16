@@ -18,7 +18,7 @@ Here the user can enter his alias
 
         <StackLayout row="1">
             <Button text="Scan Signature" tap="{{ scanSignature }}" class="btn btn-primary"/>
-            <ListView items="{{ trustees }}" class="list-group" row="1">
+            <ListView items="{{ trustees }}" class="list-group" row="1" height="100%">
                 <ListView.itemTemplate>
                     <FlexboxLayout orientation="horizontal" flexDirection="row"
                                    class="basic-list-decorated"

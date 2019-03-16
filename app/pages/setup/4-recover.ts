@@ -2,14 +2,24 @@ import {EventData, fromObject} from "tns-core-modules/data/observable";
 import {getFrameById, Page, topmost} from "tns-core-modules/ui/frame";
 import {mainView, mainViewRegister, mainViewRegistered} from "~/main-page";
 import {SetupRecoverView} from "~/pages/setup/4-recover-view";
+import {Log} from "~/lib/Log";
 
 let page: Page;
 export let setupRecoverView: SetupRecoverView;
 
 export function navigatingTo(args: EventData) {
-    page = <Page>args.object;
-    setupRecoverView = new SetupRecoverView();
-    page.bindingContext = setupRecoverView;
+    try {
+        Log.print("navigating to 4");
+        page = <Page>args.object;
+        setupRecoverView = new SetupRecoverView();
+        page.bindingContext = setupRecoverView;
+    } catch(e){
+        Log.catch(e);
+    }
+}
+
+export async function cancelRecovery(){
+    getFrameById("setup").navigate("pages/setup/2-alias");
 }
 
 export async function goMain(args: any = null) {

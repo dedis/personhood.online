@@ -6,6 +6,7 @@ import {Log} from "~/lib/Log";
 import {objToProto, Root} from "~/lib/cothority/protobuf/Root";
 import {Identity} from "~/lib/cothority/darc/Identity";
 import {DarcInstance} from "~/lib/cothority/byzcoin/contracts/DarcInstance";
+import * as Long from "long";
 
 export class Rule {
     action: string;
@@ -50,7 +51,7 @@ export class Rules {
 }
 
 export class Darc {
-    version: number;
+    version: Long;
     description: Buffer;
     baseid: Buffer;
     previd: Buffer;
@@ -69,8 +70,8 @@ export class Darc {
 
     getId(): Buffer {
         let h = crypto.createHash("sha256");
-        let versionBuf = new Buffer(8);
-        versionBuf.writeUInt32LE(this.version, 0);
+        let versionBuf = Buffer.alloc(8);
+        Buffer.from(this.version.toBytesLE()).copy(versionBuf);
         h.update(versionBuf);
         h.update(this.description);
         if (this.baseid) {
@@ -83,15 +84,25 @@ export class Darc {
             h.update(r.action);
             h.update(r.expr);
         });
-        return h.digest();
+        let dig = h.digest();
+        return dig;
     }
 
     getBaseId(): Buffer {
-        if (this.version == 0) {
+        if (this.version.equals(0)) {
             return this.getId();
         } else {
             return this.baseid;
         }
+    }
+
+    setRule(rule: Rule){
+        this.rules.list.forEach((r, i) =>{
+            if (r.action == rule.action){
+                this.rules.list[i] = rule;
+                return;
+            }
+        })
     }
 
     toString(): string {
@@ -106,6 +117,10 @@ export class Darc {
         return objToProto(this, "Darc");
     }
 
+    copy(): Darc{
+        return Darc.fromProto(this.toProto());
+    }
+
     static fromProto(buf: Buffer): Darc {
         const requestModel = Root.lookup("Darc");
         return new Darc(requestModel.decode(buf));
@@ -113,7 +128,7 @@ export class Darc {
 
     static fromRulesDesc(r: Rules, desc: string) {
         return new Darc({
-            version: 0,
+            version: Long.fromNumber(0),
             description: new Buffer(desc),
             rules: r,
             baseid: new Buffer(0),

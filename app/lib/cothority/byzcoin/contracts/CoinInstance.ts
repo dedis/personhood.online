@@ -68,8 +68,8 @@ export class CoinInstance {
             Coin.fromProto(p.value));
     }
 
-    static fromProof(bc: ByzCoinRPC, p: Proof): CoinInstance{
-        p.matchOrFail(CoinInstance.contractID);
+    static async fromProof(bc: ByzCoinRPC, p: Proof): Promise<CoinInstance>{
+        await p.matchOrFail(CoinInstance.contractID);
         return new CoinInstance(bc, p.requestedIID,
             Coin.fromProto(p.value))
     }

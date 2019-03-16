@@ -76,28 +76,39 @@ export class Contact {
     }
 
     async update(bc: ByzCoinRPC): Promise<Contact> {
-        if (this.credentialInstance == null) {
-            if (this.credentialIID) {
-                try {
+        try {
+            if (this.credentialInstance == null) {
+                if (this.credentialIID) {
                     this.credentialInstance = await CredentialInstance.fromByzcoin(this.darcInstance.bc, this.credentialIID);
-                } catch (e) {
-                    Log.error("while updating credInst:", e);
+                }
+            } else {
+                await this.credentialInstance.update();
+            }
+            if (this.credentialInstance) {
+                if (Contact.getVersion(this.credentialInstance.credential) > this.version) {
+                    this.credential = this.credentialInstance.credential.copy();
+                }
+
+                if (this.darcInstance == null) {
+                    this.darcInstance = await DarcInstance.fromByzcoin(bc, this.credentialInstance.darcID);
+                    // this.darcInstance = new DarcInstance(bc, SpawnerInstance.prepareUserDarc(this.pubIdentity, this.alias));
+                } else {
+                    await this.darcInstance.update();
+                }
+
+                if (this.coinInstance == null){
+                    let coiniid = this.getCoinAddress();
+                    if (coiniid != null) {
+                        this.coinInstance = await CoinInstance.fromByzcoin(bc, coiniid);
+                    }
+                } else {
+                    await this.coinInstance.update();
                 }
             }
-        } else {
-            await this.credentialInstance.update();
+            return this;
+        } catch (e) {
+            return Log.rcatch(e, "while updating contact", this.alias);
         }
-        if (this.credentialInstance) {
-            if (this.darcInstance == null) {
-                this.darcInstance = new DarcInstance(bc, SpawnerInstance.prepareUserDarc(this.pubIdentity, this.alias));
-            } else {
-                await this.darcInstance.update();
-            }
-            if (Contact.getVersion(this.credentialInstance.credential) > this.version) {
-                this.credential = this.credentialInstance.credential.copy();
-            }
-        }
-        return this;
     }
 
     isRegistered(): boolean {
@@ -214,15 +225,16 @@ export class Contact {
             if (!p.matchContract(CoinInstance.contractID)) {
                 Log.lvl2("didn't find coinInstance");
             } else {
-                this.coinInstance = CoinInstance.fromProof(bc, p);
+                this.coinInstance = await CoinInstance.fromProof(bc, p);
             }
         }
     }
 
     toString(): string {
-        return sprintf("%s (%d): %s", this.alias, this.version,
+        return sprintf("%s (%d): %s\n%s", this.alias, this.version,
             this.credential.credentials.map(c =>
-                sprintf("%s: %s", c.name, c.attributes.map(a => a.name).join("::"))).join("\n"));
+                sprintf("%s: %s", c.name, c.attributes.map(a => a.name).join("::"))).join("\n"),
+            this.recover);
     }
 
     get credentialIID(): InstanceID {
@@ -377,7 +389,7 @@ class Recover {
     }
 
     get trusteesBuf(): Buffer {
-        let b =this.contact.credential.getAttribute("recover", "trustees");
+        let b = this.contact.credential.getAttribute("recover", "trustees");
         return b == null ? Buffer.alloc(0) : b;
     }
 
@@ -416,10 +428,10 @@ class Recover {
     }
 
     findTrustee(trustee: InstanceID | Contact): number {
-        let tBuf = this.getBuffer(trustee);
         if (this.trusteesBuf == null || this.trusteesBuf.length == 0) {
             return -1;
         }
+        let tBuf = this.getBuffer(trustee);
         for (let t = 0; t < this.trusteesBuf.length; t += 32) {
             if (this.trusteesBuf.slice(t, t + 32).equals(tBuf)) {
                 return t;
@@ -460,5 +472,9 @@ class Recover {
             tBuf = (<Contact>trustee).credentialIID.iid;
         }
         return tBuf;
+    }
+
+    toString(): string{
+        return sprintf("%d: %s", this.threshold, this.trustees.map(t => t.iid.toString('hex')));
     }
 }

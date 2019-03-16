@@ -63,8 +63,10 @@ export async function addTrustee() {
         case 1:
             try {
                 await contact[0].update(gData.bc);
-                await gData.contact.recover.addTrustee(contact[0]);
+                let recover = gData.contact.recover;
+                await recover.addTrustee(contact[0]);
                 recoverView._changed = true;
+                recover.threshold += 1;
                 await recoverView.updateTrustees();
             } catch (e) {
                 Log.catch(e);
@@ -94,7 +96,7 @@ export async function save() {
     setProgress();
 }
 
-export async function recoverUser(){
+export async function recoverUser() {
     let contacts = await gData.searchRecovery();
     let aliases = contacts.map(c => c.alias);
     let userAlias = await dialogs.action({
@@ -103,11 +105,11 @@ export async function recoverUser(){
         cancelButtonText: "Cancel",
         actions: aliases,
     });
-    if (userAlias == "Cancel"){
+    if (userAlias == "Cancel") {
         return;
     }
     let user = contacts.filter(c => c.alias == userAlias);
-    if (user.length == 0){
+    if (user.length == 0) {
         return msgFailed("Couldn't find user", userAlias);
     }
     topmost().navigate({

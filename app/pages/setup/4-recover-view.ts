@@ -10,10 +10,9 @@ import {createQrcode, parseQRCode, scan} from "~/lib/Scan";
 import {msgFailed} from "~/lib/ui/messages";
 import {InstanceID} from "~/lib/cothority/byzcoin/ClientTransaction";
 import {Credential, CredentialInstance} from "~/lib/cothority/byzcoin/contracts/CredentialInstance";
+import {mainViewRegistered} from "~/main-page";
 
 export class SetupRecoverView extends Observable {
-    public signatures: Buffer[] = [];
-
     constructor() {
         super();
 
@@ -44,6 +43,10 @@ export class SetupRecoverView extends Observable {
         this.set("threshold", t);
     }
 
+    get _threshold(): number{
+        return this.get("threshold");
+    }
+
     set _trustees(ts: TrusteeSigner[]) {
         this.set("trustees", ts);
     }
@@ -61,34 +64,38 @@ export class SetupRecoverView extends Observable {
         this.set("networkStatus", ns);
     }
 
-    addSignature(signature: Buffer) {
-        this.signatures.push(signature);
-        let width = this.get("trustees").length * 100 / this.signatures.length;
+    updateSignatures() {
+        let width = this.get("trustees").length * 100 / gData.recoverySignatures.length;
         let color = "#308080;";
         if (width < 100) {
             color = "#a04040";
         }
         Log.print(1);
-        topmost().getViewById("progress_bar").setInlineStyle("width:" + Math.abs(width) + "%; background-color: " + color);
+        topmost().getViewById("progress_bar_signatures").setInlineStyle("width:" + Math.abs(width) + "%; background-color: " + color);
         Log.print(2);
     }
 
     async scanSignature() {
         try {
             let sig = await scan("Scan signature");
-            let qr = parseQRCode(sig.text, 2);
-            if (qr.url != Data.urlRecoverySignature) {
-                return msgFailed("This is not a valid signature qrcode.")
+            try {
+                await gData.recoveryStore(sig.text);
+            } catch(e){
+                return msgFailed("This is not a valid signature qrcode: " + e.toString());
             }
             if (this._trustees.length == 0) {
-                let credIID = InstanceID.fromHex(qr.credentialIID);
-                let user = new Contact((await CredentialInstance.fromByzcoin(gData.bc, credIID)).credential);
+                let user = await gData.recoveryUser();
+                Log.print("user is:", user, user.credentialIID);
                 this._threshold = user.recover.threshold;
                 let contacts = await Promise.all(user.recover.trustees.map(tiid =>
                     Contact.fromByzcoin(gData.bc, tiid)));
                 this._trustees = contacts.map(c => new TrusteeSigner(c));
             }
-            this.addSignature(Buffer.from(qr.pubSig, 'hex'));
+            this.updateSignatures();
+            if (gData.recoverySignatures.length >= this._threshold){
+                await gData.recoverIdentity();
+                await mainViewRegistered(null);
+            }
         } catch(e){
             Log.catch(e, "scanSignature");
         }

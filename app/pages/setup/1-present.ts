@@ -62,8 +62,9 @@ export async function goReloadBC(args: EventData) {
         Defaults.SpawnerIID = ts.spawnerIID.iid;
         gData.delete();
         await gData.connectByzcoin();
+        Log.print("gdata.bc is:", gData.bc);
     } catch (e) {
-        Log.rcatch(e);
+        return Log.rcatch(e);
     }
     return goAlias(args);
 }
@@ -74,6 +75,23 @@ export function goAlias(args: EventData) {
 
 export function goPersonhood() {
     openUrl("https://personhood.online");
+}
+
+export async function goRecover(args: EventData){
+    let doit = await dialogs.confirm({
+        title: "Start Recovery",
+        message: "Did you lose your identity and have set up contacts to recover it?",
+        okButtonText: "Recover",
+        cancelButtonText: "Abort"
+    });
+    if (doit){
+        Log.print("going to recover");
+        try {
+            getFrameById("setup").navigate("pages/setup/4-recover");
+        } catch(e){
+            Log.catch(e);
+        }
+    }
 }
 
 export function setProgress(text: string = "", width: number = 0) {

@@ -16,7 +16,7 @@ fdescribe("Recovery Test", () => {
         let phrpc: PersonhoodRPC;
 
         beforeAll(async () => {
-            // await FileIO.rmrf(Defaults.DataDir);
+            await FileIO.rmrf(Defaults.DataDir);
 
             Log.lvl1("Trying to load previous byzcoin");
             admin = new Data({alias: "admin"});
@@ -57,7 +57,7 @@ fdescribe("Recovery Test", () => {
             Log.lvl1("setting up users");
             let user1 = new Data({alias: "user1"});
             user1.setFileName("dataUser1.json");
-            await admin.registerContact(user1.contact, Long.fromNumber(1000));
+            await admin.registerContact(user1.contact, Long.fromNumber(100000));
             await user1.connectByzcoin();
             await user1.verifyRegistration();
             let user2 = new Data({alias: "user2"});
@@ -91,7 +91,9 @@ fdescribe("Recovery Test", () => {
             let recoveryRequest = user1New.recoveryRequest();
             let recoverySig2 = await user2.recoverySignature(recoveryRequest, user1.contact);
             await user1New.recoveryStore(recoverySig2);
-            expect((await user1New.recoveryUser()).toObject()).not.toEqual(user1.contact.toObject());
+            let ru = await user1New.recoveryUser();
+            expect((ru).toObject()).not.toEqual(user1.contact.toObject());
+            expect(ru.recover.threshold).toBe(2);
             Log.lvl2("trying to recover with only one signature - this should fail");
             await expectAsync(user1New.recoverIdentity()).toBeRejected();
 
@@ -100,6 +102,9 @@ fdescribe("Recovery Test", () => {
             Log.lvl2("recovering with both signatures - this should work");
             await user1New.recoverIdentity();
             expect(user1New.contact.credential.toObject()).toEqual(user1.contact.credential.toObject());
+
+            await user1New.coinInstance.transfer(Long.fromNumber(10000), user2.coinInstance.iid,
+                [user1New.keyIdentitySigner]);
             Log.lvl1("Success!!**");
         });
 

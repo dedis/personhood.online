@@ -12,6 +12,7 @@ import {CredentialInstance, CredentialStruct} from "~/lib/cothority/byzcoin/cont
 import {objToProto, Root} from "~/lib/cothority/protobuf/Root";
 import Long = require("long");
 import {Contact} from "~/lib/Contact";
+import {DarcInstance} from "~/lib/cothority/byzcoin/contracts/DarcInstance";
 
 const crypto = require("crypto-browserify");
 
@@ -62,7 +63,7 @@ export class PersonhoodRPC {
             let resp = await socket.send("Meetup", "MeetupResponse", data);
             try {
                 resp.users.forEach(ul => uls.push(UserLocation.fromObject(ul)));
-            } catch(e){
+            } catch (e) {
                 Log.error(e);
             }
         }));
@@ -77,7 +78,7 @@ export class PersonhoodRPC {
     }
 
     // wipeMeetups removes all meetups from the servers. This is mainly for tests.
-    async wipeMeetups(){
+    async wipeMeetups() {
         return this.meetups(new Meetup(null, true));
     }
 
@@ -338,7 +339,7 @@ export class Meetup {
             userlocation: null,
             wipe: this.wipe,
         };
-        if (this.userLocation){
+        if (this.userLocation) {
             o.userlocation = this.userLocation.toObject();
         }
         return o;
@@ -369,7 +370,7 @@ export class UserLocation {
         if (this.credentialIID) {
             o.credentialiid = this.credentialIID.iid;
         }
-        if (this.publicKey){
+        if (this.publicKey) {
             o.publickey = this.publicKey.toBuffer();
         }
         return o
@@ -379,54 +380,55 @@ export class UserLocation {
         return objToProto(this.toObject(), UserLocation.protoName);
     }
 
-    get alias(): string{
+    get alias(): string {
         return this.credential.getAttribute("personal", "alias").toString();
     }
 
-    get unique(): Buffer{
-        if (this.credentialIID){
+    get unique(): Buffer {
+        if (this.credentialIID) {
             return this.credentialIID.iid;
         }
         return Buffer.from(this.alias);
     }
 
-    equals(ul: UserLocation): boolean{
+    equals(ul: UserLocation): boolean {
         return this.unique.equals(ul.unique);
     }
 
-    async toContact(bc: ByzCoinRPC): Promise<Contact>{
-        let c = new Contact(this.credential);
-        if (this.credentialIID){
-            try {
+    async toContact(bc: ByzCoinRPC): Promise<Contact> {
+        try {
+            let c = new Contact(this.credential);
+            if (this.credentialIID) {
                 c.credentialInstance = await CredentialInstance.fromByzcoin(bc, this.credentialIID);
                 c.credential = c.credentialInstance.credential.copy();
-            } catch (e){
-                Log.error("couldn't get credentialInstance:", e);
+                c.darcInstance = await DarcInstance.fromByzcoin(bc, c.credentialInstance.darcID);
+            } else {
+                c.unregisteredPub = this.publicKey;
             }
-        } else {
-            c.unregisteredPub = this.publicKey;
+            return c;
+        } catch (e) {
+            return Log.rcatch(e, "couldn't convert toContact");
         }
-        return c;
     }
 
-    static fromObject(o: any): UserLocation{
+    static fromObject(o: any): UserLocation {
         let crediid: InstanceID = null;
         let pubkey: Public = null;
-        if (o.credentialiid && o.credentialiid.length == 32){
+        if (o.credentialiid && o.credentialiid.length == 32) {
             crediid = InstanceID.fromObjectBuffer(o.credentialiid);
         }
-        if (o.publickey){
+        if (o.publickey) {
             pubkey = Public.fromBuffer(Buffer.from(o.publickey));
         }
         return new UserLocation(CredentialStruct.fromObject(o.credential),
             o.location, pubkey, crediid, o.time);
     }
 
-    static fromProto(p: Buffer): UserLocation{
+    static fromProto(p: Buffer): UserLocation {
         return UserLocation.fromObject(Root.lookup(UserLocation.protoName).decode(p));
     }
 
-    static fromContact(c: Contact): UserLocation{
+    static fromContact(c: Contact): UserLocation {
         return new UserLocation(c.credential, "somewhere", c.pubIdentity, c.credentialIID);
     }
 }

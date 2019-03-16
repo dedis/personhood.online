@@ -107,7 +107,7 @@ export class UserView extends Observable {
             await gData.save();
             this.notifyPropertyChange("isRegistered", this.isRegistered);
         } catch (e) {
-            Log.error("Couldn't update", this.alias, e)
+            Log.catch("Couldn't update", this.alias, e)
         }
         topmost().navigate({
             moduleName: "pages/identity/contacts/actions/actions-page",

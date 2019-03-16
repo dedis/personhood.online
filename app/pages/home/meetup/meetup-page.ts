@@ -72,7 +72,8 @@ export async function addContacts(){
     } else {
         gData.meetups.push(new SocialNode(identity.users));
         for (let i = 0; i < identity.users.length; i++) {
-            gData.addContact(await identity.users[i].toContact(gData.bc))
+            gData.addContact(await identity.users[i].toContact(gData.bc));
+            Log.print("updating")
         }
         await gData.save();
     }

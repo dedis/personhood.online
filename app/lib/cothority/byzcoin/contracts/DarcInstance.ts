@@ -4,6 +4,7 @@ import {Argument, ClientTransaction, InstanceID, Instruction} from "~/lib/cothor
 import {Proof} from "~/lib/cothority/byzcoin/Proof";
 import {Signer} from "~/lib/cothority/darc/Signer";
 import {Log} from "~/lib/Log";
+import {Buffer} from "buffer";
 
 export class DarcInstance {
     static readonly contractID = "darc";
@@ -21,8 +22,28 @@ export class DarcInstance {
      */
     async update(): Promise<DarcInstance> {
         let proof = await this.bc.getProof(new InstanceID(this.darc.getBaseId()));
-        this.darc = DarcInstance.darcFromProof(proof);
+        let d = DarcInstance.darcFromProof(proof);
+        if (d == null){
+            return Promise.reject("got null darc");
+        }
+        this.darc = d;
         return this;
+    }
+
+    async evolve(newDarc: Darc, signers: Signer[]) : Promise<any>{
+        if (!newDarc.getBaseId().equals(this.darc.getBaseId())){
+            return Promise.reject("Not the same base id for the darc");
+        }
+        newDarc.version = this.darc.version.add(1);
+        newDarc.previd = this.darc.getId();
+        let ctx = new ClientTransaction([
+            Instruction.createInvoke(this.iid,
+                "evolve", [
+                    new Argument("darc", newDarc.toProto())
+                ])]);
+        await ctx.signBy([signers], this.bc);
+        await this.bc.sendTransactionAndWait(ctx);
+        await this.update();
     }
 
     toObject(): any{

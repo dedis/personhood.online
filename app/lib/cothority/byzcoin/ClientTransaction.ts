@@ -86,7 +86,7 @@ export class Instruction {
         }
         args.forEach(arg => {
             h.update(arg.name);
-            h.update(arg.value)
+            h.update(arg.value);
         });
         this.signerCounter.forEach(sc => {
             h.update(Buffer.from(sc.toBytesLE()));

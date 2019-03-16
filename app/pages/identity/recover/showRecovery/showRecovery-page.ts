@@ -5,6 +5,7 @@ import {topmost} from "tns-core-modules/ui/frame";
 import {createQrcode, parseQRCode, scan} from "~/lib/Scan";
 import {Data, gData} from "~/lib/Data";
 import {msgFailed} from "~/lib/ui/messages";
+import {Log} from "~/lib/Log";
 
 let user: Contact;
 let context = fromObject({qrcode: null});
@@ -18,6 +19,7 @@ export async function navigatingTo(args) {
         let sig = await gData.recoverySignature(contactScan.text, user);
         context.set("qrcode", createQrcode(sig))
     } catch (e){
+        Log.catch(e);
         await msgFailed(e.toString(), "Error");
         return goBack();
     }
