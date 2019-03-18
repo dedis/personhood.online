@@ -1,6 +1,6 @@
 # Progress
 
-## 16th of March
+## 18th of March
 
 ### Top-down
 
@@ -8,4 +8,4 @@
 
 ### BUG
 
-- if a user is recovered, he cannot save his attributes to the blockchain before he restarts the app. Probably the sendUpdate not working because credentialInstance == null 
+- if a user is registered from stale contact data, the newly registered user will lose all his added attributes.

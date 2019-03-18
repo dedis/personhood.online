@@ -9,14 +9,14 @@ import {FileIO} from "~/lib/FileIO";
 import {Defaults} from "~/lib/Defaults";
 import {Contact} from "~/lib/Contact";
 
-fdescribe("Recovery Test", () => {
-    fdescribe("Recovery", async () => {
+describe("Recovery Test", () => {
+    describe("Recovery", async () => {
         let tdAdmin: TestData;
         let admin: Data;
         let phrpc: PersonhoodRPC;
 
         beforeAll(async () => {
-            await FileIO.rmrf(Defaults.DataDir);
+            // await FileIO.rmrf(Defaults.DataDir);
 
             Log.lvl1("Trying to load previous byzcoin");
             admin = new Data({alias: "admin"});
@@ -53,7 +53,7 @@ fdescribe("Recovery Test", () => {
             Log.print("this line will be overwritten");
         });
 
-        fit("set recovery", async () => {
+        it("set recovery", async () => {
             Log.lvl1("setting up users");
             let user1 = new Data({alias: "user1"});
             user1.setFileName("dataUser1.json");
@@ -110,8 +110,8 @@ fdescribe("Recovery Test", () => {
 
         it("recover multiple users", async () => {
             Log.lvl1("setting up users");
-            let nbrRecovery = 2;
-            let nbrTrustees = 3;
+            let nbrRecovery = 1;
+            let nbrTrustees = 1;
             let recoveries: Data[] = [];
             let trustees: Data[] = [];
             for (let user = 0; user < nbrRecovery + nbrTrustees; user++) {
@@ -140,6 +140,7 @@ fdescribe("Recovery Test", () => {
                     rs.push(trustees[trustee].contact);
                 }
                 await recoveries[recovery].setTrustees(nbrTrustees, rs);
+                await recoveries[recovery].save();
             }
             for (let trustee = 0; trustee < nbrTrustees; trustee++) {
                 expect((await trustees[trustee].searchRecovery()).length).toBe(nbrRecovery);
@@ -158,6 +159,13 @@ fdescribe("Recovery Test", () => {
                 }
                 await userNew.recoverIdentity();
                 expect(userNew.contact.credential.toObject()).toEqual(recoveries[newUser].contact.credential.toObject());
+
+                await userNew.coinInstance.transfer(Long.fromNumber(10), admin.coinInstance.iid,
+                    [userNew.keyIdentitySigner]);
+                userNew.contact.email = "test@test.com";
+                await userNew.contact.sendUpdate(userNew.keyIdentitySigner);
+                await trustees[0].friends[newUser].update(admin.bc);
+                expect(trustees[0].friends[newUser].email).toEqual("test@test.com");
             }
         });
     });

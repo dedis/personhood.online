@@ -18,7 +18,7 @@ import * as Long from "long";
 import {FileIO} from "~/lib/FileIO";
 import {Defaults} from "~/lib/Defaults";
 
-describe("Contact tests", () => {
+fdescribe("Contact tests", () => {
     describe("no byzcoin needed to test", () => {
         afterEach(() => {
             Log.print("will be overwritten");
@@ -137,7 +137,7 @@ describe("Contact tests", () => {
     });
 
 
-    describe("With Byzcoin", async () => {
+    fdescribe("With Byzcoin", async () => {
         let tdAdmin: TestData;
         let admin: Data;
         let phrpc: PersonhoodRPC;
@@ -201,5 +201,23 @@ describe("Contact tests", () => {
 
             Log.lvl1("success");
         });
+
+        it("registration keeps alias", async()=>{
+            let one = new Data({alias: "one"});
+            one.setFileName("contactOne.json");
+            await one.connectByzcoin();
+            await admin.registerContact(one.contact, Long.fromNumber(100000));
+            await one.verifyRegistration();
+            expect(one.contact.alias).toEqual("one");
+
+            let two = new Data({alias: "two"});
+            two.setFileName("contacttwo.json");
+            await two.connectByzcoin();
+
+            one.addContact(two.contact);
+            await one.registerContact(two.contact);
+            await one.friends[0].update(one.bc);
+            expect(one.friends[0].alias).toEqual("two");
+        })
     });
 });

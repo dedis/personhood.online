@@ -116,34 +116,38 @@ function setScore(att: number, reg: boolean, meet: number, party: number) {
 }
 
 export async function update() {
-    setProgress("Updating", 50);
-    identity.set("hasCoins", false);
-    identity.set("alias", gData.contact.alias);
-    if (!gData.contact.isRegistered()) {
-        await gData.contact.verifyRegistration(gData.bc);
-        if (gData.contact.isRegistered()) {
-            // Need to send new credential to byzcoin
-            await gData.contact.sendUpdate(gData.keyIdentitySigner);
+    try {
+        setProgress("Updating", 50);
+        identity.set("hasCoins", false);
+        identity.set("alias", gData.contact.alias);
+        if (!gData.contact.isRegistered()) {
+            await gData.contact.verifyRegistration(gData.bc);
+            if (gData.contact.isRegistered()) {
+                // Need to send new credential to byzcoin
+                await gData.contact.sendUpdate(gData.keyIdentitySigner);
+            }
+            await gData.save()
         }
-        await gData.save()
+        identity.set("qrcode", gData.contact.qrcodeIdentity());
+        attributes.splice(0);
+        attributes.push({name: "alias", value: gData.contact.alias});
+        if (gData.contact.email != "") {
+            attributes.push({name: "email", value: gData.contact.email});
+        }
+        if (gData.contact.phone != "") {
+            attributes.push({name: "phone", value: gData.contact.phone});
+        }
+        setScore(attributes.length, gData.coinInstance != null, gData.uniqueMeetings, gData.badges.length);
+        if (gData.coinInstance != null) {
+            identity.set("hasCoins", true);
+            identity.set("init", false);
+            await gData.coinInstance.update();
+            identity.set("coins", gData.coinInstance.coin.value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " "));
+        }
+        setProgress();
+    } catch (e){
+        Log.catch(e);
     }
-    identity.set("qrcode", gData.contact.qrcodeIdentity());
-    attributes.splice(0);
-    attributes.push({name: "alias", value: gData.contact.alias});
-    if (gData.contact.email != "") {
-        attributes.push({name: "email", value: gData.contact.email});
-    }
-    if (gData.contact.phone != "") {
-        attributes.push({name: "phone", value: gData.contact.phone});
-    }
-    setScore(attributes.length, gData.coinInstance != null, gData.uniqueMeetings, gData.badges.length);
-    if (gData.coinInstance != null) {
-        identity.set("hasCoins", true);
-        identity.set("init", false);
-        await gData.coinInstance.update();
-        identity.set("coins", gData.coinInstance.coin.value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " "));
-    }
-    setProgress();
 }
 
 export async function coins(args: EventData) {

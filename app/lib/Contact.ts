@@ -212,6 +212,7 @@ export class Contact {
                 Log.lvl2("didn't find credentialInstance");
             } else {
                 this.credentialInstance = await CredentialInstance.fromProof(bc, p);
+                this.credential = this.credentialInstance.credential.copy();
             }
         }
         if (this.credentialInstance) {
@@ -356,7 +357,7 @@ export class Contact {
     static async fromByzcoin(bc: ByzCoinRPC, credIID: InstanceID): Promise<Contact> {
         let u = new Contact();
         u.credentialInstance = await CredentialInstance.fromByzcoin(bc, credIID);
-        u.credential = u.credentialInstance.credential;
+        u.credential = u.credentialInstance.credential.copy();
         u.darcInstance = await DarcInstance.fromByzcoin(bc, u.credentialInstance.darcID);
         return u;
     }

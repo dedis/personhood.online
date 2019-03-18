@@ -275,7 +275,6 @@ export class Data {
                 "ed25519", this.keyPersonhood._public.toBuffer());
         }
         if (this.contact.isRegistered()) {
-            Log.print("is registered");
             await this.contact.sendUpdate(this.keyIdentitySigner);
         }
         return this;
@@ -326,7 +325,7 @@ export class Data {
 
             progress("Creating Credential", 80);
             let credentialInstance = await this.createUserCredentials(pub, darcInstance.iid.iid, coinInstance.iid.iid,
-                referral);
+                referral, contact);
             await this.coinInstance.transfer(balance, coinInstance.iid, [this.keyIdentitySigner]);
             Log.lvl2("Registered user for darc::coin::credential:", darcInstance.iid.iid, coinInstance.iid.iid,
                 credentialInstance.iid.iid);
@@ -342,15 +341,21 @@ export class Data {
     async createUserCredentials(pub: Public = this.keyIdentity._public,
                                 darcID: Buffer = this.darcInstance.iid.iid,
                                 coinIID: Buffer = this.coinInstance.iid.iid,
-                                referral: Buffer = null): Promise<CredentialInstance> {
-        Log.lvl1("Creating user credential");
-        let credPub = new Credential("public",
-            [new Attribute("ed25519", pub.toBuffer())]);
-        let credDarc = new Credential("darc",
-            [new Attribute("darcID", darcID)]);
-        let credCoin = new Credential("coin",
-            [new Attribute("coinIID", coinIID)]);
-        let cred = new CredentialStruct([credPub, credDarc, credCoin]);
+                                referral: Buffer = null,
+                                orig: Contact = null): Promise<CredentialInstance> {
+        let cred: CredentialStruct = null;
+        if (orig == null) {
+            Log.lvl1("Creating user credential");
+            let credPub = new Credential("public",
+                [new Attribute("ed25519", pub.toBuffer())]);
+            let credDarc = new Credential("darc",
+                [new Attribute("darcID", darcID)]);
+            let credCoin = new Credential("coin",
+                [new Attribute("coinIID", coinIID)]);
+            cred = new CredentialStruct([credPub, credDarc, credCoin]);
+        } else {
+            cred = orig.credential.copy();
+        }
         if (referral) {
             cred.credentials[0].attributes.push(new Attribute("referred", referral));
         }
