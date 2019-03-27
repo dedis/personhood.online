@@ -99,6 +99,7 @@ export class Contact {
                 if (this.coinInstance == null){
                     let coiniid = this.getCoinAddress();
                     if (coiniid != null) {
+                        Log.print("getting coin")
                         this.coinInstance = await CoinInstance.fromByzcoin(bc, coiniid);
                     }
                 } else {
@@ -335,9 +336,6 @@ export class Contact {
     static async fromQR(bc: ByzCoinRPC, str: string): Promise<Contact> {
         let qr = await parseQRCode(str, 5);
         let u = new Contact();
-        u.alias = qr.alias;
-        u.email = qr.email;
-        u.phone = qr.phone;
         switch (qr.url) {
             case Contact.urlRegistered:
                 u.credentialInstance = await CredentialInstance.fromByzcoin(bc,
@@ -347,6 +345,9 @@ export class Contact {
                     await bc.getProof(u.credentialInstance.darcID));
                 return await u.update(bc);
             case Contact.urlUnregistered:
+                u.alias = qr.alias;
+                u.email = qr.email;
+                u.phone = qr.phone;
                 u.unregisteredPub = Public.fromHex(qr.public_ed25519);
                 return u;
             default:

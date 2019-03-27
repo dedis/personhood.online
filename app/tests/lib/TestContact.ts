@@ -8,7 +8,7 @@ import {
     CredentialInstance,
     CredentialStruct
 } from "~/lib/cothority/byzcoin/contracts/CredentialInstance";
-import {InstanceID} from "~/lib/cothority/byzcoin/ClientTransaction";
+import {ClientTransaction, InstanceID} from "~/lib/cothority/byzcoin/ClientTransaction";
 import {ByzCoinRPC} from "~/lib/cothority/byzcoin/ByzCoinRPC";
 import {Proof, StateChangeBody} from "~/lib/cothority/byzcoin/Proof";
 import {Darc} from "~/lib/cothority/darc/Darc";
@@ -17,15 +17,17 @@ import {Meetup, PersonhoodRPC, UserLocation} from "~/lib/PersonhoodRPC";
 import * as Long from "long";
 import {FileIO} from "~/lib/FileIO";
 import {Defaults} from "~/lib/Defaults";
+import {Coin, CoinInstance} from "~/lib/cothority/byzcoin/contracts/CoinInstance";
 
 fdescribe("Contact tests", () => {
-    describe("no byzcoin needed to test", () => {
+    fdescribe("no byzcoin needed to test", () => {
         afterEach(() => {
             Log.print("will be overwritten");
         });
 
         class bcNull extends ByzCoinRPC {
             credInst: CredentialInstance;
+            coinInst: CoinInstance;
 
             constructor(public credDarc: Darc) {
                 super(null, null, null, null);
@@ -33,6 +35,7 @@ fdescribe("Contact tests", () => {
 
             async getProof(iid: InstanceID): Promise<Proof> {
                 let p = new Proof(null, iid);
+                Log.print("getting proof for", iid.iid);
                 p.matches = true;
                 if (iid.iid.equals(Buffer.alloc(32))) {
                     p.stateChangeBody = <StateChangeBody>{
@@ -40,10 +43,20 @@ fdescribe("Contact tests", () => {
                         contractID: "credential",
                         darcID: this.credDarc.getBaseId()
                     };
+                } else if (iid.iid.equals(this.coinInst.iid.iid)) {
+                    p.stateChangeBody = <StateChangeBody>{
+                        value: this.coinInst.coin.toProto(),
+                        contractID: "coin",
+                        darcID: this.credDarc.getBaseId()
+                    };
                 } else {
                     p.stateChangeBody = <StateChangeBody>{value: this.credDarc.toProto(), contractID: "darc"};
                 }
                 return p;
+            }
+
+            async sendTransactionAndWait(transaction: ClientTransaction, wait: number = 5): Promise<any> {
+                Log.print(transaction);
             }
         }
 
@@ -51,25 +64,33 @@ fdescribe("Contact tests", () => {
             Log.lvl1("*** simple qr-code parsing");
             let pubIdentity = Public.fromRand();
             let reg1 = new Contact(null, pubIdentity);
+            let bc = new bcNull(SpawnerInstance.prepareUserDarc(pubIdentity, "reg1"));
+            reg1.credentialInstance = new CredentialInstance(bc,
+                new InstanceID(Buffer.alloc(32)), new CredentialStruct([]));
             reg1.alias = 'reg1';
             reg1.email = "test@test.com";
             reg1.phone = "+41 1 111 11 11";
-            let bc = new bcNull(SpawnerInstance.prepareUserDarc(pubIdentity, "reg1"));
-            reg1.credentialInstance = new CredentialInstance(bc,
-                new InstanceID(Buffer.alloc(32)), new CredentialStruct(
-                    [new Credential("public",
-                        [new Attribute("ed25519", pubIdentity.toBuffer())])]));
+            reg1.credential.setAttribute("public", "ed25519", pubIdentity.toBuffer());
+            let coinIID = Buffer.alloc(32);
+            coinIID[0] = 1;
+            reg1.credential.setAttribute("coin", "coinIID", coinIID);
+            reg1.credentialInstance.credential = reg1.credential.copy();
             bc.credInst = reg1.credentialInstance;
-
+            bc.coinInst = new CoinInstance(bc, new InstanceID(coinIID), new Coin({name:coinIID, value: Long.fromNumber(1)}));
+            Log.print(1);
             let str = reg1.qrcodeIdentityStr();
+            Log.print(4);
             let qrReg1 = await Contact.fromQR(bc, str);
+            Log.print(3);
             expect(str).toEqual(qrReg1.qrcodeIdentityStr());
+            expect(reg1.getCoinAddress().iid.equals(coinIID)).toBeTruthy();
 
             let unreg2 = new Contact(null, Public.fromRand());
             unreg2.alias = 'reg1';
             unreg2.email = "test@test.com";
             unreg2.phone = "+41 1 111 11 11";
             str = unreg2.qrcodeIdentityStr();
+            Log.print(2);
             expect(str.startsWith(Contact.urlUnregistered)).toBeTruthy();
             let qrUnreg2 = await Contact.fromQR(bc, str);
             expect(str).toEqual(qrUnreg2.qrcodeIdentityStr());
