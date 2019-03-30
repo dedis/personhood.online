@@ -9,16 +9,16 @@ import {getFrameById, getViewById, Page, topmost} from "tns-core-modules/ui/fram
 import {gData} from "~/lib/Data";
 import {Log} from "~/lib/Log";
 import {Defaults} from "~/lib/Defaults";
-import {TestStore} from "~/lib/network/TestStore";
-import {navigatingToHome, switchHome} from "~/pages/home/home-page";
+import {TestStoreRPC} from "~/lib/network/TestStore";
+// import {navigatingToHome, switchHome} from "~/pages/home/home-page";
 import * as dialogs from "tns-core-modules/ui/dialogs";
 import * as application from "tns-core-modules/application";
 import {SelectedIndexChangedEventData, TabView} from "tns-core-modules/ui/tab-view";
-import {adminView, switchSettings} from "~/pages/settings/settings-page";
-import {switchLab} from "~/pages/lab/lab-page";
-import {switchIdentity} from "~/pages/identity/identity-page";
+// import {adminView, switchSettings} from "~/pages/settings/settings-page";
+// import {switchLab} from "~/pages/lab/lab-page";
+// import {switchIdentity} from "~/pages/identity/identity-page";
 import {msgFailed} from "~/lib/ui/messages";
-import {AdminViewModel} from "~/pages/settings/settings-view";
+// import {AdminViewModel} from "~/pages/settings/settings-view";
 import {ad} from "tns-core-modules/utils/utils";
 import getId = ad.resources.getId;
 import {FileIO} from "~/lib/FileIO";
@@ -40,9 +40,9 @@ export async function navigatingTo(args: EventData) {
         }
 
         if (Defaults.LoadTestStore) {
-            let ts = await TestStore.load(Defaults.Roster);
-            Defaults.ByzCoinID = ts.bcID;
-            Defaults.SpawnerIID = ts.spawnerIID.iid;
+            let ts = await TestStoreRPC.load(Defaults.Roster);
+            Defaults.ByzCoinID = ts.byzcoinID;
+            Defaults.SpawnerIID = ts.spawnerIID;
         }
         if (Defaults.DataFile) {
             await FileIO.writeFile(Defaults.DataDir + "/data.json", Defaults.DataFile);
@@ -79,7 +79,7 @@ export function mainViewRegistered(args: any) {
     mainView.set("showGroup", 2);
     let tv = <TabView>getFrameById("app-root").getViewById("mainTabView");
     tv.selectedIndex = 0;
-    return switchHome(args);
+    // return switchHome(args);
 }
 
 export function mainViewRegister(args: any) {
@@ -90,18 +90,18 @@ export function mainViewRegister(args: any) {
 
 export async function onChangeTab(args: SelectedIndexChangedEventData) {
     Log.lvl2("onchangetab", args.newIndex);
-    switch (args.newIndex) {
-        case 0:
-            await switchHome(args);
-            break;
-        case 1:
-            await switchIdentity(args);
-            break;
-        case 2:
-            await switchLab(args);
-            break;
-        case 3:
-            await switchSettings(args);
-            break;
-    }
+    // switch (args.newIndex) {
+    //     case 0:
+    //         await switchHome(args);
+    //         break;
+    //     case 1:
+    //         await switchIdentity(args);
+    //         break;
+    //     case 2:
+    //         await switchLab(args);
+    //         break;
+    //     case 3:
+    //         await switchSettings(args);
+    //         break;
+    // }
 }

@@ -1,18 +1,18 @@
-import { Point, PointFactory, Scalar, sign } from "@dedis/kyber";
+import {Point, PointFactory, Scalar, sign} from "@dedis/kyber";
 import Signer from "../../../darc/signer";
 import Log from "../../../log";
 import ByzCoinRPC from "../../byzcoin-rpc";
-import ClientTransaction, { Argument, Instruction } from "../../client-transaction";
+import ClientTransaction, {Argument, Instruction} from "../../client-transaction";
 import Instance from "../../instance";
 import CredentialInstance from "../credentials-instance";
 import DarcInstance from "../darc-instance";
 import SpawnerInstance from "../spawner-instance";
-import { FinalStatement, PopPartyStruct } from "./proto";
+import {FinalStatement, PopPartyStruct} from "./proto";
 import Darc from "../../../darc/darc";
 
-const { anon } = sign;
+const {anon} = sign;
 
-export class PopPartyInstance {
+export class PopPartyInstance extends Instance{
     static readonly contractID = "popParty";
     static readonly PRE_BARRIER = 1;
     static readonly SCANNING = 2;
@@ -32,21 +32,14 @@ export class PopPartyInstance {
     private rpc: ByzCoinRPC;
     private instance: Instance;
     private tmpAttendees: Point[] = [];
-    private popPartyStruct: PopPartyStruct;
+    public popPartyStruct: PopPartyStruct;
 
     constructor(public bc: ByzCoinRPC, inst: Instance) {
+        super(inst);
+
         this.rpc = bc;
         this.instance = inst;
         this.popPartyStruct = PopPartyStruct.decode(this.instance.data);
-    }
-
-    /**
-     * Getter for the party data
-     *
-     * @returns the data struct
-     */
-    get data(): PopPartyStruct {
-        return this.popPartyStruct;
     }
 
     /**
@@ -117,7 +110,7 @@ export class PopPartyInstance {
             [],
         );
 
-        const ctx = new ClientTransaction({ instructions: [instr] });
+        const ctx = new ClientTransaction({instructions: [instr]});
         await ctx.updateCounters(this.rpc, signers);
         ctx.signWith([signers]);
 
@@ -144,10 +137,10 @@ export class PopPartyInstance {
             this.instance.id,
             PopPartyInstance.contractID,
             "finalize",
-            [new Argument({ name: "attendees", value: this.popPartyStruct.attendees.toBytes() })],
+            [new Argument({name: "attendees", value: this.popPartyStruct.attendees.toBytes()})],
         );
 
-        const ctx = new ClientTransaction({ instructions: [instr] });
+        const ctx = new ClientTransaction({instructions: [instr]});
         await ctx.updateCounters(this.rpc, signers);
         ctx.signWith([signers]);
 
@@ -189,11 +182,11 @@ export class PopPartyInstance {
         const keys = this.popPartyStruct.attendees.publics;
         const lrs = await anon.sign(Buffer.from("mine"), keys, secret, this.instance.id);
         const args = [
-            new Argument({ name: "lrs", value: lrs.encode() })
-            ];
+            new Argument({name: "lrs", value: lrs.encode()})
+        ];
         if (coinID) {
             args.push(new Argument({name: "coinIID", value: coinID}))
-        } else if (newDarc){
+        } else if (newDarc) {
             args.push(new Argument({name: "newDarc", value: newDarc.toBytes()}))
         } else {
             throw new Error("need to give either coinIID or newDarc");
@@ -208,13 +201,13 @@ export class PopPartyInstance {
 
         // the transaction is not signed but there is a counter-measure against
         // replay attacks server-side
-        const ctx = new ClientTransaction({ instructions: [instr] });
+        const ctx = new ClientTransaction({instructions: [instr]});
 
         await this.bc.sendTransactionAndWait(ctx);
         await this.update();
     }
 
-    private async fetchOrgKeys(): Promise<Point[]> {
+    async fetchOrgKeys(): Promise<Point[]> {
         const piDarc = await DarcInstance.fromByzcoin(this.bc, this.instance.darcID);
         const exprOrgs = piDarc.getDarc().rules.list.find((l) => l.action === "invoke:popParty.finalize").expr;
         const orgDarcs = exprOrgs.toString().split(" | ");

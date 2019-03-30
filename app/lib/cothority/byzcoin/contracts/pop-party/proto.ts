@@ -1,3 +1,4 @@
+import * as Long from "long";
 import { Point, PointFactory } from "@dedis/kyber";
 import * as Moment from "moment";
 import { Message, Properties } from "protobufjs/light";
@@ -11,7 +12,7 @@ export class PopPartyStruct extends Message<PopPartyStruct> {
         registerMessage("personhood.PopPartyStruct", PopPartyStruct, PopDesc, Attendees, LRSTag);
     }
 
-    readonly state: number;
+    public state: number;
     readonly organizers: number;
     readonly finalizations: string[];
     readonly description: PopDesc;
@@ -78,6 +79,10 @@ export class PopDesc extends Message<PopDesc> {
     readonly purpose: string;
     readonly datetime: Long; // in seconds
     readonly location: string;
+
+    constructor(props?: Properties<PopDesc>) {
+        super(props);
+    }
 
     /**
      * Getter for the timestamp

@@ -1,28 +1,28 @@
-import { Point } from "@dedis/kyber";
-import { createHash } from "crypto";
+import {Point} from "@dedis/kyber";
+import {createHash} from "crypto-browserify";
 import * as Long from "long";
-import { Message, Properties } from "protobufjs/light";
+import {Message, Properties} from "protobufjs/light";
 import Darc from "../../darc/darc";
 import IdentityDarc from "../../darc/identity-darc";
 import IdentityEd25519 from "../../darc/identity-ed25519";
 import Rules from "../../darc/rules";
 import Signer from "../../darc/signer";
 import Log from "../../log";
-import { registerMessage } from "../../protobuf";
+import {registerMessage} from "../../protobuf";
 import ByzCoinRPC from "../byzcoin-rpc";
-import ClientTransaction, { Argument, Instruction } from "../client-transaction";
-import { InstanceID } from "../instance";
-import CoinInstance, { Coin } from "./coin-instance";
-import CredentialInstance, { CredentialStruct } from "./credentials-instance";
+import ClientTransaction, {Argument, Instruction} from "../client-transaction";
+import Instance, {InstanceID} from "../instance";
+import CoinInstance, {Coin} from "./coin-instance";
+import CredentialInstance, {CredentialStruct} from "./credentials-instance";
 import DarcInstance from "./darc-instance";
-import { PopPartyInstance } from "./pop-party/pop-party-instance";
-import { PopDesc } from "./pop-party/proto";
-import RoPaSciInstance, { RoPaSciStruct } from "./ro-pa-sci-instance";
+import {PopPartyInstance} from "./pop-party/pop-party-instance";
+import {PopDesc} from "./pop-party/proto";
+import RoPaSciInstance, {RoPaSciStruct} from "./ro-pa-sci-instance";
 
 export const SPAWNER_COIN = Buffer.alloc(32, 0);
 SPAWNER_COIN.write("SpawnerCoin");
 
-export default class SpawnerInstance {
+export default class SpawnerInstance extends Instance {
     static readonly contractID = "spawner";
 
     /**
@@ -35,18 +35,18 @@ export default class SpawnerInstance {
      * @param beneficiary The beneficiary of the costs
      */
     static async create(params: ICreateSpawner): Promise<SpawnerInstance> {
-        const { bc, darcID, signers, costs, beneficiary } = params;
+        const {bc, darcID, signers, costs, beneficiary} = params;
 
         const args = [
             ...Object.keys(costs).map((k) => {
-                const value = new Coin({ name: SPAWNER_COIN, value: costs[k] }).toBytes();
-                return new Argument({ name: k, value });
+                const value = new Coin({name: SPAWNER_COIN, value: costs[k]}).toBytes();
+                return new Argument({name: k, value});
             }),
-            new Argument({ name: "beneficiary", value: beneficiary }),
+            new Argument({name: "beneficiary", value: beneficiary}),
         ];
 
         const inst = Instruction.createSpawn(darcID, this.contractID, args);
-        const ctx = new ClientTransaction({ instructions: [inst] });
+        const ctx = new ClientTransaction({instructions: [inst]});
         await ctx.updateCounters(bc, signers);
         ctx.signWith([signers]);
 
@@ -67,7 +67,8 @@ export default class SpawnerInstance {
             throw new Error("fail to get a matching proof");
         }
 
-        return new SpawnerInstance(bc, iid, SpawnerStruct.decode(proof.value));
+        return new SpawnerInstance(bc, await proof.getVerifiedInstance(bc.genesisID,
+            SpawnerInstance.contractID));
     }
 
     /**
@@ -78,12 +79,13 @@ export default class SpawnerInstance {
      * @returns the new darc
      */
     static prepareUserDarc(pubKey: Point, alias: string): Darc {
-        const id = new IdentityEd25519({ point: pubKey.toProto() });
+        const id = new IdentityEd25519({point: pubKey.toProto()});
 
         const darc = Darc.newDarc([id], [id], Buffer.from(`user ${alias}`));
         darc.addIdentity("invoke:coin.update", id, Rules.AND);
         darc.addIdentity("invoke:coin.fetch", id, Rules.AND);
         darc.addIdentity("invoke:coin.transfer", id, Rules.AND);
+        darc.addIdentity("invoke:credential.update", id, Rules.AND);
 
         return darc;
     }
@@ -96,7 +98,7 @@ export default class SpawnerInstance {
      * @returns the new darc
      */
     static preparePartyDarc(darcIDs: InstanceID[], desc: string): Darc {
-        const ids = darcIDs.map((di) => new IdentityDarc({ id: di }));
+        const ids = darcIDs.map((di) => new IdentityDarc({id: di}));
         const darc = Darc.newDarc(ids, ids, Buffer.from(desc));
         ids.forEach((id) => {
             darc.addIdentity("invoke:popParty.barrier", id, Rules.OR);
@@ -133,8 +135,6 @@ export default class SpawnerInstance {
         return h.digest();
     }
 
-    readonly iid: InstanceID;
-
     private rpc: ByzCoinRPC;
     private struct: SpawnerStruct;
 
@@ -144,10 +144,10 @@ export default class SpawnerInstance {
      * @param iid       The instance ID
      * @param spawner   Parameters for the spawner: costs and names
      */
-    constructor(bc: ByzCoinRPC, iid: InstanceID, spawner: SpawnerStruct) {
+    constructor(bc: ByzCoinRPC, inst: Instance) {
+        super(inst)
         this.rpc = bc;
-        this.iid = iid;
-        this.struct = spawner;
+        this.struct = SpawnerStruct.decode(inst.data);
     }
 
     /**
@@ -167,7 +167,7 @@ export default class SpawnerInstance {
      * @returns a promise that resolves once the data is up-to-date
      */
     async update(): Promise<SpawnerInstance> {
-        const proof = await this.rpc.getProof(this.iid);
+        const proof = await this.rpc.getProof(this.id);
         this.struct = SpawnerStruct.decode(proof.value);
         return this;
     }
@@ -197,12 +197,12 @@ export default class SpawnerInstance {
                     coin.id,
                     CoinInstance.contractID,
                     "fetch",
-                    [new Argument({ name: "coins", value: Buffer.from(this.struct.costDarc.value.toBytesLE()) })],
+                    [new Argument({name: "coins", value: Buffer.from(this.struct.costDarc.value.toBytesLE())})],
                 ),
                 Instruction.createSpawn(
-                    this.iid,
+                    this.id,
                     DarcInstance.contractID,
-                    [new Argument({ name: "darc", value: d.toBytes() })],
+                    [new Argument({name: "darc", value: d.toBytes()})],
                 ),
             ],
         });
@@ -240,14 +240,14 @@ export default class SpawnerInstance {
                     coin.id,
                     CoinInstance.contractID,
                     "fetch",
-                    [new Argument({ name: "coins", value: Buffer.from(valueBuf) })],
+                    [new Argument({name: "coins", value: Buffer.from(valueBuf)})],
                 ),
                 Instruction.createSpawn(
-                    this.iid,
+                    this.id,
                     CoinInstance.contractID,
                     [
-                        new Argument({ name: "coinName", value: SPAWNER_COIN }),
-                        new Argument({ name: "darcID", value: darcID }),
+                        new Argument({name: "coinName", value: SPAWNER_COIN}),
+                        new Argument({name: "darcID", value: darcID}),
                     ],
                 ),
             ],
@@ -290,14 +290,14 @@ export default class SpawnerInstance {
                     coin.id,
                     CoinInstance.contractID,
                     "fetch",
-                    [new Argument({ name: "coins", value: Buffer.from(valueBuf) })],
+                    [new Argument({name: "coins", value: Buffer.from(valueBuf)})],
                 ),
                 Instruction.createSpawn(
-                    this.iid,
+                    this.id,
                     CredentialInstance.contractID,
                     [
-                        new Argument({ name: "darcID", value: darcID }),
-                        new Argument({ name: "credential", value: cred.toBytes() }),
+                        new Argument({name: "darcID", value: darcID}),
+                        new Argument({name: "credential", value: cred.toBytes()}),
                     ],
                 ),
             ],
@@ -321,7 +321,7 @@ export default class SpawnerInstance {
      * @returns a promise tha resolves with the new pop party instance
      */
     async createPopParty(params: ICreatePopParty): Promise<PopPartyInstance> {
-        const { coin, signers, orgs, desc, reward } = params;
+        const {coin, signers, orgs, desc, reward} = params;
 
         // Verify that all organizers have published their personhood public key
         for (const org of orgs) {
@@ -339,20 +339,20 @@ export default class SpawnerInstance {
                     coin.id,
                     CoinInstance.contractID,
                     "fetch",
-                    [new Argument({ name: "coins", value: Buffer.from(valueBuf) })],
+                    [new Argument({name: "coins", value: Buffer.from(valueBuf)})],
                 ),
                 Instruction.createSpawn(
-                    this.iid,
+                    this.id,
                     DarcInstance.contractID,
-                    [new Argument({ name: "darc", value: orgDarc.toBytes() })],
+                    [new Argument({name: "darc", value: orgDarc.toBytes()})],
                 ),
                 Instruction.createSpawn(
-                    this.iid,
+                    this.id,
                     PopPartyInstance.contractID,
                     [
-                        new Argument({ name: "darcID", value: orgDarc.getBaseID() }),
-                        new Argument({ name: "description", value: desc.toBytes() }),
-                        new Argument({ name: "miningReward", value: Buffer.from(reward.toBytesLE()) }),
+                        new Argument({name: "darcID", value: orgDarc.getBaseID()}),
+                        new Argument({name: "description", value: desc.toBytes()}),
+                        new Argument({name: "miningReward", value: Buffer.from(reward.toBytesLE())}),
                     ],
                 ),
             ],
@@ -377,13 +377,13 @@ export default class SpawnerInstance {
      * @returns a promise that resolves with the new instance
      */
     async createRoPaSci(params: ICreateRoPaSci): Promise<RoPaSciInstance> {
-        const { desc, coin, signers, stake, choice, fillup } = params;
+        const {desc, coin, signers, stake, choice, fillup} = params;
 
         if (fillup.length !== 31) {
             throw new Error("need exactly 31 bytes for fillUp");
         }
 
-        const c = new Coin({name: coin.name, value: stake.add(this.struct.costRoPaSci.value) });
+        const c = new Coin({name: coin.name, value: stake.add(this.struct.costRoPaSci.value)});
         if (coin.value.lessThan(c.value)) {
             throw new Error("account balance not high enough for that stake");
         }
@@ -406,12 +406,12 @@ export default class SpawnerInstance {
                     coin.id,
                     CoinInstance.contractID,
                     "fetch",
-                    [new Argument({ name: "coins", value: Buffer.from(c.value.toBytesLE()) })],
+                    [new Argument({name: "coins", value: Buffer.from(c.value.toBytesLE())})],
                 ),
                 Instruction.createSpawn(
-                    this.iid,
+                    this.id,
                     RoPaSciInstance.contractID,
-                    [new Argument({ name: "struct", value: rps.toBytes() })],
+                    [new Argument({name: "struct", value: rps.toBytes()})],
                 ),
             ],
         });
@@ -502,6 +502,7 @@ export class SpawnerStruct extends Message<SpawnerStruct> {
  */
 interface ICreateCost {
     [k: string]: Long;
+
     costDarc: Long;
     costCoin: Long;
     costCredential: Long;
@@ -513,6 +514,7 @@ interface ICreateCost {
  */
 interface ICreateSpawner {
     [k: string]: any;
+
     bc: ByzCoinRPC;
     darcID: InstanceID;
     signers: Signer[];
@@ -525,6 +527,7 @@ interface ICreateSpawner {
  */
 interface ICreateRoPaSci {
     [k: string]: any;
+
     desc: string;
     coin: CoinInstance;
     signers: Signer[];
@@ -538,6 +541,7 @@ interface ICreateRoPaSci {
  */
 interface ICreatePopParty {
     [k: string]: any;
+
     coin: CoinInstance;
     signers: Signer[];
     orgs: CredentialInstance[];

@@ -1,8 +1,9 @@
 import * as Long from "long";
-import * as protobuf from "protobufjs/light";
+import {Reader} from "protobufjs/light";
+const protobuf = require("protobufjs/light");
 import Log from "../log";
-import models from "./models.json";
-import {Reader} from "protobufjs";
+const models = require("./models.json");
+// import models from "./models.json";
 
 /**
  * ProtobufJS uses Uint8Array for a browser environment but we want the Buffer
@@ -32,7 +33,7 @@ if (protobuf.build !== "light") {
     throw new Error("expecting to use the light module of protobufs");
 }
 
-const root = protobuf.Root.fromJSON(models);
+export const root = protobuf.Root.fromJSON(models);
 
 export const EMPTY_BUFFER = Buffer.allocUnsafe(0);
 
@@ -63,4 +64,17 @@ export function registerMessage(
     m.ctor = ctor;
 
     Log.lvl3(`Message registered: ${ctor.name}`);
+}
+
+
+export function objToProto(obj: object, modelName: string): Buffer {
+    const requestModel = root.lookup(modelName);
+    const errMsg = requestModel.verify(obj);
+    if (errMsg) {
+        Log.error("couldn't verify data:", errMsg);
+        return null;
+    }
+    const message = requestModel.create(obj);
+    const marshal = requestModel.encode(message).finish();
+    return new Buffer(marshal.slice());
 }

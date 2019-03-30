@@ -1,8 +1,8 @@
-import {Message, util} from "protobufjs/light";
+import { Message, util } from "protobufjs/light";
 import shuffle from "shuffle-array";
 import Logger from "../log";
-import {Roster} from "./proto";
-import {BrowserWebSocketAdapter, WebSocketAdapter} from "./websocket-adapter";
+import { Roster } from "./proto";
+import { WebSocketAdapter } from "./websocket-adapter";
 import {NativescriptWebSocketAdapter} from "~/lib/network/nativescript-ws";
 
 let factory: (path: string) => WebSocketAdapter = (path: string) => new NativescriptWebSocketAdapter(path);

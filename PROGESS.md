@@ -1,10 +1,15 @@
 # Progress
 
-## 18th of March
+## Moving to new cothority library
 
-### Top-down
+### WIP
+- going through cothority, cleaning up classes
 
 ### TODO
+- clean up registration of user in Contact.ts - only use credentialInstance, and derive everything from there
+- unifying instance-classes in dedis/cothority
+
+### DONE
 
 ### BUG
 

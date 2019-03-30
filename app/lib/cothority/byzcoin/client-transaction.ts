@@ -1,4 +1,4 @@
-import { createHash } from "crypto";
+import { createHash } from "crypto-browserify";
 import * as Long from "long";
 import { Message, Properties } from "protobufjs/light";
 import IdentityWrapper, { IIdentity } from "../darc/identity-wrapper";

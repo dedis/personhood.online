@@ -1,5 +1,5 @@
 import { Point, PointFactory } from "@dedis/kyber";
-import { createHash } from "crypto";
+import { createHash } from "crypto-browserify";
 import { Message, Properties } from "protobufjs/light";
 import UUID from "pure-uuid";
 import * as toml from "toml";
@@ -20,6 +20,10 @@ export class Roster extends Message<Roster> {
      */
     static register() {
         registerMessage("Roster", Roster, ServerIdentity);
+    }
+
+    static fromBytes(b: Buffer): Roster{
+        return Roster.decode(b);
     }
 
     /**
@@ -130,6 +134,14 @@ export class Roster extends Message<Roster> {
      */
     slice(start: number, end?: number): Roster {
         return new Roster({ list: this.list.slice(start, end) });
+    }
+
+    /**
+     * Helper to encode the Roster using protobuf
+     * @returns the bytes
+     */
+    toBytes(): Buffer {
+        return Buffer.from(Roster.encode(this).finish());
     }
 }
 

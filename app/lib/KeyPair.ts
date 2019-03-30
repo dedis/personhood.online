@@ -1,8 +1,11 @@
 require("nativescript-nodeify");
-const Kyber = require("@dedis/kyber-js");
-const Curve25519 = new Kyber.curve.edwards25519.Curve;
+
+import {randomBytes} from "crypto-browserify";
+import {curve, Point} from "@dedis/kyber";
 import {Buffer} from "buffer";
 import {Log} from "~/lib/Log";
+
+const Curve25519 = curve.newCurve("edwards25519");
 
 /**
  * KeyPair holds the private and public key that go together. It has
@@ -72,7 +75,7 @@ export class Private {
 
     static fromBuffer(buf: Buffer): Private {
         let p = Curve25519.scalar();
-        p.unmarshalBinary(new Uint8Array(buf));
+        p.unmarshalBinary(buf);
         return new Private(p);
     }
 
@@ -82,7 +85,7 @@ export class Private {
 
     static zero(): Private {
         let p = Curve25519.scalar();
-        p.null();
+        p.zero();
         return new Private(p);
     }
 
@@ -93,16 +96,16 @@ export class Private {
     }
 
     static fromRand(): Private {
-        return new Private(Curve25519.newKey());
+        return new Private(Curve25519.scalar().setBytes(randomBytes(32)));
     }
 }
 
 export class Public {
-    constructor(public point: any) {
+    constructor(public point: Point) {
     }
 
     equal(p: Public): boolean {
-        return this.point.equal(p.point);
+        return this.point.equals(p.point);
     }
 
     toHex(): string {
@@ -131,7 +134,7 @@ export class Public {
 
     static fromBuffer(buf: Buffer): Public {
         let p = Curve25519.point();
-        p.unmarshalBinary(new Uint8Array(buf));
+        p.unmarshalBinary(buf);
         return new Public(p);
     }
 

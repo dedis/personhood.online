@@ -1,6 +1,8 @@
 import { curve, Point, Scalar, sign } from "@dedis/kyber";
 import IdentityEd25519 from "./identity-ed25519";
 import ISigner from "./signer";
+import {PRNG} from "../../../../../cothority/external/js/kyber/spec/helpers/utils";
+import {randomBytes, randomFill} from "crypto-browserify";
 
 const ed25519 = curve.newCurve("edwards25519");
 const { schnorr } = sign;
@@ -16,6 +18,12 @@ export default class SignerEd25519 extends IdentityEd25519 implements ISigner {
         const priv = ed25519.scalar();
         priv.unmarshalBinary(bytes);
         return new SignerEd25519(ed25519.point().base().mul(priv), priv);
+    }
+
+    static random(): SignerEd25519{
+        let priv = ed25519.scalar().setBytes(randomBytes(32));
+        let pub = ed25519.point().mul(priv);
+        return new SignerEd25519(pub, priv);
     }
 
     private priv: Scalar;

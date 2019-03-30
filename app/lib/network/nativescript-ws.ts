@@ -1,6 +1,6 @@
-import Logger from "~/lib/cothority.new/log";
-import {WebSocketAdapter} from "~/lib/cothority.new/network";
-const WS = require("nativescript-websockets");
+import Logger from "~/lib/cothority/log";
+import {WebSocketAdapter} from "~/lib/cothority/network";
+require("nativescript-websockets");
 
 /**
  * This adapter basically binds the browser websocket interface. Note that
@@ -11,7 +11,7 @@ export class NativescriptWebSocketAdapter extends WebSocketAdapter {
 
     constructor(path: string) {
         super(path);
-        this.ws = new WS(path);
+        this.ws = new WebSocket(path);
         // to prevent the browser to use blob
         this.ws.binaryType = "arraybuffer";
     }

@@ -19,6 +19,8 @@ import {
     GetSignerCounters,
     GetSignerCountersResponse,
 } from "./proto/requests";
+import {InstanceID} from "~/lib/cothority/byzcoin/instance";
+import Long = require("long");
 
 export const currentVersion = 1;
 
@@ -91,8 +93,8 @@ export default class ByzCoinRPC implements ICounterUpdater {
         });
 
         const ret = await rpc.conn.send<CreateGenesisBlockResponse>(req, CreateGenesisBlockResponse);
-
         rpc.genesis = ret.skipblock;
+        await rpc.updateConfig();
 
         return rpc;
     }
@@ -126,6 +128,10 @@ export default class ByzCoinRPC implements ICounterUpdater {
      */
     getGenesis(): SkipBlock {
         return this.genesis;
+    }
+
+    get genesisID(): InstanceID{
+        return this.genesis.computeHash();
     }
 
     /**

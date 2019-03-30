@@ -6,7 +6,7 @@ import ClientTransaction, { Argument, Instruction } from "../client-transaction"
 import Instance, { InstanceID } from "../instance";
 import CoinInstance, { Coin } from "./coin-instance";
 
-export default class RoPaSciInstance {
+export default class RoPaSciInstance extends Instance{
     static readonly contractID = "ropasci";
 
     /**
@@ -23,11 +23,12 @@ export default class RoPaSciInstance {
 
     private rpc: ByzCoinRPC;
     private instance: Instance;
-    private struct: RoPaSciStruct;
+    public struct: RoPaSciStruct;
     private fillUp: Buffer;
     private firstMove: number;
 
     constructor(bc: ByzCoinRPC, inst: Instance) {
+        super(inst);
         this.rpc = bc;
         this.instance = inst;
         this.struct = RoPaSciStruct.decode(this.instance.data);

@@ -1,10 +1,10 @@
-import { createHash } from "crypto";
+import {createHash} from "crypto-browserify";
 import * as Long from "long";
-import { Message, Properties } from "protobufjs/light";
+import {Message, Properties} from "protobufjs/light";
 import DarcInstance from "../byzcoin/contracts/darc-instance";
 import Proof from "../byzcoin/proof";
-import { EMPTY_BUFFER, registerMessage } from "../protobuf";
-import { IIdentity } from "./identity-wrapper";
+import {EMPTY_BUFFER, registerMessage} from "../protobuf";
+import {IIdentity} from "./identity-wrapper";
 import Rules from "./rules";
 
 /**
@@ -41,7 +41,7 @@ export default class Darc extends Message<Darc> {
      * @param desc      the description of the darc
      * @returns the new darc
      */
-    static newDarc(owners: IIdentity[], signers: IIdentity[], desc?: Buffer): Darc {
+    static newDarc(owners: IIdentity[], signers: IIdentity[], desc?: Buffer, rules?: string[]): Darc {
         const darc = new Darc({
             baseID: Buffer.from([]),
             description: desc,
@@ -49,6 +49,13 @@ export default class Darc extends Message<Darc> {
             rules: initRules(owners, signers),
             version: Long.fromNumber(0, true),
         });
+        if (rules){
+            rules.forEach(r =>{
+                signers.forEach(s =>{
+                    darc.rules.appendToRule(r, s, "|");
+                });
+            });
+        }
 
         return darc;
     }
@@ -187,6 +194,13 @@ export default class Darc extends Message<Darc> {
      */
     toBytes(): Buffer {
         return Buffer.from(Darc.encode(this).finish());
+    }
+
+    /**
+     * Returns a deep copy of the darc.
+     */
+    copy(): Darc {
+        return Darc.decode(this.toBytes());
     }
 }
 

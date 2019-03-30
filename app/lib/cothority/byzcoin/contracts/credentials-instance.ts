@@ -6,7 +6,7 @@ import ClientTransaction, {Argument, Instruction} from "../client-transaction";
 import Instance, {InstanceID} from "../instance";
 import {Point} from "@dedis/kyber";
 
-export default class CredentialsInstance {
+export default class CredentialsInstance extends Instance {
     static readonly contractID = "credential";
 
     /**
@@ -21,21 +21,16 @@ export default class CredentialsInstance {
 
     private rpc: ByzCoinRPC;
     private instance: Instance;
-    private credential: CredentialStruct;
+    public credential: CredentialStruct;
 
     constructor(bc: ByzCoinRPC, inst: Instance) {
+        super(inst);
+        if (inst.contractID != CredentialsInstance.contractID){
+            throw new Error("not correct contract");
+        }
         this.rpc = bc;
         this.instance = inst;
         this.credential = CredentialStruct.fromData(inst.data);
-    }
-
-    /**
-     * Getter for the darc ID
-     *
-     * @returns the id as a buffer
-     */
-    get darcID(): InstanceID {
-        return this.instance.darcID;
     }
 
     /**
@@ -62,8 +57,8 @@ export default class CredentialsInstance {
     }
 
     /**
-     * Set or update a credential attribute by sending a transaction. It will wait
-     * for the block inclusion or throw an error if it fails.
+     * Set or update a credential attribute locally. The new credential is not sent to
+     * the blockchain, for this you need to call sendUpdate.
      *
      * @param owner         Signer to use for the transaction
      * @param credential    Name of the credential
@@ -161,8 +156,8 @@ export class CredentialStruct extends Message<CredentialStruct> {
     }
 
     /**
-     * Set or update a credential attribute by sending a transaction. It will wait
-     * for the block inclusion or throw an error if it fails.
+     * Set or update a credential attribute locally. The update is not sent to the blockchain.
+     * For this you need to call CredentialInstance.sendUpdate().
      *
      * @param owner         Signer to use for the transaction
      * @param credential    Name of the credential
@@ -171,7 +166,7 @@ export class CredentialStruct extends Message<CredentialStruct> {
      * @returns a promise resolving when the transaction is in a block, or rejecting
      * for an error
      */
-    async setAttribute(credential: string, attribute: string, value: Buffer): Promise<any> {
+    setAttribute(credential: string, attribute: string, value: Buffer) {
         let cred = this.credentials.find((c) => c.name === credential);
         if (!cred) {
             cred = new Credential({name: credential, attributes: [new Attribute({name: attribute, value})]});
@@ -212,6 +207,10 @@ export class Credential extends Message<Credential> {
      */
     static register() {
         registerMessage("personhood.Credential", Credential, Attribute);
+    }
+
+    static fromNameAttr(name: string, key: string, value: Buffer): Credential {
+        return new Credential({name: name, attributes: [new Attribute({name: key, value: value})]})
     }
 
     readonly name: string;
