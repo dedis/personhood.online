@@ -20,7 +20,7 @@
     "@types/sprintf-js": "^1.1.2",
     "buffer": "^5.2.1",
     "co": "^4.6.0",
-    "lodash": "^4.17.11",
+    "lodash": "^4.17.13",
     "nativescript-barcodescanner": "^2.7.9",
     "nativescript-email": "^1.5.3",
     "nativescript-nodeify": "^0.8.0",
