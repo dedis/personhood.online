@@ -1,4 +1,10 @@
-# Personhood.online application
+# Personhood.online application - DEPRECATED
+
+This version is deprecated. The most up-to-date version of personhood.online is currently here:
+
+https://github.com/c4dt/omniledger/tree/master/mobile
+
+# Old information
 
 This is the new personhood.online application that allows to test our latest ideas from https://personhood.online:
 
