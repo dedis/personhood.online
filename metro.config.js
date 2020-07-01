@@ -7,23 +7,18 @@
 
 const { getDefaultConfig } = require('metro-config')
 
-module.exports = {
-    transformer: {
-        getTransformOptions: async () => ({
-            transform: {
-                experimentalImportSupport: false,
-                inlineRequires: false,
-            },
-        }),
-    },
-}
-
 module.exports = (async () => {
     const {
         resolver: { sourceExts, assetExts },
     } = await getDefaultConfig()
     return {
         transformer: {
+            getTransformOptions: async () => ({
+                transform: {
+                    experimentalImportSupport: false,
+                    inlineRequires: false,
+                },
+            }),
             babelTransformerPath: require.resolve(
                 'react-native-svg-transformer',
             ),
@@ -31,6 +26,15 @@ module.exports = (async () => {
         resolver: {
             assetExts: assetExts.filter(ext => ext !== 'svg'),
             sourceExts: [...sourceExts, 'svg'],
+            extraNodeModules: {
+                crypto: require.resolve('crypto-browserify'),
+                // url: require.resolve('whatwg-url'),
+                // http: require.resolve('stream-http'),
+                // https: require.resolve('https-browserify'),
+                // os: require.resolve('os-browserify/browser.js'),
+                stream: require.resolve('stream-browserify'),
+                vm: require.resolve('vm-browserify'),
+            },
         },
     }
 })()
