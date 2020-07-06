@@ -4,8 +4,21 @@ import { Button } from 'react-native-elements'
 import WelcomeLogo from '../assets/images/welcome-logo.svg'
 import { Actions } from 'react-native-router-flux'
 import { Element } from '../styles'
+import { Account } from '../network/account'
 
 export class Welcome extends Component {
+    state = {
+        loading: false,
+    }
+
+    login = () => {
+        this.setState({ loading: true })
+        Account.load().then(() => {
+            this.setState({ loading: false })
+            Actions.main()
+        })
+    }
+
     render() {
         return (
             <SafeAreaView style={styles.container}>
@@ -15,9 +28,8 @@ export class Welcome extends Component {
                     titleStyle={styles.buttonTitle}
                     buttonStyle={styles.button}
                     containerStyle={styles.buttonContainer}
-                    onPress={() => {
-                        Actions.main()
-                    }}
+                    onPress={this.login}
+                    loading={this.state.loading}
                 />
             </SafeAreaView>
         )

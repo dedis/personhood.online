@@ -1,15 +1,20 @@
 import React, { Component } from 'react'
 import { SafeAreaView, View, FlatList, StyleSheet } from 'react-native'
-import { Text, Avatar } from 'react-native-elements'
+import { Text, Avatar, Button } from 'react-native-elements'
+import Icon from 'react-native-vector-icons/Ionicons'
 import { Element } from '../styles'
+import { Account } from '../network/account'
 
 export class Home extends Component {
     state = {
         transactions: [],
+        balance: '0.00',
+        loading: true,
     }
 
     componentDidMount() {
         this.loadTransactions()
+        this.loadBalance()
     }
 
     loadTransactions() {
@@ -19,12 +24,32 @@ export class Home extends Component {
             .catch(err => console.error(err))
     }
 
+    async loadBalance() {
+        let res = await Account.getBalance()
+        this.setState({ balance: res.toFixed(2) })
+        this.updateBalance()
+    }
+
+    updateBalance = async () => {
+        this.setState({ loading: true })
+        let res = await Account.updateBalance()
+        this.setState({ balance: res.toFixed(2), loading: false })
+    }
+
     render() {
         return (
             <SafeAreaView style={style.container}>
-                <Text style={style.balance}>
-                    <Text style={style.currency}>$</Text> 32.45
-                </Text>
+                <View style={style.header}>
+                    <Text style={style.balance}>
+                        <Text style={style.currency}>$</Text> {this.state.balance}
+                    </Text>
+                    <Button
+                        type="clear"
+                        icon={<Icon name="md-refresh-circle" size={30} />}
+                        loading={this.state.loading}
+                        onPress={this.updateBalance}
+                    />
+                </View>
                 <Text style={style.section}>Transactions</Text>
                 <FlatList
                     data={this.state.transactions}
@@ -37,6 +62,11 @@ export class Home extends Component {
 }
 
 class Item extends Component<{ item: any }> {
+    state = {
+        symbol: Math.random() >= 0.5 ? '+' : '-',
+        amount: (Math.random() * 100).toFixed(2),
+    }
+
     render() {
         let { item } = this.props
         return (
@@ -54,8 +84,7 @@ class Item extends Component<{ item: any }> {
                 </View>
                 <View style={style.amountContainer}>
                     <Text style={style.amount}>
-                        {Math.random() >= 0.5 ? '+' : '-'} ${' '}
-                        {(Math.random() * 100).toFixed(2)}
+                        {this.state.symbol} $ {this.state.amount}
                     </Text>
                 </View>
             </View>
@@ -71,11 +100,16 @@ let style = StyleSheet.create({
         fontWeight: '600',
         fontSize: 25,
     },
+    header: {
+        flexDirection: 'row',
+        marginTop: 50,
+        marginHorizontal: '8%',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
     balance: {
         fontWeight: '600',
         fontSize: 50,
-        marginTop: 50,
-        marginHorizontal: '8%',
     },
     section: {
         color: '#666',

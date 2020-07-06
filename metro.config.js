@@ -27,7 +27,7 @@ module.exports = (async () => {
             assetExts: assetExts.filter(ext => ext !== 'svg'),
             sourceExts: [...sourceExts, 'svg'],
             extraNodeModules: {
-                crypto: require.resolve('crypto-browserify'),
+                crypto: require.resolve('react-native-crypto'),
                 // url: require.resolve('whatwg-url'),
                 // http: require.resolve('stream-http'),
                 // https: require.resolve('https-browserify'),

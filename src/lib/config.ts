@@ -8,8 +8,6 @@ import { BevmRPC } from "./bevm";
 import { StainlessRPC } from "./stainless";
 
 const rosterToml = `
-ByzCoinID = "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3"
-
 [[servers]]
   Address = "tls://conode.dedis.ch:7000"
   Suite = "Ed25519"
@@ -110,13 +108,8 @@ ByzCoinID = "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3"
 `;
 
 const configRaw = `
-ByzCoinID = "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3"
-AdminDarc = "26dc7ae0ae54bc42ae187e4b3f20a280c6f8264b9e49d84cab7efabc402783fd"
-Ephemeral = "ec2dbf2f91f1dbb37f87dc23d8c86121beedab3ac3717f31eec72d3878388e09"
-`;
-
-const bevmConfigRaw = `
-bevmInstanceID = "baac556f7b08cc06a9209a3a7e9d3d7bd9b6132082a695c590944cbe573010cc"
+byzCoinID = "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3"
+bevmInstanceID = "21d34979b40e664ac76968319c6a738a2c0b182a24c70109aaf787cefaa7891c"
 `;
 
 const stainlessRosterToml = `
@@ -141,10 +134,12 @@ export class Config {
         const stainlessRoster = Roster.fromTOML(stainlessRosterToml);
         const stainlessConode = stainlessRoster.list[0];
 
-        const serverConfig = await Config.getServerConfig();
+        const config = toml.parse(configRaw);
+        const byzCoinID = Buffer.from(config.byzCoinID, "hex");
+        const bevmInstanceID = Buffer.from(config.bevmInstanceID, "hex");
 
-        const byzcoinRPC = await ByzCoinRPC.fromByzcoin(roster, serverConfig.byzCoinID);
-        const bevmRPC = await BevmRPC.fromByzcoin(byzcoinRPC, serverConfig.bevmInstanceID);
+        const byzcoinRPC = await ByzCoinRPC.fromByzcoin(roster, byzCoinID);
+        const bevmRPC = await BevmRPC.fromByzcoin(byzcoinRPC, bevmInstanceID);
 
         const stainlessRPC = new StainlessRPC(stainlessConode);
         bevmRPC.setStainlessRPC(stainlessRPC);
@@ -156,19 +151,6 @@ export class Config {
         );
 
         return cfg;
-    }
-
-    private static async getServerConfig(): Promise<any> {
-        const configParsed = toml.parse(configRaw);
-        const bevmConfigParsed = toml.parse(bevmConfigRaw);
-
-        return {
-            adminDarc: Buffer.from(configParsed.AdminDarc, "hex"),
-            bevmInstanceID: Buffer.from(bevmConfigParsed.bevmInstanceID, "hex"),
-            bevmUserID: bevmConfigParsed.bevmUserID ? Buffer.from(bevmConfigParsed.bevmUserID, "hex") : null,
-            byzCoinID: Buffer.from(configParsed.ByzCoinID, "hex"),
-            ephemeral: Buffer.from(configParsed.Ephemeral, "hex"),
-        };
     }
 
     protected constructor(

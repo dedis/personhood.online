@@ -3,6 +3,7 @@ import { SafeAreaView, View, StyleSheet } from 'react-native'
 import { Text, Avatar, Button } from 'react-native-elements'
 import MIcon from 'react-native-vector-icons/MaterialIcons'
 import { Element } from '../styles'
+import { Account } from '../network/account'
 
 export class Profile extends Component {
     render() {
@@ -40,7 +41,7 @@ export class Profile extends Component {
                     <View style={style.item}>
                         <Text style={style.itemLabel}>Wallet Address</Text>
                         <Text style={style.itemContent}>
-                            1rmj3NjgDbCqRG7P2Be73xxwXzaW63ycm
+                            {Account.address()}
                         </Text>
                     </View>
                 </View>
