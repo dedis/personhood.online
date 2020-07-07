@@ -12,6 +12,7 @@ import { Welcome } from './Welcome'
 import { Home } from './Home'
 import { Exchange } from './Exchange'
 import { Profile } from './Profile'
+import { Settings } from './Settings'
 import { TabIcon } from './TabIcon'
 import { InteractionManager } from 'react-native'
 import { ThemeProvider } from 'react-native-elements'
@@ -42,6 +43,11 @@ export class App extends Component {
                                     icon={TabIcon}
                                 >
                                     <Scene hideNavBar component={Profile} />
+                                    <Scene
+                                        key="settings"
+                                        title="Settings"
+                                        component={Settings}
+                                    />
                                 </Stack>
                             </Tabs>
                         </Scene>

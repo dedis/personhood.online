@@ -5,6 +5,7 @@ import Clipboard from '@react-native-community/clipboard'
 import MIcon from 'react-native-vector-icons/MaterialIcons'
 import { Element } from '../styles'
 import { Account } from '../network/account'
+import { Actions } from 'react-native-router-flux'
 
 export class Profile extends Component {
     render() {
@@ -30,6 +31,9 @@ export class Profile extends Component {
                     <Button
                         type="clear"
                         icon={<MIcon name="settings" size={20} />}
+                        onPress={() => {
+                            Actions.settings()
+                        }}
                     />
                 </View>
                 <View style={style.content}>
@@ -77,9 +81,9 @@ let style = StyleSheet.create({
         alignItems: 'center',
     },
     accountLabel: {
-        fontWeight: '600',
-        color: '#666',
+        ...Element.sectionLabel,
         marginLeft: 10,
+        fontWeight: '600',
     },
     content: {
         display: 'flex',

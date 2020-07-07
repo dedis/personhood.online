@@ -73,6 +73,10 @@ export class EvmAccount extends UserEvmInfo {
         this._nonce += 1;
     }
 
+    decNonce() {
+        this._nonce -= 1;
+    }
+
     serialize(): object {
         return {
             name: this.name,

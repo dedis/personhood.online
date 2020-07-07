@@ -51,7 +51,7 @@ export class Home extends Component {
                         onPress={this.updateBalance}
                     />
                 </View>
-                <Text style={style.section}>Transactions</Text>
+                <Text style={style.sectionLabel}>Transactions</Text>
                 <FlatList
                     data={this.state.transactions}
                     renderItem={({ item }) => <Item item={item} />}
@@ -112,10 +112,10 @@ let style = StyleSheet.create({
         fontWeight: '600',
         fontSize: 50,
     },
-    section: {
-        color: '#666',
+    sectionLabel: {
         marginTop: 30,
         ...Element.spacing,
+        ...Element.sectionLabel,
     },
     item: {
         marginVertical: 10,

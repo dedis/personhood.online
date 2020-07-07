@@ -38,6 +38,10 @@ export const buttonContainer = {
     borderRadius: 5,
 }
 
+export const sectionLabel: { color: string } = {
+    color: '#666',
+}
+
 export const card = {
     borderRadius: 5,
     backgroundColor: 'white',

@@ -6,11 +6,15 @@ import {
     TextInput,
     ScrollView,
     ActivityIndicator,
+    Alert,
 } from 'react-native'
 import { Text, Button, Overlay } from 'react-native-elements'
 import { Element } from '../styles'
 import Icon from 'react-native-vector-icons/FontAwesome5'
 import { Account } from '../network/account'
+import Storage from '@react-native-community/async-storage'
+
+const ERROR_KEY = 'transaction-last-error'
 
 export class Exchange extends Component {
     state = {
@@ -29,13 +33,25 @@ export class Exchange extends Component {
             Account.transferTo(address, Number(amount))
                 .then(() => {
                     this.setState({ paying: false })
+                    Storage.removeItem(ERROR_KEY)
                 })
                 .catch(reason => {
                     setTimeout(() => {
-                        this.setState({ paying: false })
-                    }, 2000)
-                    this.setState({ paymentError: 'Failed' })
-                    console.log(reason)
+                        this.setState({ paying: false, paymentError: '' })
+                    }, 3000)
+
+                    let error = reason.toString()
+                    console.log(error)
+                    if (error.match(/nonce too low/g) !== null) {
+                        Storage.setItem(ERROR_KEY, 'Too Low')
+                        this.setState({ paymentError: 'Nonce Too Low' })
+                    } else if (error.match(/nonce too high/g) !== null) {
+                        Storage.setItem(ERROR_KEY, 'Too Hight')
+                        this.setState({ paymentError: 'Nonce Too High' })
+                    } else {
+                        Storage.setItem(ERROR_KEY, 'Unknown')
+                        this.setState({ paymentError: 'Unknown Error' })
+                    }
                 })
         }
     }
@@ -152,6 +168,13 @@ export class Exchange extends Component {
                         title="SCAN"
                         type="solid"
                         loading={this.state.paying}
+                        onPress={() => {
+                            Alert.alert(
+                                'Oops',
+                                'This feature is still in development.',
+                                [{ text: 'OK' }],
+                            )
+                        }}
                     />
                 </ScrollView>
             </SafeAreaView>

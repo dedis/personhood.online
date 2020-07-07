@@ -31,6 +31,18 @@ class _Account {
         this.signer = SignerEd25519.fromBytes(privKey)
     }
 
+    public get nonce(): number | undefined {
+        return this.bevmAccount?.nonce
+    }
+
+    public incNonce() {
+        this.bevmAccount?.incNonce()
+    }
+
+    public decNonce() {
+        this.bevmAccount?.decNonce()
+    }
+
     static realCoin(origin: number): number {
         let result = Math.round(origin / 100) / 100
         return Number.isNaN(result) ? 0 : result
