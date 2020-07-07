@@ -5,7 +5,6 @@ import { Config } from '../lib/config'
 import { EvmAccount, EvmContract } from '../lib/bevm'
 import SignerEd25519 from '@dedis/cothority/darc/signer-ed25519'
 import Storage from '@react-native-community/async-storage'
-import { indexOf } from '../../mocks/svgMock'
 
 class _Account {
     private static ACCOUNT_KEY = 'account'
@@ -35,6 +34,11 @@ class _Account {
     static realCoin(origin: number): number {
         let result = Math.round(origin / 100) / 100
         return Number.isNaN(result) ? 0 : result
+    }
+
+    async calcPoplet(popcoin: number): Promise<number> {
+        let rate = await this.getExchangeRate()
+        return popcoin * 10000 * rate
     }
 
     public get address(): string | undefined {
@@ -117,7 +121,7 @@ class _Account {
             'exchangeRate',
             [],
         )
-        Storage.setItem(_Account.RATE_KEY, rate.toString())
+        // Storage.setItem(_Account.RATE_KEY, rate.toString())
         return rate
     }
 
@@ -133,11 +137,13 @@ class _Account {
             'balanceOf',
             ['"' + this.bevmAccount!.address.toString('hex') + '"'],
         )
-        Storage.setItem(_Account.BALANCE_KEY, balance.toString())
+        // Storage.setItem(_Account.BALANCE_KEY, balance.toString())
         return _Account.realCoin(balance / rate)
     }
 
     async transferTo(address: string, amount: number) {
+        let value = await this.calcPoplet(amount)
+        console.log('Actual transfer amount: ' + value)
         console.log('Calling transfer()')
         await this.bevmConfig?.bevmRPC.transaction(
             [this.signer],
@@ -147,31 +153,9 @@ class _Account {
             this.bevmAccount!,
             this.contract,
             'transfer',
-            ['"' + address + '"', '"' + amount + '"'],
+            ['"' + address + '"', '"' + value + '"'],
         )
     }
 }
 
-export namespace Account {
-    const instance = new _Account()
-
-    export function address(): string {
-        return instance.address ?? 'loading'
-    }
-
-    export async function load() {
-        await instance.load()
-    }
-
-    export async function getBalance(): Promise<number> {
-        return instance.getBalance()
-    }
-
-    export async function updateBalance(): Promise<number> {
-        return instance.updateBalance()
-    }
-
-    export async function transferTo(address: string, amount: number) {
-        await instance.transferTo(address, amount)
-    }
-}
+export const Account = new _Account()

@@ -41,7 +41,8 @@ export class Home extends Component {
             <SafeAreaView style={style.container}>
                 <View style={style.header}>
                     <Text style={style.balance}>
-                        <Text style={style.currency}>$</Text> {this.state.balance}
+                        <Text style={style.currency}>$</Text>{' '}
+                        {this.state.balance}
                     </Text>
                     <Button
                         type="clear"
@@ -101,9 +102,9 @@ let style = StyleSheet.create({
         fontSize: 25,
     },
     header: {
+        ...Element.header,
+        display: 'flex',
         flexDirection: 'row',
-        marginTop: 50,
-        marginHorizontal: '8%',
         alignItems: 'center',
         justifyContent: 'space-between',
     },
@@ -114,14 +115,14 @@ let style = StyleSheet.create({
     section: {
         color: '#666',
         marginTop: 30,
-        marginHorizontal: '8%',
+        ...Element.spacing,
     },
     item: {
         marginVertical: 10,
         flex: 1,
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginHorizontal: '8%',
+        ...Element.spacing,
         ...Element.card,
     },
     nameContainer: {

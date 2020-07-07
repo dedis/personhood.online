@@ -12,6 +12,7 @@
   "dependencies": {
     "@dedis/cothority": "^3.4.7",
     "@react-native-community/async-storage": "^1.11.0",
+    "@react-native-community/clipboard": "^1.2.3",
     "@react-native-community/masked-view": "^0.1.10",
     "@react-navigation/native": "^5.5.1",
     "elliptic": "^6.5.3",

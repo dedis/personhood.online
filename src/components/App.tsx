@@ -10,6 +10,7 @@ import {
 
 import { Welcome } from './Welcome'
 import { Home } from './Home'
+import { Exchange } from './Exchange'
 import { Profile } from './Profile'
 import { TabIcon } from './TabIcon'
 import { InteractionManager } from 'react-native'
@@ -27,6 +28,13 @@ export class App extends Component {
                             <Tabs key="tabs" showLabel={false}>
                                 <Stack key="home" title="Home" icon={TabIcon}>
                                     <Scene hideNavBar component={Home} />
+                                </Stack>
+                                <Stack
+                                    key="exchange"
+                                    title="Exchange"
+                                    icon={TabIcon}
+                                >
+                                    <Scene hideNavBar component={Exchange} />
                                 </Stack>
                                 <Stack
                                     key="profile"

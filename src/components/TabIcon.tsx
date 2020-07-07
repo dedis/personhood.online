@@ -28,6 +28,10 @@ let icons: { [key: string]: any } = {
         normal: require('../assets/images/home.png'),
         selected: require('../assets/images/home-selected.png'),
     },
+    exchange: {
+        normal: require('../assets/images/exchange.png'),
+        selected: require('../assets/images/exchange-selected.png'),
+    },
     profile: {
         normal: require('../assets/images/profile.png'),
         selected: require('../assets/images/profile-selected.png'),

@@ -43,16 +43,15 @@ const styles = StyleSheet.create({
         justifyContent: 'space-around',
     },
     button: {
-        backgroundColor: '#000',
+        ...Element.button,
         height: '100%',
     },
     buttonTitle: {
-        color: '#FFD562',
-        fontSize: 15,
+        ...Element.buttonTitle,
     },
     buttonContainer: {
         width: '65%',
         height: 50,
-        borderRadius: 5,
+        ...Element.buttonContainer,
     },
 })

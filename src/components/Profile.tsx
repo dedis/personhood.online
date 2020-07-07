@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
-import { SafeAreaView, View, StyleSheet } from 'react-native'
+import { SafeAreaView, View, StyleSheet, Alert } from 'react-native'
 import { Text, Avatar, Button } from 'react-native-elements'
+import Clipboard from '@react-native-community/clipboard'
 import MIcon from 'react-native-vector-icons/MaterialIcons'
 import { Element } from '../styles'
 import { Account } from '../network/account'
@@ -38,11 +39,19 @@ export class Profile extends Component {
                             teddy.roberts@epfl.ch
                         </Text>
                     </View>
-                    <View style={style.item}>
+                    <View
+                        style={style.item}
+                        onTouchStart={() => {
+                            Clipboard.setString(Account.address ?? '')
+                            Alert.alert(
+                                'Copied',
+                                'Your address has been copied to clipboard',
+                                [{ text: 'OK' }],
+                            )
+                        }}
+                    >
                         <Text style={style.itemLabel}>Wallet Address</Text>
-                        <Text style={style.itemContent}>
-                            {Account.address()}
-                        </Text>
+                        <Text style={style.itemContent}>{Account.address}</Text>
                     </View>
                 </View>
             </SafeAreaView>
@@ -58,12 +67,10 @@ let style = StyleSheet.create({
         display: 'flex',
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginHorizontal: '8%',
-        marginTop: 30,
+        ...Element.header,
     },
     name: {
-        fontWeight: '600',
-        fontSize: 30,
+        ...Element.headerTitle,
     },
     avatarContainer: {
         flexDirection: 'row',
@@ -76,7 +83,7 @@ let style = StyleSheet.create({
     },
     content: {
         display: 'flex',
-        marginHorizontal: '8%',
+        ...Element.spacing,
         marginTop: 30,
     },
     item: {
