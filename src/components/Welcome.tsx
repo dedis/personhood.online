@@ -13,10 +13,15 @@ export class Welcome extends Component {
 
     login = () => {
         this.setState({ loading: true })
-        Account.load().then(() => {
-            this.setState({ loading: false })
-            Actions.main()
-        })
+        Account.load()
+            .then(() => {
+                this.setState({ loading: false })
+                Actions.main()
+            })
+            .catch(reason => {
+                this.setState({ loading: false })
+                console.log(reason)
+            })
     }
 
     render() {

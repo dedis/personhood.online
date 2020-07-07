@@ -46,7 +46,9 @@ class _Account {
     }
 
     async loadConfig() {
+        console.log('loading config...')
         this.bevmConfig = await Config.init()
+        console.log('config loaded')
     }
 
     async load() {
@@ -56,8 +58,16 @@ class _Account {
             console.log('account found: ' + value)
             this.bevmAccount = EvmAccount.deserialize(JSON.parse(value))
         } else {
+            console.log('creating a new account...')
             await this.create('test')
         }
+    }
+
+    async save() {
+        await Storage.setItem(
+            _Account.ACCOUNT_KEY,
+            JSON.stringify(this.bevmAccount?.serialize()),
+        )
     }
 
     async create(name: string) {
@@ -65,6 +75,7 @@ class _Account {
         let creditAmount = Buffer.from(
             Long.fromString('1000000000000000000').mul(5).toBytesBE(),
         )
+        console.log('Calling creditAccount()')
         await this.bevmConfig?.bevmRPC.creditAccount(
             [this.signer],
             this.bevmAccount.address,
@@ -92,10 +103,7 @@ class _Account {
             'newPeriod',
             [],
         )
-        await Storage.setItem(
-            _Account.ACCOUNT_KEY,
-            JSON.stringify(this.bevmAccount.serialize()),
-        )
+        await this.save()
     }
 
     async clear() {
@@ -155,6 +163,7 @@ class _Account {
             'transfer',
             ['"' + address + '"', '"' + value + '"'],
         )
+        await this.save()
     }
 }
 

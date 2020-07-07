@@ -9,7 +9,7 @@ import {
 } from 'react-native'
 import { Text, Button, Overlay } from 'react-native-elements'
 import { Element } from '../styles'
-// import Icon from 'react-native-vector-icons/FontAwesome5'
+import Icon from 'react-native-vector-icons/FontAwesome5'
 import { Account } from '../network/account'
 
 export class Exchange extends Component {
@@ -19,6 +19,7 @@ export class Exchange extends Component {
         amount: '0',
         amountError: '',
         paying: false,
+        paymentError: '',
     }
 
     pay = () => {
@@ -30,7 +31,10 @@ export class Exchange extends Component {
                     this.setState({ paying: false })
                 })
                 .catch(reason => {
-                    this.setState({ paying: false })
+                    setTimeout(() => {
+                        this.setState({ paying: false })
+                    }, 2000)
+                    this.setState({ paymentError: 'Failed' })
                     console.log(reason)
                 })
         }
@@ -62,11 +66,28 @@ export class Exchange extends Component {
                     overlayStyle={style.processingContainer}
                 >
                     <View>
-                        <ActivityIndicator
-                            size="large"
-                            color={Element.primaryColor}
-                        />
-                        <Text style={style.processingTitle}>Processing</Text>
+                        {(() => {
+                            if (this.state.paymentError === '') {
+                                return (
+                                    <ActivityIndicator
+                                        size="large"
+                                        color={Element.primaryColor}
+                                    />
+                                )
+                            }
+                            return (
+                                <Icon
+                                    name="exclamation-circle"
+                                    size={50}
+                                    color="red"
+                                />
+                            )
+                        })()}
+                        <Text style={style.processingTitle}>
+                            {this.state.paymentError === ''
+                                ? 'Processing'
+                                : this.state.paymentError}
+                        </Text>
                     </View>
                 </Overlay>
                 <View style={style.header}>
@@ -168,6 +189,7 @@ let style = StyleSheet.create({
         paddingHorizontal: 10,
         backgroundColor: 'white',
         minHeight: 60,
+        color: 'black',
     },
     error: {
         color: 'red',
@@ -175,6 +197,7 @@ let style = StyleSheet.create({
     },
     button: {
         marginTop: 20,
+        height: 45,
         ...Element.button,
     },
     buttonTitle: {
@@ -189,11 +212,11 @@ let style = StyleSheet.create({
     processingContainer: {
         display: 'flex',
         justifyContent: 'space-around',
+        alignItems: 'center',
         width: '50%',
         height: '20%',
     },
     processingTitle: {
-        textAlign: 'center',
         marginTop: 10,
         fontSize: 20,
         fontWeight: '500',

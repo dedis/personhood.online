@@ -1,11 +1,11 @@
-import ByzCoinRPC from "@dedis/cothority/byzcoin/byzcoin-rpc";
-import Log from "@dedis/cothority/log";
-import { Roster } from "@dedis/cothority/network";
+import ByzCoinRPC from '@dedis/cothority/byzcoin/byzcoin-rpc'
+import Log from '@dedis/cothority/log'
+import { Roster } from '@dedis/cothority/network'
 
-import toml from "toml";
+import toml from 'toml'
 
-import { BevmRPC } from "./bevm";
-import { StainlessRPC } from "./stainless";
+import { BevmRPC } from './bevm'
+import { StainlessRPC } from './stainless'
 
 const rosterToml = `
 [[servers]]
@@ -105,12 +105,12 @@ const rosterToml = `
     [servers.Services.Skipchain]
       Public = "2baeb3ff4824177e50f203337e6ef32907c0e61b3a6357351cc0a64ad1b38129891455bcdaeff16b10cf1179605b4cbc356adc05164a7ce9511edfc8b8b0ea5787098900ccd14f119f574da1a0f5c639706c3c780e9d985d4893088c33df1eb15a668207b2e6195cd26be21516fd43474a5e0dd087574e24bcbc1c8f4ee98f4b"
       Suite = "bn256.adapter"
-`;
+`
 
 const configRaw = `
 byzCoinID = "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3"
 bevmInstanceID = "21d34979b40e664ac76968319c6a738a2c0b182a24c70109aaf787cefaa7891c"
-`;
+`
 
 const stainlessRosterToml = `
 [[servers]]
@@ -126,31 +126,39 @@ Description = "conode-1"
 [servers.Services.Skipchain]
     Suite = "bn256.adapter"
     Public = "7d1d81d620bbd093b196ccac56e07f35e334f446cad63d991c270b8af9f5cfc88a8d14108b9d97504f494107973635fcf6eae451a5f36b864780bb91cffc33e66d550ec5f01d7e9b0466582faf905671cb1ebacf0ddd7ce005a6252fdcdacf005ab41192bfd01ce2e4e45d0036e1674f1ac0199c5a4449364034f164a2283772"
-`;
+`
 
 export class Config {
     static async init(): Promise<Config> {
-        const roster = Roster.fromTOML(rosterToml);
-        const stainlessRoster = Roster.fromTOML(stainlessRosterToml);
-        const stainlessConode = stainlessRoster.list[0];
 
-        const config = toml.parse(configRaw);
-        const byzCoinID = Buffer.from(config.byzCoinID, "hex");
-        const bevmInstanceID = Buffer.from(config.bevmInstanceID, "hex");
+        const roster = Roster.fromTOML(rosterToml)
+        const stainlessRoster = Roster.fromTOML(stainlessRosterToml)
+        const stainlessConode = stainlessRoster.list[0]
 
-        const byzcoinRPC = await ByzCoinRPC.fromByzcoin(roster, byzCoinID);
-        const bevmRPC = await BevmRPC.fromByzcoin(byzcoinRPC, bevmInstanceID);
+        const config = toml.parse(configRaw)
+        const byzCoinID = Buffer.from(config.byzCoinID, 'hex')
+        const bevmInstanceID = Buffer.from(config.bevmInstanceID, 'hex')
 
-        const stainlessRPC = new StainlessRPC(stainlessConode);
-        bevmRPC.setStainlessRPC(stainlessRPC);
+        console.log('creating ByzCoinRPC without verify...')
+        const byzcoinRPC = await ByzCoinRPC.fromByzcoin(
+            roster,
+            byzCoinID,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            false,
+        )
+        console.log('ByzCoinRPC created')
 
-        const cfg = new Config(
-            byzcoinRPC,
-            rosterToml,
-            bevmRPC,
-        );
+        const bevmRPC = await BevmRPC.fromByzcoin(byzcoinRPC, bevmInstanceID)
 
-        return cfg;
+        const stainlessRPC = new StainlessRPC(stainlessConode)
+        bevmRPC.setStainlessRPC(stainlessRPC)
+
+        const cfg = new Config(byzcoinRPC, rosterToml, bevmRPC)
+
+        return cfg
     }
 
     protected constructor(
