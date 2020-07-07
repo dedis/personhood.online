@@ -14,13 +14,14 @@ import { Exchange } from './Exchange'
 import { Profile } from './Profile'
 import { Settings } from './Settings'
 import { TabIcon } from './TabIcon'
-import { InteractionManager } from 'react-native'
+import { InteractionManager, StatusBar } from 'react-native'
 import { ThemeProvider } from 'react-native-elements'
 
 export class App extends Component {
     render() {
         return (
             <ThemeProvider theme={theme}>
+                <StatusBar barStyle="dark-content" />
                 <Router>
                     <Modal key="root">
                         <Scene initial hideNavBar component={Base} />
