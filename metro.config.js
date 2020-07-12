@@ -28,12 +28,16 @@ module.exports = (async () => {
             sourceExts: [...sourceExts, 'svg'],
             extraNodeModules: {
                 crypto: require.resolve('react-native-crypto'),
+                stream: require.resolve('stream-browserify'),
+                vm: require.resolve('vm-browserify'),
                 // url: require.resolve('whatwg-url'),
                 // http: require.resolve('stream-http'),
                 // https: require.resolve('https-browserify'),
+                // path: require.resolve('react-native-path'),
+                // tls: require.resolve('react-native-tls'),
+                // net: require.resolve('react-native-tcp-socket'),
+                // fs: require.resolve('react-native-fs'),
                 // os: require.resolve('os-browserify/browser.js'),
-                stream: require.resolve('stream-browserify'),
-                vm: require.resolve('vm-browserify'),
             },
         },
     }

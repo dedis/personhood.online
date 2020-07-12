@@ -5,14 +5,13 @@ import {
     View,
     TextInput,
     ScrollView,
-    ActivityIndicator,
     Alert,
 } from 'react-native'
-import { Text, Button, Overlay } from 'react-native-elements'
+import { Text, Button } from 'react-native-elements'
 import { Element } from '../styles'
-import Icon from 'react-native-vector-icons/FontAwesome5'
 import { Account } from '../network/account'
 import Storage from '@react-native-community/async-storage'
+import { ProgressOverlay } from './ProgressOverlay'
 
 const ERROR_KEY = 'transaction-last-error'
 
@@ -77,35 +76,10 @@ export class Exchange extends Component {
     render() {
         return (
             <SafeAreaView style={style.container}>
-                <Overlay
+                <ProgressOverlay
                     isVisible={this.state.paying}
-                    overlayStyle={style.processingContainer}
-                >
-                    <View>
-                        {(() => {
-                            if (this.state.paymentError === '') {
-                                return (
-                                    <ActivityIndicator
-                                        size="large"
-                                        color={Element.primaryColor}
-                                    />
-                                )
-                            }
-                            return (
-                                <Icon
-                                    name="exclamation-circle"
-                                    size={50}
-                                    color="red"
-                                />
-                            )
-                        })()}
-                        <Text style={style.processingTitle}>
-                            {this.state.paymentError === ''
-                                ? 'Processing'
-                                : this.state.paymentError}
-                        </Text>
-                    </View>
-                </Overlay>
+                    error={this.state.paymentError}
+                />
                 <View style={style.header}>
                     <Text style={style.headerTitle}>Transfer</Text>
                 </View>
@@ -231,17 +205,5 @@ let style = StyleSheet.create({
     },
     headerTitle: {
         ...Element.headerTitle,
-    },
-    processingContainer: {
-        display: 'flex',
-        justifyContent: 'space-around',
-        alignItems: 'center',
-        width: '50%',
-        height: '20%',
-    },
-    processingTitle: {
-        marginTop: 10,
-        fontSize: 20,
-        fontWeight: '500',
     },
 })

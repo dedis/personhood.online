@@ -13,7 +13,9 @@ export class Profile extends Component {
             <SafeAreaView style={style.container}>
                 <View style={style.header}>
                     <View>
-                        <Text style={style.name}>Teddy Roberts</Text>
+                        <Text style={style.name}>
+                            {Account.identifier ?? ''}
+                        </Text>
                         <View style={style.avatarContainer}>
                             <Avatar
                                 rounded

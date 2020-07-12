@@ -16,6 +16,8 @@ import { Settings } from './Settings'
 import { TabIcon } from './TabIcon'
 import { InteractionManager, StatusBar } from 'react-native'
 import { ThemeProvider } from 'react-native-elements'
+import { Account } from '../network/account'
+import { Auth } from './Auth'
 
 export class App extends Component {
     render() {
@@ -25,7 +27,15 @@ export class App extends Component {
                 <Router>
                     <Modal key="root">
                         <Scene initial hideNavBar component={Base} />
-                        <Scene hideNavBar key="welcome" component={Welcome} />
+                        <Stack hideNavBar key="welcome">
+                            <Scene component={Welcome} />
+                            <Scene
+                                key="epfl-auth"
+                                component={Auth}
+                                hideNavBar={false}
+                                title="EPFL Tequila"
+                            />
+                        </Stack>
                         <Scene key="main" hideNavBar>
                             <Tabs key="tabs" showLabel={false}>
                                 <Stack key="home" title="Home" icon={TabIcon}>
@@ -62,7 +72,15 @@ export class App extends Component {
 class Base extends Component {
     componentDidMount() {
         InteractionManager.runAfterInteractions(() => {
-            Actions.welcome()
+            Account.load()
+                .then(isExist => {
+                    if (isExist) {
+                        Actions.replace('main')
+                    } else {
+                        Actions.push('welcome')
+                    }
+                })
+                .catch(error => console.log(error))
         })
     }
 

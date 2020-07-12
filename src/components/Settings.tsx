@@ -5,6 +5,7 @@ import { Text, Button } from 'react-native-elements'
 import Icon from 'react-native-vector-icons/AntDesign'
 import Storage from '@react-native-community/async-storage'
 import { Element } from '../styles'
+import { Actions } from 'react-native-router-flux'
 
 export class Settings extends Component {
     state = {
@@ -71,11 +72,8 @@ export class Settings extends Component {
                             titleStyle={style.buttonTitle}
                             containerStyle={style.buttonContainer}
                             onPress={() => {
-                                Alert.alert(
-                                    'Oops',
-                                    'This feature is still in development.',
-                                    [{ text: 'OK' }],
-                                )
+                                Account.clear()
+                                Actions.replace('welcome')
                             }}
                         />
                     </View>

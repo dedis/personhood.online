@@ -4,29 +4,44 @@ import { Button } from 'react-native-elements'
 import WelcomeLogo from '../assets/images/welcome-logo.svg'
 import { Actions } from 'react-native-router-flux'
 import { Element } from '../styles'
-import { Account } from '../network/account'
+import { Account, AuthInfoType } from '../network/account'
+import { ProgressOverlay } from './ProgressOverlay'
 
 export class Welcome extends Component {
     state = {
         loading: false,
+        error: undefined,
     }
 
     login = () => {
+        Actions.push('epfl-auth', {
+            onAuth: this.onAuth,
+        })
+    }
+
+    onAuth = (data: AuthInfoType) => {
+        Actions.pop()
         this.setState({ loading: true })
-        Account.load()
+        Account.create(data)
             .then(() => {
                 this.setState({ loading: false })
-                Actions.main()
+                Actions.replace('main')
             })
-            .catch(reason => {
-                this.setState({ loading: false })
-                console.log(reason)
+            .catch(error => {
+                setTimeout(() => {
+                    this.setState({ loading: false, error: undefined })
+                }, 3000)
+                this.setState({ error })
             })
     }
 
     render() {
         return (
             <SafeAreaView style={styles.container}>
+                <ProgressOverlay
+                    isVisible={this.state.loading}
+                    error={this.state.error}
+                />
                 <WelcomeLogo width="50%" />
                 <Button
                     title="Continue with EPFL"
