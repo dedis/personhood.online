@@ -23,6 +23,7 @@ export class Exchange extends Component {
         amountError: '',
         paying: false,
         paymentError: '',
+        success: '',
     }
 
     pay = () => {
@@ -31,7 +32,14 @@ export class Exchange extends Component {
             this.setState({ paying: true })
             Account.transferTo(address, Number(amount))
                 .then(() => {
-                    this.setState({ paying: false })
+                    setTimeout(() => {
+                        this.setState({
+                            paying: false,
+                            success: '',
+                            amount: '0',
+                        })
+                    }, 3000)
+                    this.setState({ success: 'Transfered' })
                     Storage.removeItem(ERROR_KEY)
                 })
                 .catch(reason => {
@@ -50,6 +58,9 @@ export class Exchange extends Component {
                     } else {
                         Storage.setItem(ERROR_KEY, 'Unknown')
                         this.setState({ paymentError: 'Unknown Error' })
+                        Alert.alert('Transaction Error', error, [
+                            { text: 'OK' },
+                        ])
                     }
                 })
         }
@@ -79,6 +90,7 @@ export class Exchange extends Component {
                 <ProgressOverlay
                     isVisible={this.state.paying}
                     error={this.state.paymentError}
+                    success={this.state.success}
                 />
                 <View style={style.header}>
                     <Text style={style.headerTitle}>Transfer</Text>

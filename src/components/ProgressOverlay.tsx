@@ -6,7 +6,8 @@ import Icon from 'react-native-vector-icons/FontAwesome5'
 
 interface ProgressOverlayProps {
     isVisible: boolean
-    error: string | undefined
+    error?: string | undefined
+    success?: string | undefined
 }
 
 export class ProgressOverlay extends Component<ProgressOverlayProps> {
@@ -14,9 +15,9 @@ export class ProgressOverlay extends Component<ProgressOverlayProps> {
         return (
             <Overlay
                 isVisible={this.props.isVisible}
-                overlayStyle={styles.processingContainer}
+                overlayStyle={styles.container}
             >
-                <View>
+                <View style={styles.content}>
                     {(() => {
                         if (this.props.error) {
                             return (
@@ -27,6 +28,15 @@ export class ProgressOverlay extends Component<ProgressOverlayProps> {
                                 />
                             )
                         }
+                        if (this.props.success) {
+                            return (
+                                <Icon
+                                    name="check-circle"
+                                    size={50}
+                                    color="green"
+                                />
+                            )
+                        }
                         return (
                             <ActivityIndicator
                                 size="large"
@@ -34,8 +44,16 @@ export class ProgressOverlay extends Component<ProgressOverlayProps> {
                             />
                         )
                     })()}
-                    <Text style={styles.processingTitle}>
-                        {this.props.error ? this.props.error : 'Processing'}
+                    <Text style={styles.title}>
+                        {(() => {
+                            if (this.props.error) {
+                                return this.props.error
+                            }
+                            if (this.props.success) {
+                                return this.props.success
+                            }
+                            return 'Processing'
+                        })()}
                     </Text>
                 </View>
             </Overlay>
@@ -44,17 +62,22 @@ export class ProgressOverlay extends Component<ProgressOverlayProps> {
 }
 
 const styles = StyleSheet.create({
-    processingContainer: {
-        display: 'flex',
-        justifyContent: 'space-around',
-        alignItems: 'center',
+    container: {
         width: '50%',
         height: '20%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-around',
     },
-    processingTitle: {
+    title: {
         marginTop: 10,
         fontSize: 20,
         fontWeight: '500',
         color: 'black',
+    },
+    content: {
+        display: 'flex',
+        justifyContent: 'space-around',
+        alignItems: 'center',
     },
 })
