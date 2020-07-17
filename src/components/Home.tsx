@@ -3,7 +3,7 @@ import { SafeAreaView, View, FlatList, StyleSheet } from 'react-native'
 import { Text, Avatar, Button } from 'react-native-elements'
 import Icon from 'react-native-vector-icons/Ionicons'
 import { Element } from '../styles'
-import { Account } from '../network/account'
+import { UserAccount } from '../network/tequila'
 
 export class Home extends Component {
     state = {
@@ -25,14 +25,12 @@ export class Home extends Component {
     }
 
     async loadBalance() {
-        let res = await Account.getBalance()
-        this.setState({ balance: res.toFixed(2) })
         this.updateBalance()
     }
 
     updateBalance = async () => {
         this.setState({ loading: true })
-        let res = await Account.updateBalance()
+        let res = await UserAccount.bankAccount!.updateBalance()
         this.setState({ balance: res.toFixed(2), loading: false })
     }
 

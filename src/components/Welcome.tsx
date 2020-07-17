@@ -4,8 +4,8 @@ import { Button } from 'react-native-elements'
 import WelcomeLogo from '../assets/images/welcome-logo.svg'
 import { Actions } from 'react-native-router-flux'
 import { Element } from '../styles'
-import { Account, AuthInfoType } from '../network/account'
 import { ProgressOverlay } from './ProgressOverlay'
+import { UserAccount } from '../network/tequila'
 
 export class Welcome extends Component {
     state = {
@@ -19,20 +19,16 @@ export class Welcome extends Component {
         })
     }
 
-    onAuth = (data: AuthInfoType) => {
+    onAuth = (data: { token: string }) => {
         Actions.pop()
         this.setState({ loading: true })
-        Account.create(data)
+        UserAccount.token = data.token
+        UserAccount.loadCurrencyAccount()
             .then(() => {
                 this.setState({ loading: false })
                 Actions.replace('main')
             })
-            .catch(error => {
-                setTimeout(() => {
-                    this.setState({ loading: false, error: undefined })
-                }, 3000)
-                this.setState({ error })
-            })
+            .catch(error => this.setState({ error: String(error) }))
     }
 
     render() {

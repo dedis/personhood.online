@@ -1,16 +1,16 @@
 import React, { Component } from 'react'
-import { SafeAreaView, View, ScrollView, StyleSheet, Alert } from 'react-native'
-import { Account } from '../network/account'
+import { SafeAreaView, View, ScrollView, StyleSheet } from 'react-native'
 import { Text, Button } from 'react-native-elements'
 import Icon from 'react-native-vector-icons/AntDesign'
 import Storage from '@react-native-community/async-storage'
 import { Element } from '../styles'
 import { Actions } from 'react-native-router-flux'
+import { UserAccount } from '../network/tequila'
 
 export class Settings extends Component {
     state = {
         errorMsg: null,
-        nonce: Account.nonce,
+        nonce: UserAccount.bankAccount?.nonce,
     }
 
     componentDidMount() {
@@ -20,13 +20,13 @@ export class Settings extends Component {
     }
 
     inc = () => {
-        Account.incNonce()
-        this.setState({ nonce: Account.nonce })
+        UserAccount.bankAccount?.incNonce()
+        this.setState({ nonce: UserAccount.bankAccount?.nonce })
     }
 
     dec = () => {
-        Account.decNonce()
-        this.setState({ nonce: Account.nonce })
+        UserAccount.bankAccount?.decNonce()
+        this.setState({ nonce: UserAccount.bankAccount?.nonce })
     }
 
     render() {
@@ -72,7 +72,7 @@ export class Settings extends Component {
                             titleStyle={style.buttonTitle}
                             containerStyle={style.buttonContainer}
                             onPress={() => {
-                                Account.clear()
+                                UserAccount.clear()
                                 Actions.replace('welcome')
                             }}
                         />

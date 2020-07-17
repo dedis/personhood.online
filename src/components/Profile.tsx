@@ -4,8 +4,8 @@ import { Text, Avatar, Button } from 'react-native-elements'
 import Clipboard from '@react-native-community/clipboard'
 import MIcon from 'react-native-vector-icons/MaterialIcons'
 import { Element } from '../styles'
-import { Account } from '../network/account'
 import { Actions } from 'react-native-router-flux'
+import { UserAccount } from '../network/tequila'
 
 export class Profile extends Component {
     render() {
@@ -14,7 +14,7 @@ export class Profile extends Component {
                 <View style={style.header}>
                     <View>
                         <Text style={style.name}>
-                            {Account.identifier ?? ''}
+                            {UserAccount.profile?.firstName ?? ''}
                         </Text>
                         <View style={style.avatarContainer}>
                             <Avatar
@@ -26,7 +26,7 @@ export class Profile extends Component {
                                 }}
                             />
                             <Text style={style.accountLabel}>
-                                Personal Account
+                                {UserAccount.profile?.identifier ?? ''}
                             </Text>
                         </View>
                     </View>
@@ -42,13 +42,15 @@ export class Profile extends Component {
                     <View style={style.item}>
                         <Text style={style.itemLabel}>Email</Text>
                         <Text style={style.itemContent}>
-                            teddy.roberts@epfl.ch
+                            {UserAccount.profile?.email}
                         </Text>
                     </View>
                     <View
                         style={style.item}
                         onTouchStart={() => {
-                            Clipboard.setString(Account.address ?? '')
+                            Clipboard.setString(
+                                UserAccount.bankAccount?.address ?? '',
+                            )
                             Alert.alert(
                                 'Copied',
                                 'Your address has been copied to clipboard',
@@ -57,7 +59,9 @@ export class Profile extends Component {
                         }}
                     >
                         <Text style={style.itemLabel}>Wallet Address</Text>
-                        <Text style={style.itemContent}>{Account.address}</Text>
+                        <Text style={style.itemContent}>
+                            {UserAccount.bankAccount?.address}
+                        </Text>
                     </View>
                 </View>
             </SafeAreaView>

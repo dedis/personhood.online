@@ -9,9 +9,9 @@ import {
 } from 'react-native'
 import { Text, Button } from 'react-native-elements'
 import { Element } from '../styles'
-import { Account } from '../network/account'
 import Storage from '@react-native-community/async-storage'
 import { ProgressOverlay } from './ProgressOverlay'
+import { UserAccount } from '../network/tequila'
 
 const ERROR_KEY = 'transaction-last-error'
 
@@ -30,7 +30,7 @@ export class Exchange extends Component {
         const { address, amount } = this.state
         if (address.length === 40 && !Number.isNaN(Number(amount))) {
             this.setState({ paying: true })
-            Account.transferTo(address, Number(amount))
+            UserAccount.bankAccount!.transferTo(address, Number(amount))
                 .then(() => {
                     setTimeout(() => {
                         this.setState({

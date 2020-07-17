@@ -2,7 +2,6 @@ import React, { Component } from 'react'
 import { WebView } from 'react-native-webview'
 import { WebViewMessageEvent } from 'react-native-webview/lib/WebViewTypes'
 import { StyleSheet } from 'react-native'
-import { Account } from '../network/account'
 
 type PropTypes = {
     onAuth: (data: object) => void
@@ -19,10 +18,14 @@ export class Auth extends Component<PropTypes> {
         }
     `
 
-    authURL = 'https://epflcoin.cothority.net/auth/login?addr='
+    authURL = 'http://epflcoin.cothority.net/oauth2/auth'
 
     onMessage = (event: WebViewMessageEvent) => {
-        this.props.onAuth(JSON.parse(event.nativeEvent.data))
+        let data = JSON.parse(event.nativeEvent.data)
+        console.log('auth info: ' + JSON.stringify(data))
+        this.props.onAuth({
+            token: data.access_token,
+        })
     }
 
     render() {
@@ -31,7 +34,7 @@ export class Auth extends Component<PropTypes> {
                 containerStyle={styles.webview}
                 style={styles.webview}
                 source={{
-                    uri: this.authURL + Account.address,
+                    uri: this.authURL,
                 }}
                 originWhitelist={['*']}
                 javaScriptEnabled={true}

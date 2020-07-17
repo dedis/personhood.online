@@ -16,7 +16,7 @@ import { Settings } from './Settings'
 import { TabIcon } from './TabIcon'
 import { InteractionManager, StatusBar } from 'react-native'
 import { ThemeProvider } from 'react-native-elements'
-import { Account } from '../network/account'
+import { UserAccount } from '../network/tequila'
 import { Auth } from './Auth'
 
 export class App extends Component {
@@ -72,15 +72,14 @@ export class App extends Component {
 class Base extends Component {
     componentDidMount() {
         InteractionManager.runAfterInteractions(() => {
-            Account.load()
-                .then(isExist => {
-                    if (isExist) {
-                        Actions.replace('main')
-                    } else {
-                        Actions.push('welcome')
-                    }
+            UserAccount.init()
+                .then(() => {
+                    Actions.replace('main')
                 })
-                .catch(error => console.log(error))
+                .catch(e => {
+                    console.log(e)
+                    Actions.push('welcome')
+                })
         })
     }
 

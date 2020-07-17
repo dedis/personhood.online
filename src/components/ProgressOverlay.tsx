@@ -63,8 +63,10 @@ export class ProgressOverlay extends Component<ProgressOverlayProps> {
 
 const styles = StyleSheet.create({
     container: {
-        width: '50%',
-        height: '20%',
+        minWidth: '50%',
+        maxWidth: '80%',
+        minHeight: '20%',
+        maxHeight: '60%',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-around',

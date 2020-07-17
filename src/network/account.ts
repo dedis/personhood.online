@@ -6,27 +6,19 @@ import { EvmAccount, EvmContract } from '../lib/bevm'
 import SignerEd25519 from '@dedis/cothority/darc/signer-ed25519'
 import Storage from '@react-native-community/async-storage'
 
-export type AuthInfoType = {
-    identifier: string
-    signature: [string]
-}
-
-class _Account {
-    private static ACCOUNT_KEY = 'epfl_account'
-    private static RATE_KEY = 'rate'
-    private static BALANCE_KEY = 'balance'
-
+export class CurrencyAccount {
+    private storageKey: string
     private contract: EvmContract
     private signer: SignerEd25519
     private bevmConfig?: Config = undefined
     private bevmAccount?: EvmAccount = undefined
 
-    public identifier?: string = undefined
+    constructor(key: string) {
+        this.storageKey = key
 
-    constructor() {
         this.contract = EvmContract.deserialize({
             abi: CONTRACT_ABI,
-            addresses: ['a2a9b82671d9938f2807ea1aad8db52db051a1fd'],
+            addresses: ['1cc2b1968351e19761bdf60c0ba112209fc66ab8'],
             bytecode: CONTRACT_BYTECODE,
             name: 'Popcoin',
         })
@@ -71,32 +63,47 @@ class _Account {
 
     async load() {
         await this.loadConfig()
-        let value = await Storage.getItem(_Account.ACCOUNT_KEY)
+        let value = await Storage.getItem(this.storageKey)
         if (value != null) {
             console.log('account found: ' + value)
             let info = JSON.parse(value)
-            this.identifier = info.identifier
-            this.bevmAccount = EvmAccount.deserialize(info.bevm)
+            this.bevmAccount = EvmAccount.deserialize(info)
+            // return await this.isMemeber()
             return true
         }
 
-        this.bevmAccount = new EvmAccount(_Account.ACCOUNT_KEY)
+        this.bevmAccount = new EvmAccount(this.storageKey)
         console.log('new evm account created')
         return false
     }
 
+    async isMemeber() {
+        console.log('Calling isMemeber()')
+        let result = await this.bevmConfig?.bevmRPC.call(
+            this.bevmConfig.byzcoinRPC.genesisID,
+            this.bevmConfig.rosterToml,
+            this.bevmConfig.bevmRPC.id,
+            this.bevmAccount!,
+            this.contract,
+            'isMember',
+            ['"' + this.address + '"'],
+        )
+        console.log('isMemeber(): ' + result)
+        return result
+    }
+
     async save() {
         await Storage.setItem(
-            _Account.ACCOUNT_KEY,
-            JSON.stringify({
-                identifier: this.identifier,
-                bevm: this.bevmAccount?.serialize(),
-            }),
+            this.storageKey,
+            JSON.stringify(this.bevmAccount?.serialize()),
         )
     }
 
-    async create(auth: AuthInfoType) {
-        this.identifier = auth.identifier
+    async create(signature: string[]) {
+        if (signature.length <= 0) {
+            throw new Error('empty signature error')
+        }
+
         let creditAmount = Buffer.from(
             Long.fromString('1000000000000000000').mul(5).toBytesBE(),
         )
@@ -106,7 +113,13 @@ class _Account {
             this.bevmAccount!.address,
             creditAmount,
         )
-        console.log('Calling addMember()')
+        console.log(
+            `Calling addMember(
+                ${this.address},
+                ${this.storageKey},
+                ${signature}
+            )`,
+        )
         await this.bevmConfig?.bevmRPC.transaction(
             [this.signer],
             1e7,
@@ -116,11 +129,17 @@ class _Account {
             this.contract,
             'addMember',
             [
-                '"' + this.bevmAccount!.address.toString('hex') + '"',
-                '"' + auth.identifier + '"',
-                JSON.stringify(auth.signature),
+                '"0x' + this.address + '"',
+                '"' + this.storageKey + '"',
+                JSON.stringify(signature),
             ],
         )
+
+        let result = await this.isMemeber()
+        if (!result) {
+            throw new Error('add member failed')
+        }
+
         console.log('Calling newPeriod()')
         await this.bevmConfig?.bevmRPC.transaction(
             [this.signer],
@@ -136,14 +155,7 @@ class _Account {
     }
 
     async clear() {
-        await Storage.removeItem(_Account.ACCOUNT_KEY)
-        await Storage.removeItem(_Account.BALANCE_KEY)
-        await Storage.removeItem(_Account.RATE_KEY)
-    }
-
-    async getBalance(): Promise<number> {
-        let balance = Number(Storage.getItem(_Account.BALANCE_KEY))
-        return _Account.popcoin(balance)
+        await Storage.removeItem(this.storageKey)
     }
 
     async updateBalance(): Promise<number> {
@@ -155,14 +167,15 @@ class _Account {
             this.bevmAccount!,
             this.contract,
             'balanceOf',
-            ['"' + this.bevmAccount!.address.toString('hex') + '"'],
+            ['"' + this.address + '"'],
         )
+        console.log('balanceOf(): ' + balance)
         // Storage.setItem(_Account.BALANCE_KEY, balance.toString())
-        return _Account.popcoin(balance)
+        return CurrencyAccount.popcoin(balance)
     }
 
     async transferTo(address: string, amount: number) {
-        let value = _Account.popcent(amount)
+        let value = CurrencyAccount.popcent(amount)
         console.log('Actual transfer amount: ' + value)
         console.log('Calling transfer()')
         await this.bevmConfig?.bevmRPC.transaction(
@@ -178,5 +191,3 @@ class _Account {
         await this.save()
     }
 }
-
-export const Account = new _Account()
