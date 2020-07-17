@@ -14,10 +14,11 @@ import { Exchange } from './Exchange'
 import { Profile } from './Profile'
 import { Settings } from './Settings'
 import { TabIcon } from './TabIcon'
-import { InteractionManager, StatusBar } from 'react-native'
+import { InteractionManager, StatusBar, Platform } from 'react-native'
 import { ThemeProvider } from 'react-native-elements'
 import { UserAccount } from '../network/tequila'
 import { Auth } from './Auth'
+import { ProgressOverlay } from './ProgressOverlay'
 
 export class App extends Component {
     render() {
@@ -70,21 +71,34 @@ export class App extends Component {
 }
 
 class Base extends Component {
+    state = {
+        loading: false,
+        error: undefined,
+    }
+
     componentDidMount() {
         InteractionManager.runAfterInteractions(() => {
+            this.setState({ loading: true })
             UserAccount.init()
                 .then(() => {
+                    this.setState({ loading: false })
                     Actions.replace('main')
                 })
                 .catch(e => {
                     console.log(e)
+                    this.setState({ loading: false })
                     Actions.push('welcome')
                 })
         })
     }
 
     render() {
-        return <></>
+        return (
+            <ProgressOverlay
+                isVisible={this.state.loading}
+                error={this.state.error}
+            />
+        )
     }
 }
 
@@ -95,14 +109,17 @@ class Base extends Component {
 let theme = {
     Text: {
         style: {
-            fontFamily: 'Avenir Next',
+            fontFamily:
+                Platform.OS === 'android' ? 'Montserrat-Medium' : 'Avenir Next',
             letterSpacing: -0.25,
         },
     },
     Button: {
         titleStyle: {
-            fontFamily: 'Avenir Next',
+            fontFamily:
+                Platform.OS === 'android' ? 'Montserrat-Medium' : 'Avenir Next',
             letterSpacing: -0.5,
+            fontWeight: 600,
         },
     },
 }

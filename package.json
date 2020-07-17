@@ -17,6 +17,7 @@
     "@react-navigation/native": "^5.5.1",
     "elliptic": "^6.5.3",
     "node-libs-react-native": "^1.2.0",
+    "query-string": "^6.13.1",
     "react": "16.11.0",
     "react-native": "0.62.2",
     "react-native-crypto": "^2.2.0",

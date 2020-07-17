@@ -10,6 +10,7 @@ type PropTypes = {
 export class Auth extends Component<PropTypes> {
     script = `
         window.onload = function () {
+            alert('js!')
             if (window.auth) {
                 window.ReactNativeWebView.postMessage(
                     JSON.stringify(window.auth)

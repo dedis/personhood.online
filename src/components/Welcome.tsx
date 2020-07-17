@@ -1,11 +1,12 @@
 import React, { Component } from 'react'
-import { SafeAreaView, StyleSheet } from 'react-native'
+import { SafeAreaView, StyleSheet, Linking } from 'react-native'
 import { Button } from 'react-native-elements'
 import WelcomeLogo from '../assets/images/welcome-logo.svg'
 import { Actions } from 'react-native-router-flux'
 import { Element } from '../styles'
 import { ProgressOverlay } from './ProgressOverlay'
 import { UserAccount } from '../network/tequila'
+import { parseUrl } from 'query-string'
 
 export class Welcome extends Component {
     state = {
@@ -13,16 +14,31 @@ export class Welcome extends Component {
         error: undefined,
     }
 
-    login = () => {
-        Actions.push('epfl-auth', {
-            onAuth: this.onAuth,
-        })
+    componentDidMount() {
+        Linking.addEventListener('url', this.onAuth)
     }
 
-    onAuth = (data: { token: string }) => {
-        Actions.pop()
+    componentWillUnmount() {
+        Linking.removeAllListeners('url')
+    }
+
+    login = () => {
+        Linking.openURL('http://epflcoin.cothority.net/oauth2/auth')
+    }
+
+    onAuth = (event: { url: string }) => {
+        if (!event.url) {
+            this.setState({ error: 'Invalid Auth Info' })
+            setTimeout(() => {
+                this.setState({ error: undefined })
+            }, 3000)
+        }
+
+        let data = parseUrl(event.url)
+        console.log(data)
+
         this.setState({ loading: true })
-        UserAccount.token = data.token
+        UserAccount.token = data.query.access_token as string
         UserAccount.loadCurrencyAccount()
             .then(() => {
                 this.setState({ loading: false })
