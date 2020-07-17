@@ -119,7 +119,6 @@ let theme = {
             fontFamily:
                 Platform.OS === 'android' ? 'Montserrat-Medium' : 'Avenir Next',
             letterSpacing: -0.5,
-            fontWeight: 600,
         },
     },
 }
