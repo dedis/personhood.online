@@ -17,7 +17,6 @@ import { TabIcon } from './TabIcon'
 import { InteractionManager, StatusBar, Platform } from 'react-native'
 import { ThemeProvider } from 'react-native-elements'
 import { UserAccount } from '../network/tequila'
-import { Auth } from './Auth'
 import { ProgressOverlay } from './ProgressOverlay'
 import { QRCode } from './QRCode'
 import { MyCode } from './MyCode'
@@ -32,12 +31,6 @@ export class App extends Component {
                         <Scene initial hideNavBar component={Base} />
                         <Stack hideNavBar key="welcome">
                             <Scene component={Welcome} />
-                            <Scene
-                                key="epfl-auth"
-                                component={Auth}
-                                hideNavBar={false}
-                                title="EPFL Tequila"
-                            />
                         </Stack>
                         <Scene key="main" hideNavBar>
                             <Tabs key="tabs" showLabel={false}>

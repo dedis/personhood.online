@@ -138,8 +138,10 @@ android {
         applicationId "com.popcoinapp"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 200717
-        versionName "0.2.0"
+        multiDexEnabled true
+
+        versionCode 200801
+        versionName "0.3.0"
         missingDimensionStrategy 'react-native-camera', 'general'
     }
     splits {
@@ -205,7 +207,9 @@ dependencies {
     //noinspection GradleDynamicVersion
     implementation "com.facebook.react:react-native:+"  // From node_modules
 
-    implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
+    implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
+
+    implementation 'com.android.support:multidex:1.0.3'
 
     debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}") {
       exclude group:'com.facebook.fbjni'

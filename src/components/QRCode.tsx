@@ -10,6 +10,8 @@ export class QRCode extends Component<{ onSuccess: (addr: string) => void }> {
 
     onSuccess = (e: any) => {
         let data = JSON.parse(e.data)
+        console.log(data)
+
         if (
             data.type === 'address' &&
             data.content &&
@@ -19,6 +21,7 @@ export class QRCode extends Component<{ onSuccess: (addr: string) => void }> {
             Actions.pop()
             return
         }
+
         Alert.alert('Oops', 'Not a valid QR Code', [
             { text: 'Retry', onPress: () => this.scanner?.reactivate() },
         ])

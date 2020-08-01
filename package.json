@@ -36,7 +36,6 @@
     "react-native-screens": "^2.8.0",
     "react-native-svg": "^12.1.0",
     "react-native-vector-icons": "^6.6.0",
-    "react-native-webview": "^10.3.2",
     "stream-browserify": "^3.0.0",
     "vm-browserify": "^1.1.2",
     "whatwg-url": "^8.1.0"

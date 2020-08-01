@@ -159,7 +159,7 @@ export class Exchange extends Component {
                             Actions.qrcode({
                                 onSuccess: (data: any) =>
                                     this.setState({
-                                        address: data.address,
+                                        address: data.content,
                                         amount: data.amount ?? '0',
                                     }),
                             })
