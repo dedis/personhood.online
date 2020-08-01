@@ -99,6 +99,7 @@ export class CurrencyAccount {
             console.log('account found: ' + value)
             let info = JSON.parse(value)
             this.bevmAccount = EvmAccount.deserialize(info)
+            progress ? progress('Checking...') : undefined
             return await this.isMemeber()
             // return true
         }

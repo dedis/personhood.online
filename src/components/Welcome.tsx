@@ -11,6 +11,8 @@ import { parseUrl } from 'query-string'
 export class Welcome extends Component {
     state = {
         loading: false,
+        progress: 10,
+        text: undefined,
         error: undefined,
     }
 
@@ -39,7 +41,9 @@ export class Welcome extends Component {
 
         this.setState({ loading: true })
         UserAccount.token = data.query.access_token as string
-        UserAccount.loadCurrencyAccount()
+        UserAccount.loadCurrencyAccount((text: string) =>
+            this.setState({ text, progress: this.state.progress + 9 }),
+        )
             .then(() => {
                 this.setState({ loading: false })
                 Actions.replace('main')
@@ -52,7 +56,11 @@ export class Welcome extends Component {
             <SafeAreaView style={styles.container}>
                 <ProgressOverlay
                     isVisible={this.state.loading}
+                    style="circle"
+                    text={this.state.text}
+                    progress={this.state.progress / 100}
                     error={this.state.error}
+                    showText={true}
                 />
                 <WelcomeLogo width="50%" />
                 <Button

@@ -3,12 +3,16 @@ import { View, StyleSheet, ActivityIndicator } from 'react-native'
 import { Overlay, Text } from 'react-native-elements'
 import { Element } from '../styles'
 import Icon from 'react-native-vector-icons/FontAwesome5'
+import { Circle, Pie } from 'react-native-progress'
 
 interface ProgressOverlayProps {
     isVisible: boolean
+    style?: 'circle' | 'pie'
     text?: string
     error?: string
     success?: string
+    progress?: number
+    showText?: boolean
 }
 
 export class ProgressOverlay extends Component<ProgressOverlayProps> {
@@ -37,6 +41,29 @@ export class ProgressOverlay extends Component<ProgressOverlayProps> {
                                     color="green"
                                 />
                             )
+                        }
+                        if (this.props.progress) {
+                            if (this.props.style === 'circle') {
+                                return (
+                                    <Circle
+                                        progress={this.props.progress}
+                                        size={60}
+                                        thickness={5}
+                                        showsText={this.props.showText}
+                                        textStyle={styles.progressText}
+                                        color={Element.primaryColor}
+                                    />
+                                )
+                            }
+                            if (this.props.style === 'pie') {
+                                return (
+                                    <Pie
+                                        progress={this.props.progress}
+                                        size={60}
+                                        color={Element.primaryColor}
+                                    />
+                                )
+                            }
                         }
                         return (
                             <ActivityIndicator
@@ -71,6 +98,7 @@ const styles = StyleSheet.create({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-around',
+        backgroundColor: Element.container.backgroundColor,
     },
     title: {
         marginTop: 10,
@@ -82,5 +110,10 @@ const styles = StyleSheet.create({
         display: 'flex',
         justifyContent: 'space-around',
         alignItems: 'center',
+    },
+    progressText: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: Element.secondaryColor,
     },
 })

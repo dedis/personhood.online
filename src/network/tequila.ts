@@ -68,7 +68,7 @@ export class EPFLAccount {
 
             let data = await res.json()
             console.log(`sign user id: ${JSON.stringify(data)}`)
-            await this.bankAccount.create(data.signature)
+            await this.bankAccount.create(data.signature, progress)
         }
         await this.save()
     }
