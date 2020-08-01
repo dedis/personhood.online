@@ -1,5 +1,13 @@
 import { Buffer } from 'buffer'
-import { CONTRACT_ABI, CONTRACT_BYTECODE, getBEvmInstance } from './config'
+import {
+    CONTRACT_ABI,
+    CONTRACT_BYTECODE,
+    ROSTER_TOML,
+    CONFIG_TOML,
+} from './config'
+import ByzCoinRPC from '@dedis/cothority/byzcoin/byzcoin-rpc'
+import { Roster } from '@dedis/cothority/network'
+import toml from 'toml'
 import {
     EvmAccount,
     EvmContract,
@@ -54,9 +62,36 @@ export class CurrencyAccount {
         return this.bevmAccount?.address.toString('hex')
     }
 
-    async load(progress?: (desc: string) => void) {
+    async getBEvmInstance(
+        progress?: (desc: string) => void,
+    ): Promise<BEvmInstance> {
+        const roster = Roster.fromTOML(ROSTER_TOML)
+        const config = toml.parse(CONFIG_TOML)
+
+        progress ? progress('Initiating RPC...') : undefined
+        const byzCoinID = Buffer.from(config.ByzCoinID, 'hex')
+        const byzcoinRPC = await ByzCoinRPC.fromByzcoin(
+            roster,
+            byzCoinID,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            false,
+        )
+
         progress ? progress('Initiating BEvm...') : undefined
-        this.bevm = await getBEvmInstance()
+        const bevmInstanceID = Buffer.from(config.bevmInstanceID, 'hex')
+        const bevmInstance = await BEvmInstance.fromByzcoin(
+            byzcoinRPC,
+            bevmInstanceID,
+        )
+
+        return bevmInstance
+    }
+
+    async load(progress?: (desc: string) => void) {
+        this.bevm = await this.getBEvmInstance(progress)
 
         progress ? progress('Loading Account...') : undefined
         let value = await Storage.getItem(this.storageKey)

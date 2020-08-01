@@ -73,8 +73,24 @@ export class Settings extends Component {
                             titleStyle={style.buttonTitle}
                             containerStyle={style.buttonContainer}
                             onPress={() => {
-                                UserAccount.clear()
-                                Actions.replace('welcome')
+                                Alert.alert(
+                                    'Sign Out',
+                                    'This operation will clear all user account data, and it CANNOT be recovered. Are you sure?',
+                                    [
+                                        {
+                                            text: 'Mistouch',
+                                            style: 'cancel',
+                                        },
+                                        {
+                                            text: "I'm Sure",
+                                            style: 'destructive',
+                                            onPress: () => {
+                                                UserAccount.clear()
+                                                Actions.replace('welcome')
+                                            },
+                                        },
+                                    ],
+                                )
                             }}
                         />
                     </View>
