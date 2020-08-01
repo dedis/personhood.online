@@ -21,7 +21,7 @@ export class CurrencyAccount {
 
         this.contract = EvmContract.deserialize({
             abi: CONTRACT_ABI,
-            addresses: ['1cc2b1968351e19761bdf60c0ba112209fc66ab8'],
+            addresses: ['7c78361c5ae324446350b96b119e97dd5e9cc206'],
             bytecode: CONTRACT_BYTECODE,
             name: 'Popcoin',
         })
@@ -61,8 +61,8 @@ export class CurrencyAccount {
             console.log('account found: ' + value)
             let info = JSON.parse(value)
             this.bevmAccount = EvmAccount.deserialize(info)
-            // return await this.isMemeber()
-            return true
+            return await this.isMemeber()
+            // return true
         }
 
         this.bevmAccount = new EvmAccount(this.storageKey)
@@ -77,10 +77,10 @@ export class CurrencyAccount {
             this.contract,
             0,
             'isMember',
-            [this.address],
+            ['0x' + this.address],
         )
-        console.log('isMemeber(): ' + result)
-        return result
+        console.log('isMemeber(): ' + result![0])
+        return result![0]
     }
 
     async save() {
@@ -104,7 +104,7 @@ export class CurrencyAccount {
         )
         console.log(
             `Calling addMember(
-                ${this.address},
+                0x${this.address},
                 ${this.storageKey},
                 ${signature}
             )`,
@@ -118,7 +118,7 @@ export class CurrencyAccount {
             this.contract,
             0,
             'addMember',
-            ['0x' + this.address, this.storageKey, JSON.stringify(signature)],
+            ['0x' + this.address, this.storageKey, signature],
         )
 
         let result = await this.isMemeber()
@@ -151,10 +151,10 @@ export class CurrencyAccount {
             this.contract,
             0,
             'balanceOf',
-            [this.address],
+            ['0x' + this.address],
         )
         console.log('balanceOf(): ' + balance![0])
-        // Storage.setItem(_Account.BALANCE_KEY, balance.toString())
+
         return CurrencyAccount.popcoin(balance![0])
     }
 
@@ -171,8 +171,20 @@ export class CurrencyAccount {
             this.contract,
             0,
             'transfer',
-            [address, value],
+            ['0x' + address, value],
         )
         await this.save()
+    }
+
+    async getTransactions(start: number, end: number) {
+        console.log(`Calling getTransactions(${start}, ${end})`)
+        let result = await this.bevm?.call(
+            this.bevmAccount!,
+            this.contract,
+            0,
+            'getTransactions',
+            ['0x' + this.address, start, end],
+        )
+        return result
     }
 }
