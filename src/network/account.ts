@@ -54,8 +54,11 @@ export class CurrencyAccount {
         return this.bevmAccount?.address.toString('hex')
     }
 
-    async load() {
+    async load(progress?: (desc: string) => void) {
+        progress ? progress('Initiating BEvm...') : undefined
         this.bevm = await getBEvmInstance()
+
+        progress ? progress('Loading Account...') : undefined
         let value = await Storage.getItem(this.storageKey)
         if (value != null) {
             console.log('account found: ' + value)
@@ -65,6 +68,7 @@ export class CurrencyAccount {
             // return true
         }
 
+        progress ? progress('Creating New Account...') : undefined
         this.bevmAccount = new EvmAccount(this.storageKey)
         console.log('new evm account created')
         return false
@@ -90,18 +94,20 @@ export class CurrencyAccount {
         )
     }
 
-    async create(signature: string[]) {
+    async create(signature: string[], progress?: (desc: string) => void) {
         if (signature.length <= 0) {
             throw new Error('empty signature error')
         }
 
         let creditAmount = WEI_PER_ETHER.mul(5)
         console.log('Calling creditAccount()')
+        progress ? progress('Initiating an account...') : undefined
         await this.bevm?.creditAccount(
             [this.signer],
             this.bevmAccount!,
             creditAmount,
         )
+
         console.log(
             `Calling addMember(
                 0x${this.address},
@@ -109,6 +115,7 @@ export class CurrencyAccount {
                 ${signature}
             )`,
         )
+        progress ? progress('Adding account to system...') : undefined
         await this.bevm?.transaction(
             [this.signer],
             1e7,
@@ -121,12 +128,14 @@ export class CurrencyAccount {
             ['0x' + this.address, this.storageKey, signature],
         )
 
+        progress ? progress('Checking...') : undefined
         let result = await this.isMemeber()
         if (!result) {
             throw new Error('add member failed')
         }
 
         console.log('Calling newPeriod()')
+        progress ? progress('Getting initial income...') : undefined
         await this.bevm?.transaction(
             [this.signer],
             1e7,

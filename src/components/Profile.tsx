@@ -19,10 +19,10 @@ export class Profile extends Component {
                         <View style={style.avatarContainer}>
                             <Avatar
                                 rounded
+                                icon={{ name: 'user', type: 'font-awesome' }}
                                 size={30}
                                 source={{
-                                    uri:
-                                        'https://randomuser.me/api/portraits/men/32.jpg',
+                                    uri: UserAccount.profile?.avatar,
                                 }}
                             />
                             <Text style={style.accountLabel}>

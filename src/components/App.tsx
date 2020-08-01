@@ -19,6 +19,8 @@ import { ThemeProvider } from 'react-native-elements'
 import { UserAccount } from '../network/tequila'
 import { Auth } from './Auth'
 import { ProgressOverlay } from './ProgressOverlay'
+import { QRCode } from './QRCode'
+import { MyCode } from './MyCode'
 
 export class App extends Component {
     render() {
@@ -48,6 +50,11 @@ export class App extends Component {
                                     icon={TabIcon}
                                 >
                                     <Scene hideNavBar component={Exchange} />
+                                    <Scene
+                                        key="mycode"
+                                        title="My Code"
+                                        component={MyCode}
+                                    />
                                 </Stack>
                                 <Stack
                                     key="profile"
@@ -63,6 +70,7 @@ export class App extends Component {
                                 </Stack>
                             </Tabs>
                         </Scene>
+                        <Scene key="qrcode" hideNavBar component={QRCode} />
                     </Modal>
                 </Router>
             </ThemeProvider>
@@ -73,13 +81,14 @@ export class App extends Component {
 class Base extends Component {
     state = {
         loading: false,
+        text: undefined,
         error: undefined,
     }
 
     componentDidMount() {
         InteractionManager.runAfterInteractions(() => {
-            this.setState({ loading: true })
-            UserAccount.init()
+            this.setState({ loading: true, text: 'Loading...' })
+            UserAccount.init((text: string) => this.setState({ text }))
                 .then(() => {
                     this.setState({ loading: false })
                     Actions.replace('main')
@@ -87,7 +96,7 @@ class Base extends Component {
                 .catch(e => {
                     console.log(e)
                     this.setState({ loading: false })
-                    Actions.push('welcome')
+                    Actions.replace('welcome')
                 })
         })
     }
@@ -96,6 +105,7 @@ class Base extends Component {
         return (
             <ProgressOverlay
                 isVisible={this.state.loading}
+                text={this.state.text}
                 error={this.state.error}
             />
         )

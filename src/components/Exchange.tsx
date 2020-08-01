@@ -12,6 +12,7 @@ import { Element } from '../styles'
 import Storage from '@react-native-community/async-storage'
 import { ProgressOverlay } from './ProgressOverlay'
 import { UserAccount } from '../network/tequila'
+import { Actions } from 'react-native-router-flux'
 
 const ERROR_KEY = 'transaction-last-error'
 
@@ -155,11 +156,24 @@ export class Exchange extends Component {
                         type="solid"
                         loading={this.state.paying}
                         onPress={() => {
-                            Alert.alert(
-                                'Oops',
-                                'This feature is still in development.',
-                                [{ text: 'OK' }],
-                            )
+                            Actions.qrcode({
+                                onSuccess: (data: any) =>
+                                    this.setState({
+                                        address: data.address,
+                                        amount: data.amount ?? '0',
+                                    }),
+                            })
+                        }}
+                    />
+                    <Button
+                        buttonStyle={style.button}
+                        titleStyle={style.buttonTitle}
+                        containerStyle={style.buttonContainer}
+                        title="SHOW MY CODE"
+                        type="solid"
+                        loading={this.state.paying}
+                        onPress={() => {
+                            Actions.mycode()
                         }}
                     />
                 </ScrollView>

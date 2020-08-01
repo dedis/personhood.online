@@ -6,8 +6,9 @@ import Icon from 'react-native-vector-icons/FontAwesome5'
 
 interface ProgressOverlayProps {
     isVisible: boolean
-    error?: string | undefined
-    success?: string | undefined
+    text?: string
+    error?: string
+    success?: string
 }
 
 export class ProgressOverlay extends Component<ProgressOverlayProps> {
@@ -52,7 +53,7 @@ export class ProgressOverlay extends Component<ProgressOverlayProps> {
                             if (this.props.success) {
                                 return this.props.success
                             }
-                            return 'Processing'
+                            return this.props.text ?? 'Processing'
                         })()}
                     </Text>
                 </View>
@@ -65,7 +66,7 @@ const styles = StyleSheet.create({
     container: {
         minWidth: '50%',
         maxWidth: '80%',
-        minHeight: '20%',
+        minHeight: '15%',
         maxHeight: '60%',
         display: 'flex',
         alignItems: 'center',
