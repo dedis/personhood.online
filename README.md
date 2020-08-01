@@ -48,6 +48,8 @@ cd ./android
 ./gradlew assembleRelease
 ```
 
+Then you will find the APK in `./android/app/build/outputs/apk/release/`
+
 ## Build Contract
 
 By running the script below, you will get the ABI and bytecode of the POPCOIN contract:
