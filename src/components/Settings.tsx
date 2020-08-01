@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { SafeAreaView, View, ScrollView, StyleSheet } from 'react-native'
+import { SafeAreaView, View, ScrollView, StyleSheet, Alert } from 'react-native'
 import { Text, Button } from 'react-native-elements'
 import Icon from 'react-native-vector-icons/AntDesign'
 import Storage from '@react-native-community/async-storage'
@@ -25,8 +25,9 @@ export class Settings extends Component {
     }
 
     dec = () => {
-        UserAccount.bankAccount?.decNonce()
-        this.setState({ nonce: UserAccount.bankAccount?.nonce })
+        Alert.alert('Oops...', 'decrease nonce number now disabled.', [
+            { text: 'OK' },
+        ])
     }
 
     render() {

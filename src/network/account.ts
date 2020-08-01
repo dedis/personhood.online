@@ -1,8 +1,11 @@
-import Long from 'long'
 import { Buffer } from 'buffer'
-import { CONTRACT_ABI, CONTRACT_BYTECODE } from './config'
-import { Config } from '../lib/config'
-import { EvmAccount, EvmContract } from '../lib/bevm'
+import { CONTRACT_ABI, CONTRACT_BYTECODE, getBEvmInstance } from './config'
+import {
+    EvmAccount,
+    EvmContract,
+    BEvmInstance,
+    WEI_PER_ETHER,
+} from '@dedis/cothority/bevm'
 import SignerEd25519 from '@dedis/cothority/darc/signer-ed25519'
 import Storage from '@react-native-community/async-storage'
 
@@ -10,7 +13,7 @@ export class CurrencyAccount {
     private storageKey: string
     private contract: EvmContract
     private signer: SignerEd25519
-    private bevmConfig?: Config = undefined
+    private bevm?: BEvmInstance = undefined
     private bevmAccount?: EvmAccount = undefined
 
     constructor(key: string) {
@@ -38,10 +41,6 @@ export class CurrencyAccount {
         this.bevmAccount?.incNonce()
     }
 
-    public decNonce() {
-        this.bevmAccount?.decNonce()
-    }
-
     static popcoin(origin: number): number {
         let result = Math.round(origin / 100) / 100
         return Number.isNaN(result) ? 0 : result
@@ -55,14 +54,8 @@ export class CurrencyAccount {
         return this.bevmAccount?.address.toString('hex')
     }
 
-    async loadConfig() {
-        console.log('loading BEVM config...')
-        this.bevmConfig = await Config.init()
-        console.log('BEVM config loaded')
-    }
-
     async load() {
-        await this.loadConfig()
+        this.bevm = await getBEvmInstance()
         let value = await Storage.getItem(this.storageKey)
         if (value != null) {
             console.log('account found: ' + value)
@@ -79,14 +72,12 @@ export class CurrencyAccount {
 
     async isMemeber() {
         console.log('Calling isMemeber()')
-        let result = await this.bevmConfig?.bevmRPC.call(
-            this.bevmConfig.byzcoinRPC.genesisID,
-            this.bevmConfig.rosterToml,
-            this.bevmConfig.bevmRPC.id,
+        let result = await this.bevm?.call(
             this.bevmAccount!,
             this.contract,
+            0,
             'isMember',
-            ['"' + this.address + '"'],
+            [this.address],
         )
         console.log('isMemeber(): ' + result)
         return result
@@ -104,13 +95,11 @@ export class CurrencyAccount {
             throw new Error('empty signature error')
         }
 
-        let creditAmount = Buffer.from(
-            Long.fromString('1000000000000000000').mul(5).toBytesBE(),
-        )
+        let creditAmount = WEI_PER_ETHER.mul(5)
         console.log('Calling creditAccount()')
-        await this.bevmConfig?.bevmRPC.creditAccount(
+        await this.bevm?.creditAccount(
             [this.signer],
-            this.bevmAccount!.address,
+            this.bevmAccount!,
             creditAmount,
         )
         console.log(
@@ -120,19 +109,16 @@ export class CurrencyAccount {
                 ${signature}
             )`,
         )
-        await this.bevmConfig?.bevmRPC.transaction(
+        await this.bevm?.transaction(
             [this.signer],
             1e7,
             1,
             0,
             this.bevmAccount!,
             this.contract,
+            0,
             'addMember',
-            [
-                '"0x' + this.address + '"',
-                '"' + this.storageKey + '"',
-                JSON.stringify(signature),
-            ],
+            ['0x' + this.address, this.storageKey, JSON.stringify(signature)],
         )
 
         let result = await this.isMemeber()
@@ -141,15 +127,15 @@ export class CurrencyAccount {
         }
 
         console.log('Calling newPeriod()')
-        await this.bevmConfig?.bevmRPC.transaction(
+        await this.bevm?.transaction(
             [this.signer],
             1e7,
             1,
             0,
             this.bevmAccount!,
             this.contract,
+            0,
             'newPeriod',
-            [],
         )
         await this.save()
     }
@@ -160,33 +146,32 @@ export class CurrencyAccount {
 
     async updateBalance(): Promise<number> {
         console.log('Calling balanceOf()')
-        let balance = await this.bevmConfig?.bevmRPC.call(
-            this.bevmConfig.byzcoinRPC.genesisID,
-            this.bevmConfig.rosterToml,
-            this.bevmConfig.bevmRPC.id,
+        let balance = await this.bevm?.call(
             this.bevmAccount!,
             this.contract,
+            0,
             'balanceOf',
-            ['"' + this.address + '"'],
+            [this.address],
         )
-        console.log('balanceOf(): ' + balance)
+        console.log('balanceOf(): ' + balance![0])
         // Storage.setItem(_Account.BALANCE_KEY, balance.toString())
-        return CurrencyAccount.popcoin(balance)
+        return CurrencyAccount.popcoin(balance![0])
     }
 
     async transferTo(address: string, amount: number) {
         let value = CurrencyAccount.popcent(amount)
         console.log('Actual transfer amount: ' + value)
         console.log('Calling transfer()')
-        await this.bevmConfig?.bevmRPC.transaction(
+        await this.bevm?.transaction(
             [this.signer],
             1e7,
             1,
             0,
             this.bevmAccount!,
             this.contract,
+            0,
             'transfer',
-            ['"' + address + '"', '"' + value + '"'],
+            [address, value],
         )
         await this.save()
     }
