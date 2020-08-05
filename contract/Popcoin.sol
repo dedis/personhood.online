@@ -481,8 +481,8 @@ contract Popcoin is ERC20Interface, SafeMath, EllipticCurve {
         _totalPopletsSupply = 18446744073709551616;
         Q = [ 0x84cfbc5582de43c4802157999d814bc1725847044b265acabbfd3704ceb3b081, 0xe5a7632584d62c73dd21c920e3d02581f9484bafa40610468be2788db4449ea8 ];
         
-        identifiers[address(0)] = "system";
-        identifiers[msg.sender] = "contract owner";
+        identifiers[address(0)] = "System";
+        identifiers[msg.sender] = "Contract Owner";
 
         //To Do: Initial Distribution
         //balances[msg.sender] = _totalPopletsSupply;
@@ -537,9 +537,11 @@ contract Popcoin is ERC20Interface, SafeMath, EllipticCurve {
         TransactionWithIdentity[] memory result = new TransactionWithIdentity[](r-l);
         
         if (l>transactions[addr].length) return result;
+        
+        uint len = transactions[addr].length;
     
         uint index=0;
-        for (uint i = l; i < r; i++)
+        for (uint i = len-l-1; i >= len-r; i--)
         {
             address from = transactions[addr][i].from;
             address to = transactions[addr][i].to;
@@ -554,6 +556,7 @@ contract Popcoin is ERC20Interface, SafeMath, EllipticCurve {
                 toIdentifier : identifiers[to]
             });
             result[index++] = t;
+            if (i==0) break;
         }
         return result;
     }
