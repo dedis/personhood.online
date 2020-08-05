@@ -67,51 +67,55 @@ export class Home extends Component {
 
 class Item extends Component<{ item: any }> {
     state = {
+        symbol: '',
         profile: undefined,
     }
 
-    symbol = ''
-    date = new Date(this.props.item.timestamp.toNumber() * 1000)
-    amount = this.props.item.amount.toNumber() / 10000
-
-    componentDidMount() {
+    componentDidUpdate() {
         let { item } = this.props
 
+        var id = ''
         if (
             item.receiver.address.toLowerCase() ===
             '0x' + UserAccount.bankAccount?.address
         ) {
-            this.symbol = '+'
+            id = item.sender.identifier
         } else {
-            this.symbol = '-'
+            id = item.receiver.identifier
         }
 
-        EPFLAccount.fetchLADPProfile(
-            this.symbol === '+'
-                ? item.sender.identifier
-                : item.receiver.identifier,
-        )
+        EPFLAccount.fetchLADPProfile(id)
             .then(res => {
                 this.setState({ profile: res })
                 console.log(res)
             })
-            .catch(() => {
-                console.log(this.props.item.id + ' profile not found')
-            })
+            .catch(() => {})
     }
 
     render() {
         let { item } = this.props
 
+        var symbol = ''
+        if (
+            item.receiver.address.toLowerCase() ===
+            '0x' + UserAccount.bankAccount?.address
+        ) {
+            symbol = '+'
+        } else {
+            symbol = '-'
+        }
+
+        let date = new Date(this.props.item.timestamp.toNumber() * 1000)
+        let amount = this.props.item.amount.toNumber() / 10000
+
         let profile = this.state.profile ?? {
             firstName:
-                this.symbol === '+'
+                symbol === '+'
                     ? item.sender.identifier
                     : item.receiver.identifier,
             lastName: '',
             avatar: undefined,
         }
-        console.log(profile)
 
         return (
             <View style={style.item}>
@@ -126,13 +130,12 @@ class Item extends Component<{ item: any }> {
                         {profile.firstName} {profile.lastName}
                     </Text>
                     <Text style={style.date}>
-                        {this.date.toLocaleDateString()}{' '}
-                        {this.date.toLocaleTimeString()}
+                        {date.toLocaleDateString()} {date.toLocaleTimeString()}
                     </Text>
                 </View>
                 <View style={style.amountContainer}>
                     <Text style={style.amount}>
-                        {this.symbol} $ {this.amount.toFixed(2).toString()}
+                        {symbol} $ {amount.toFixed(2).toString()}
                     </Text>
                 </View>
             </View>
@@ -186,7 +189,7 @@ let style = StyleSheet.create({
         fontSize: 11,
     },
     amountContainer: {
-        flex: 1,
+        flex: 2,
         justifyContent: 'center',
     },
     amount: {

@@ -141,7 +141,7 @@ android {
         multiDexEnabled true
 
         versionCode 200805
-        versionName "0.3.0"
+        versionName "0.3.1"
         missingDimensionStrategy 'react-native-camera', 'general'
     }
     splits {

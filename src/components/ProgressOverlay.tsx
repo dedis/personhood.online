@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
     container: {
         minWidth: '50%',
         maxWidth: '80%',
-        minHeight: '15%',
+        minHeight: '20%',
         maxHeight: '60%',
         display: 'flex',
         alignItems: 'center',
