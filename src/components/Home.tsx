@@ -5,7 +5,7 @@ import Icon from 'react-native-vector-icons/Ionicons'
 import { Element } from '../styles'
 import { UserAccount, EPFLAccount } from '../network/tequila'
 
-export class Home extends Component {
+export class Home extends Component<{ navigation: any }> {
     state = {
         transactions: [],
         balance: '0.00',
@@ -14,24 +14,60 @@ export class Home extends Component {
 
     componentDidMount() {
         this.loadTransactions()
-        this.loadBalance()
+
+        this.props.navigation.addListener('willFocus', this.update)
     }
 
-    loadTransactions() {
-        // fetch('https://randomuser.me/api/?results=20')
-        //     .then(res => res.json())
-        //     .then(res => this.setState({ transactions: res.results }))
-        //     .catch(err => console.error(err))
-        UserAccount.bankAccount?.getTransactions(0, 10).then(res => {
-            this.setState({ transactions: res })
-        })
+    async castToItem(transaction: any) {
+        var symbol = ''
+        var id = ''
+        if (
+            transaction.receiver.address.toLowerCase() ===
+            '0x' + UserAccount.bankAccount?.address
+        ) {
+            symbol = '+'
+            id = transaction.sender.identifier
+        } else {
+            symbol = '-'
+            id = transaction.receiver.identifier
+        }
+
+        let date = new Date(transaction.timestamp.toNumber() * 1000)
+        let amount = transaction.amount.toNumber() / 10000
+        try {
+            let profile = await EPFLAccount.fetchLADPProfile(
+                id.split(':').pop() as string,
+            )
+            return { symbol, date, amount, profile }
+        } catch (_) {
+            return {
+                symbol,
+                date,
+                amount,
+                profile: {
+                    firstName:
+                        symbol === '+'
+                            ? transaction.sender.identifier
+                            : transaction.receiver.identifier,
+                    lastName: '',
+                    avatar: undefined,
+                },
+            }
+        }
     }
 
-    async loadBalance() {
-        this.updateBalance()
+    async loadTransactions() {
+        let res = await UserAccount.bankAccount?.getTransactions(0, 10)
+
+        var items = []
+        for (const i in res) {
+            items.push(await this.castToItem(res[i]))
+        }
+
+        this.setState({ transactions: items })
     }
 
-    updateBalance = async () => {
+    update = async () => {
         this.setState({ loading: true })
         let res = await UserAccount.bankAccount!.updateBalance()
         this.setState({ balance: res.toFixed(2), loading: false })
@@ -51,7 +87,7 @@ export class Home extends Component {
                         type="clear"
                         icon={<Icon name="md-refresh-circle" size={30} />}
                         loading={this.state.loading}
-                        onPress={this.updateBalance}
+                        onPress={this.update}
                     />
                 </View>
                 <Text style={style.sectionLabel}>Transactions</Text>
@@ -66,56 +102,8 @@ export class Home extends Component {
 }
 
 class Item extends Component<{ item: any }> {
-    state = {
-        symbol: '',
-        profile: undefined,
-    }
-
-    componentDidUpdate() {
-        let { item } = this.props
-
-        var id = ''
-        if (
-            item.receiver.address.toLowerCase() ===
-            '0x' + UserAccount.bankAccount?.address
-        ) {
-            id = item.sender.identifier
-        } else {
-            id = item.receiver.identifier
-        }
-
-        EPFLAccount.fetchLADPProfile(id)
-            .then(res => {
-                this.setState({ profile: res })
-                console.log(res)
-            })
-            .catch(() => {})
-    }
-
     render() {
         let { item } = this.props
-
-        var symbol = ''
-        if (
-            item.receiver.address.toLowerCase() ===
-            '0x' + UserAccount.bankAccount?.address
-        ) {
-            symbol = '+'
-        } else {
-            symbol = '-'
-        }
-
-        let date = new Date(this.props.item.timestamp.toNumber() * 1000)
-        let amount = this.props.item.amount.toNumber() / 10000
-
-        let profile = this.state.profile ?? {
-            firstName:
-                symbol === '+'
-                    ? item.sender.identifier
-                    : item.receiver.identifier,
-            lastName: '',
-            avatar: undefined,
-        }
 
         return (
             <View style={style.item}>
@@ -123,19 +111,20 @@ class Item extends Component<{ item: any }> {
                     rounded
                     size="medium"
                     icon={{ name: 'user', type: 'font-awesome' }}
-                    source={{ uri: profile.avatar }}
+                    source={{ uri: item.profile.avatar }}
                 />
                 <View style={style.nameContainer}>
                     <Text style={style.name}>
-                        {profile.firstName} {profile.lastName}
+                        {item.profile.firstName} {item.profile.lastName}
                     </Text>
                     <Text style={style.date}>
-                        {date.toLocaleDateString()} {date.toLocaleTimeString()}
+                        {item.date.toLocaleDateString()}{' '}
+                        {item.date.toLocaleTimeString()}
                     </Text>
                 </View>
                 <View style={style.amountContainer}>
                     <Text style={style.amount}>
-                        {symbol} $ {amount.toFixed(2).toString()}
+                        {item.symbol} $ {item.amount.toFixed(2).toString()}
                     </Text>
                 </View>
             </View>
