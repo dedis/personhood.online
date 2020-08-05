@@ -10,7 +10,8 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
   },
   "dependencies": {
-    "@dedis/cothority": "^3.5.0",
+    "@dedis/cothority": "^3.5.1",
+    "@ethersproject/bignumber": "^5.0.5",
     "@react-native-community/art": "^1.2.0",
     "@react-native-community/async-storage": "^1.11.0",
     "@react-native-community/clipboard": "^1.2.3",

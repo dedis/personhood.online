@@ -16,6 +16,21 @@ export class EPFLAccount {
     public token?: string
     public profile?: EPFLProfile
 
+    static async fetchLADPProfile(id: string): Promise<EPFLProfile> {
+        return fetch('https://epflcoin.cothority.net/oauth2/info?id=' + id)
+            .then(res => res.json())
+            .then(res => {
+                let name = res.name.split(' ')
+                return {
+                    identifier: id,
+                    email: res.email,
+                    avatar: res.avatar,
+                    lastName: name.pop(),
+                    firstName: name.join(' '),
+                }
+            })
+    }
+
     async updateProfile(): Promise<EPFLProfile> {
         if (!this.token) {
             throw new Error('empty token not allowed')

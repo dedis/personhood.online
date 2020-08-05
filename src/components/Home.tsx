@@ -3,7 +3,7 @@ import { SafeAreaView, View, FlatList, StyleSheet } from 'react-native'
 import { Text, Avatar, Button } from 'react-native-elements'
 import Icon from 'react-native-vector-icons/Ionicons'
 import { Element } from '../styles'
-import { UserAccount } from '../network/tequila'
+import { UserAccount, EPFLAccount } from '../network/tequila'
 
 export class Home extends Component {
     state = {
@@ -18,10 +18,13 @@ export class Home extends Component {
     }
 
     loadTransactions() {
-        fetch('https://randomuser.me/api/?results=20')
-            .then(res => res.json())
-            .then(res => this.setState({ transactions: res.results }))
-            .catch(err => console.error(err))
+        // fetch('https://randomuser.me/api/?results=20')
+        //     .then(res => res.json())
+        //     .then(res => this.setState({ transactions: res.results }))
+        //     .catch(err => console.error(err))
+        UserAccount.bankAccount?.getTransactions(0, 10).then(res => {
+            this.setState({ transactions: res })
+        })
     }
 
     async loadBalance() {
@@ -32,6 +35,8 @@ export class Home extends Component {
         this.setState({ loading: true })
         let res = await UserAccount.bankAccount!.updateBalance()
         this.setState({ balance: res.toFixed(2), loading: false })
+
+        this.loadTransactions()
     }
 
     render() {
@@ -53,7 +58,7 @@ export class Home extends Component {
                 <FlatList
                     data={this.state.transactions}
                     renderItem={({ item }) => <Item item={item} />}
-                    keyExtractor={(item: any) => item.login.uuid}
+                    keyExtractor={(item: any, index: number) => `${index}`}
                 />
             </SafeAreaView>
         )
@@ -62,28 +67,72 @@ export class Home extends Component {
 
 class Item extends Component<{ item: any }> {
     state = {
-        symbol: Math.random() >= 0.5 ? '+' : '-',
-        amount: (Math.random() * 100).toFixed(2),
+        profile: undefined,
+    }
+
+    symbol = ''
+    date = new Date(this.props.item.timestamp.toNumber() * 1000)
+    amount = this.props.item.amount.toNumber() / 10000
+
+    componentDidMount() {
+        let { item } = this.props
+
+        if (
+            item.receiver.address.toLowerCase() ===
+            '0x' + UserAccount.bankAccount?.address
+        ) {
+            this.symbol = '+'
+        } else {
+            this.symbol = '-'
+        }
+
+        EPFLAccount.fetchLADPProfile(
+            this.symbol === '+'
+                ? item.sender.identifier
+                : item.receiver.identifier,
+        )
+            .then(res => {
+                this.setState({ profile: res })
+                console.log(res)
+            })
+            .catch(() => {
+                console.log(this.props.item.id + ' profile not found')
+            })
     }
 
     render() {
         let { item } = this.props
+
+        let profile = this.state.profile ?? {
+            firstName:
+                this.symbol === '+'
+                    ? item.sender.identifier
+                    : item.receiver.identifier,
+            lastName: '',
+            avatar: undefined,
+        }
+        console.log(profile)
+
         return (
             <View style={style.item}>
                 <Avatar
                     rounded
                     size="medium"
-                    source={{ uri: item.picture.medium }}
+                    icon={{ name: 'user', type: 'font-awesome' }}
+                    source={{ uri: profile.avatar }}
                 />
                 <View style={style.nameContainer}>
                     <Text style={style.name}>
-                        {item.name.first + ' ' + item.name.last}
+                        {profile.firstName} {profile.lastName}
                     </Text>
-                    <Text style={style.date}>20 Jun, 14:53</Text>
+                    <Text style={style.date}>
+                        {this.date.toLocaleDateString()}{' '}
+                        {this.date.toLocaleTimeString()}
+                    </Text>
                 </View>
                 <View style={style.amountContainer}>
                     <Text style={style.amount}>
-                        {this.state.symbol} $ {this.state.amount}
+                        {this.symbol} $ {this.amount.toFixed(2).toString()}
                     </Text>
                 </View>
             </View>
@@ -134,6 +183,7 @@ let style = StyleSheet.create({
     },
     date: {
         color: '#666',
+        fontSize: 11,
     },
     amountContainer: {
         flex: 1,

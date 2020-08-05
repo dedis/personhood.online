@@ -29,7 +29,7 @@ export class CurrencyAccount {
 
         this.contract = EvmContract.deserialize({
             abi: CONTRACT_ABI,
-            addresses: ['7c78361c5ae324446350b96b119e97dd5e9cc206'],
+            addresses: ['61d0b579c7261eda5a6343b9fe88515fcaea6a71'],
             bytecode: CONTRACT_BYTECODE,
             name: 'Popcoin',
         })
@@ -99,7 +99,7 @@ export class CurrencyAccount {
             console.log('account found: ' + value)
             let info = JSON.parse(value)
             this.bevmAccount = EvmAccount.deserialize(info)
-            progress ? progress('Checking...') : undefined
+            progress ? progress('Checking Membership...') : undefined
             return await this.isMemeber()
             // return true
         }
@@ -164,7 +164,7 @@ export class CurrencyAccount {
             ['0x' + this.address, this.storageKey, signature],
         )
 
-        progress ? progress('Checking...') : undefined
+        progress ? progress('Checking Membership...') : undefined
         let result = await this.isMemeber()
         if (!result) {
             throw new Error('add member failed')
@@ -230,6 +230,19 @@ export class CurrencyAccount {
             'getTransactions',
             ['0x' + this.address, start, end],
         )
-        return result
+        return result?.map(value =>
+            value.map((t: any) => ({
+                sender: {
+                    address: t[0],
+                    identifier: t[2],
+                },
+                receiver: {
+                    address: t[1],
+                    identifier: t[3],
+                },
+                amount: t[4],
+                timestamp: t[5],
+            })),
+        )[0]
     }
 }
