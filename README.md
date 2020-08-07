@@ -8,14 +8,44 @@ Now this is only a demo version with restricted features. Creating a new account
 
 ## Environment
 
-Firstly, prepare react native dependencies:
+### Node.js
+
+For windows user, you can download Node.js installer (.msi) [here](https://nodejs.org/en/download/current/).
+
+For macOS user, you can also download Node.js from the link above or use [Homebrew](https://brew.sh/) (package manager for macOS):
+```shell
+brew install node
+```
+
+For installing the Node.js on Linux, please check [the document here](https://github.com/nodesource/distributions/blob/master/README.md) for different distributions of Linux.
+
+### React Native and Dependencies
+
+After clone this project by the commands below:
+```shell
+# Get the repo
+git clone git@github.com:dedis/personhood.online.git
+
+# Switch to this branch
+git fetch
+git checkout rn-dev
+
+# Change directory to the project
+cd ./personhood.online
+```
+
+Then prepare react native dependencies:
 ```shell
 yarn
 
-# or
+# or using the default package manager
 
 npm install
 ```
+
+If you not familiar with `yarn`. please check [here](https://yarnpkg.com/getting-started). Both package manager `yarn` or `npm` works for this project.
+
+For both iOS and Android, they have their own dependencies for supporting react native packages.
 
 ## iOS
 
